@@ -13,9 +13,13 @@ import {
 import { motion } from 'framer-motion';
 import { fetchWildfireIntel } from './services/wildfireApi';
 import type { WildfireData } from './services/wildfireApi';
+import { SimulationView3D as SimulationView } from './components/SimulationView3D';
 import './App.css';
 
+type ViewMode = 'MAP' | 'SIMULATION';
+
 const App: React.FC = () => {
+  const [viewMode, setViewMode] = useState<ViewMode>('MAP');
   const [intel, setIntel] = useState<WildfireData | null>(null);
   const mapRef = useRef<HTMLDivElement>(null);
   const [apiKey, setApiKey] = useState('');
@@ -46,6 +50,10 @@ const App: React.FC = () => {
     }
   }, [apiKey]);
 
+  if (viewMode === 'SIMULATION') {
+    return <SimulationView onBack={() => setViewMode('MAP')} />;
+  }
+
   return (
     <div className="app-container">
       {/* Sidebar Navigation */}
@@ -54,8 +62,18 @@ const App: React.FC = () => {
           <Flame size={24} />
         </div>
         <nav style={{ display: 'flex', flexDirection: 'column', gap: '24px', color: 'var(--text-secondary)' }}>
-          <button style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer' }}><LayoutDashboard size={22} /></button>
-          <button style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer' }}><MapIcon size={22} /></button>
+          <button 
+            onClick={() => setViewMode('MAP')}
+            style={{ background: 'none', border: 'none', color: 'var(--accent-amber)', cursor: 'pointer', transition: 'color 0.2s' }}
+          >
+            <LayoutDashboard size={22} />
+          </button>
+          <button 
+            onClick={() => setViewMode('SIMULATION')}
+            style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', transition: 'color 0.2s' }}
+          >
+            <Flame size={22} />
+          </button>
           <button style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer' }}><AlertTriangle size={22} /></button>
         </nav>
         <div style={{ marginTop: 'auto' }}>
@@ -134,28 +152,24 @@ const App: React.FC = () => {
                 label="Drought Index"
                 value={intel?.droughtIndex ? `${intel.droughtIndex}/100` : '...'}
                 trend="Moderate"
-                colorClass="text-blue"
               />
               <MetricCard 
                 icon={<Wind className="text-secondary" size={20} />}
                 label="Wind Velocity"
                 value={intel?.windSpeed ? `${intel.windSpeed} km/h` : '...'}
                 trend={`${intel?.windDirection ?? 0}° N`}
-                colorClass="text-secondary"
               />
               <MetricCard 
                 icon={<Trees className="text-emerald" size={20} />}
                 label="Vegetation"
                 value={intel?.vegetationType ?? '...'}
                 trend="High Dryness"
-                colorClass="text-emerald"
               />
               <MetricCard 
                 icon={<AlertTriangle className="text-red" size={20} />}
                 label="Fuel Density"
                 value="Extreme"
                 trend="+12% vs LY"
-                colorClass="text-red"
               />
             </div>
 
