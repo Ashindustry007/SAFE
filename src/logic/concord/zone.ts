@@ -1,13 +1,26 @@
-import { Vegetation, TerrainType, DroughtLevel } from "./types";
-// No mobx needed
+/**
+ * SAFE Concord Engine - Zone Definition
+ * 
+ * Manages environmental profiles (Zones) that define regional vegetation, 
+ * topography, and drought conditions.
+ */
 
+import { Vegetation, TerrainType, DroughtLevel } from "./types";
+
+/**
+ * Configuration options for initializing a Zone.
+ */
 export interface ZoneOptions {
   vegetation?: Vegetation;
   terrainType?: TerrainType;
   droughtLevel?: DroughtLevel;
 }
 
-// values for each level of vegetation: Grass, Shrub, Forest, ForestWithSuppression
+/**
+ * moistureLookups
+ * Maps DroughtLevel to an array of moisture content percentages for each 
+ * Vegetation type in the order: [Grass, Shrub, Forest, ForestWithSuppression].
+ */
 export const moistureLookups: {[key in DroughtLevel]: number[]} = {
   [DroughtLevel.NoDrought]: [0.20, 0.40, 0.30, 0.35],
   [DroughtLevel.MildDrought]: [0.12, 0.24, 0.18, 0.21],
@@ -15,7 +28,10 @@ export const moistureLookups: {[key in DroughtLevel]: number[]} = {
   [DroughtLevel.SevereDrought]: [0.005, 0.01, 0.007, 0.008],
 };
 
-
+/**
+ * Zone Class
+ * Encapsulates the environmental context for a group of cells.
+ */
 export class Zone {
   public vegetation: Vegetation = Vegetation.Grass;
   public terrainType: TerrainType = TerrainType.Foothills;
@@ -29,6 +45,9 @@ export class Zone {
     }
   }
 
+  /**
+   * Creates a deep copy of the zone instance.
+   */
   clone() {
     return new Zone({
       vegetation: this.vegetation,
