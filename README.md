@@ -36,7 +36,7 @@ LANDING PAGE
 LIVE MAP SIMULATION
 <img width="1800" height="1004" alt="LIVE SIMULATION" src="https://github.com/user-attachments/assets/fc7b909d-99f4-4bb1-a75b-6255a7c833c0" />
 UNCONTROLLED-CONTROLLED SIMULATION
-<img width="1793" height="1073" alt="SIMULATION" src="https://github.com/user-attachments/assets/b402ae2b-c088-4b0f-9026-5f5d3411f8bd" />
+<img width="1799" height="995" alt="SIMULATION_" src="https://github.com/user-attachments/assets/896c5257-b8d5-4fc5-8f3e-42d8c0a067e5" />
 RESOURCES
 <img width="1800" height="1002" alt="RESOURCES" src="https://github.com/user-attachments/assets/2c7c760a-cb46-44f1-8eaa-eb083b245c71" />
 ASSISTANT
