@@ -48,7 +48,7 @@ function createEngine(grid: Cell[], wind: IWindProps): FireEngine {
   return new FireEngine(grid, wind, [], ENGINE_CFG);
 }
 
-const TOWNS = CFG.towns.map(t => ({ name: t.name, xFrac: t.x, yFrac: t.y }));
+
 
 interface Simulation3DProps {
   onBack: () => void;
@@ -84,18 +84,7 @@ const SimulationContent = ({ cells, activeTool, clickMarkers, onCellInteraction,
           </group>
         );
       })}
-      {TOWNS.map((town) => {
-          const gridX = Math.max(0, Math.min(GRID_WIDTH - 1, Math.floor(town.xFrac * GRID_WIDTH)));
-          const gridY = Math.max(0, Math.min(GRID_HEIGHT - 1, Math.floor(town.yFrac * GRID_HEIGHT)));
-          const cell = cells[gridY * GRID_WIDTH + gridX];
-          if (!cell) return null;
-          const isBurned = cell.fireState === FireState.Burning || cell.fireState === FireState.Burnt;
-          return (
-            <Html key={town.name} position={[(cell.x / (GRID_WIDTH - 1) - 0.5) * 1, (cell.elevation ?? cell.baseElevation) * (1 / MODEL_WIDTH_FT) + 0.05, (cell.y / (GRID_HEIGHT - 1) - 0.5) * (MODEL_HEIGHT_FT / MODEL_WIDTH_FT)]} center>
-              <div style={{ backgroundColor: isBurned ? 'rgba(239, 68, 68, 0.9)' : 'rgba(0, 0, 0, 0.6)', color: 'white', padding: '4px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold' }}>{town.name} {isBurned && '🔥'}</div>
-            </Html>
-          );
-      })}
+
     </group>
   </>
 );
