@@ -256,7 +256,7 @@ const App: React.FC = () => {
             position: 'relative' 
           }}
         >
-          <SimulationView onBack={() => setViewMode('MAP')} />
+          <SimulationView />
         </div>
         {/* FAQ View */}
         <div 
