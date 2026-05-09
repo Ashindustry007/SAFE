@@ -1,3 +1,14 @@
+/**
+ * SAFE Wildfire Intelligence - Core Type Definitions
+ * 
+ * Defines the enums, interfaces, and lookup tables used by the physics-based
+ * Rothermel spread engine and the 3D visualization systems.
+ */
+
+/**
+ * Vegetation Fuel Types
+ * Represents different ecosystem profiles with varying spread properties.
+ */
 export const Vegetation = {
   Grass: 0,
   Shrub: 1,
@@ -6,6 +17,10 @@ export const Vegetation = {
 } as const;
 export type Vegetation = typeof Vegetation[keyof typeof Vegetation];
 
+/**
+ * Environmental Drought Levels
+ * Influences the moisture content of vegetation (fuel).
+ */
 export const DroughtLevel = {
   NoDrought: 0,
   MildDrought: 1,
@@ -14,6 +29,9 @@ export const DroughtLevel = {
 } as const;
 export type DroughtLevel = typeof DroughtLevel[keyof typeof DroughtLevel];
 
+/**
+ * Fire Lifecycle States
+ */
 export const FireState = {
   Unburnt: 0,
   Burning: 1,
@@ -21,6 +39,9 @@ export const FireState = {
 } as const;
 export type FireState = typeof FireState[keyof typeof FireState];
 
+/**
+ * Burn Intensity Categorization
+ */
 export const BurnIndex = {
   Low: 0,
   Medium: 1,
@@ -28,19 +49,31 @@ export const BurnIndex = {
 } as const;
 export type BurnIndex = typeof BurnIndex[keyof typeof BurnIndex];
 
+/**
+ * Fuel Physics Properties
+ * Parameters required for the Rothermel spread equation.
+ */
 export interface Fuel {
-  sav: number;
-  netFuelLoad: number;
-  fuelBedDepth: number;
-  packingRatio: number;
-  mx: number;
+  sav: number;            // Surface Area to Volume Ratio
+  netFuelLoad: number;    // Fuel loading (lb/ft^2)
+  fuelBedDepth: number;   // Fuel depth (ft)
+  packingRatio: number;   // Fuel density ratio
+  mx: number;             // Moisture of extinction
 }
 
+/**
+ * Zone Configuration
+ * Environmental profile for a specific geographic region.
+ */
 export interface ZoneConfig {
   vegetation: Vegetation;
   droughtLevel: DroughtLevel;
 }
 
+/**
+ * Grid Cell Definition
+ * Primary unit of the simulation grid containing topography and fire state.
+ */
 export interface Cell {
   x: number;
   y: number;
@@ -59,11 +92,18 @@ export interface Cell {
   helitackDropCount: number;
 }
 
+/**
+ * Wind Vector Properties
+ */
 export interface IWindProps {
   speed: number;
   direction: number;
 }
 
+/**
+ * Moisture Lookup Table
+ * Maps DroughtLevel and Vegetation type to specific fuel moisture percentages.
+ */
 export const moistureLookups: Record<DroughtLevel, Record<Vegetation, number>> = {
   [DroughtLevel.NoDrought]: {
     [Vegetation.Grass]: 0.125,

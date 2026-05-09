@@ -1,3 +1,11 @@
+/**
+ * SAFE Application Root
+ * 
+ * The main entry point for the SAFE wildfire intelligence platform.
+ * Manages global view states (Map, Simulation, FAQ, Chat) and coordinates
+ * the fetching of regional wildfire intelligence data.
+ */
+
 import React, { useEffect, useState, useRef } from 'react';
 import { setOptions, importLibrary } from '@googlemaps/js-api-loader';
 import { 
@@ -21,6 +29,10 @@ import Chatbot from './components/Chatbot';
 import FAQPage from './components/FAQPage';
 import './App.css';
 
+/**
+ * ViewMode Navigation Type
+ * Defines the primary routing states for the main content area.
+ */
 type ViewMode = 'MAP' | 'SIMULATION' | 'FAQ' | 'CHAT';
 
 const App: React.FC = () => {
@@ -29,6 +41,11 @@ const App: React.FC = () => {
   const mapRef = useRef<HTMLDivElement>(null);
   const [apiKey, setApiKey] = useState(import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '');
 
+  /**
+   * Data Loading Effect
+   * Fetches regional wildfire intelligence on mount.
+   * Implements a 1-hour localStorage cache to minimize API calls.
+   */
   useEffect(() => {
     const loadInitialData = async () => {
       const CACHE_KEY = 'wildfire_intel_cache';
@@ -55,6 +72,10 @@ const App: React.FC = () => {
     loadInitialData();
   }, []);
 
+  /**
+   * Google Maps Initialization
+   * Dynamically loads the Google Maps JavaScript API and renders the dashboard map.
+   */
   useEffect(() => {
     if (mapRef.current && apiKey) {
       setOptions({
@@ -288,6 +309,10 @@ const App: React.FC = () => {
   );
 };
 
+/**
+ * MetricCard Component
+ * Displays a single environmental data point with an icon and trend label.
+ */
 const MetricCard = ({ icon, label, value, trend }: any) => (
   <div className="glass-panel metric-card" style={{ backgroundColor: '#f8fafc', borderColor: '#e2e8f0' }}>
     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
@@ -303,6 +328,10 @@ const MetricCard = ({ icon, label, value, trend }: any) => (
   </div>
 );
 
+/**
+ * Google Maps Stylization
+ * Curated color palette for high-readability wildfire environmental mapping.
+ */
 const lightColorfulMapStyle = [
   { elementType: "geometry", stylers: [{ color: "#ebe3cd" }] },
   { elementType: "labels.text.fill", stylers: [{ color: "#523735" }] },
@@ -321,4 +350,3 @@ const lightColorfulMapStyle = [
 ];
 
 export default App;
-

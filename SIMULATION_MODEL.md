@@ -1,58 +1,56 @@
 # Wildfire Simulation Model: Rothermel Adaptation
 
-The core of SAFE's predictive capability is an adaptation of the **Rothermel Surface Fire Spread Model**, which is the gold standard for fire behavior modeling in the United States (used in tools like BehavePlus).
+The core of SAFE's predictive capability is a high-fidelity implementation of the **Rothermel Surface Fire Spread Model**, the globally recognized standard for operational fire behavior modeling.
 
 ## 🧮 Mathematical Foundation
 
-The rate of fire spread ($R$) is calculated using the following primary components:
+The rate of fire spread ($R$) is derived from the balance of heat received by potential fuel vs. the heat required for ignition:
 
 $$R = \frac{I_R \cdot \phi_w \cdot \phi_s}{\rho_b \cdot \epsilon \cdot Q_{ig}}$$
 
-Where:
-- **$I_R$**: Reaction Intensity (energy released per unit area per unit time).
-- **$\phi_w$**: Wind Factor.
-- **$\phi_s$**: Slope Factor.
-- **$\rho_b$**: Bulk Density of the fuel.
-- **$\epsilon$**: Effective Heating Number.
-- **$Q_{ig}$**: Heat of Pre-ignition.
+### Variable Definitions:
+- **Reaction Intensity ($I_R$)**: The energy released per unit area per unit time, influenced by mineral and moisture damping.
+- **Wind Factor ($\phi_w$)**: Non-linear scaling of spread rate based on wind speed and direction.
+- **Slope Factor ($\phi_s$)**: The impact of topographic gradient on pre-heating fuel.
+- **Bulk Density ($\rho_b$)**: The mass of fuel per unit volume of the fuel bed.
+- **Effective Heating Number ($\epsilon$)**: The fraction of fuel mass that must be heated to ignition.
+- **Heat of Pre-ignition ($Q_{ig}$)**: The energy required to bring fuel to ignition temperature.
 
-## 🌿 Fuel Constants (`FuelConstants`)
+## 🌿 Physical Fuel Models (`FuelConstants`)
 
-We model different vegetation types with specific physical properties:
+SAFE utilizes research-grade constants for different vegetation profiles:
 
-| Property | Grass | Shrub | Forest |
-|----------|-------|-------|--------|
-| **SAV** (Surface Area to Volume) | 2100 | 1672 | 1716 |
-| **Fuel Load** (lb/ft²) | 0.294 | 0.239 | 0.0459 |
-| **Mx** (Moisture of Extinction) | 0.15 | 0.30 | 0.20 |
+| Property | Grassland | Shrubland | Forest |
+|----------|-----------|-----------|--------|
+| **SAV Ratio** (Surface Area to Volume) | 2100 | 1672 | 1716 |
+| **Net Fuel Load** (lb/ft²) | 0.294 | 0.239 | 0.0459 |
+| **Mx** (Moisture of Extinction) | 15% | 30% | 20% |
+| **Fuel Bed Depth** (ft) | 3.0 | 1.2 | 0.1 |
 
-## 💧 Moisture Damping
+## 🧬 Advanced Physics Components
 
-The simulation calculates a **Moisture Damping Coefficient**. As fuel moisture increases relative to the moisture of extinction ($Mx$), the fire spread rate decreases non-linearly.
-
+### 1. Moisture Damping
+The simulation calculates a non-linear damping coefficient that reduces fire intensity as fuel moisture approaches the extinction limit ($Mx$):
 ```typescript
-const moistureDampingCoefficient = 1 - (2.59 * moistureContentRatio) + (5.11 * Math.pow(moistureContentRatio, 2)) - (3.52 * Math.pow(moistureContentRatio, 3));
+const moistureDamping = 1 - (2.59 * r) + (5.11 * r^2) - (3.52 * r^3); // where r = moisture / mx
 ```
 
-## 🌬️ Wind and Slope Vectoring
+### 2. Vector-Based Spread
+SAFE implements **Vector Resultant Spread**, combining environmental forces:
+- **Wind Vector**: Oriented based on global weather data.
+- **Upslope Vector**: Derived from the local elevation gradient.
+- **Effective Wind Speed**: A recalculated value representing the combined "push" of wind and slope on the fire front.
 
-Unlike simple models, SAFE uses **vector addition** to combine the influence of wind and terrain slope.
+### 3. Burn Index (BI) & Suppression
+The model dynamically adjusts behavior based on active suppression:
+- **Helitack Drops**: Temporarily increase fuel moisture, lowering reaction intensity.
+- **Fire Lines**: Create zero-fuel barriers that stop low-to-medium intensity spread.
+- **Burn Index**: Categorizes intensity (Low/Medium/High) to inform evacuation protocols.
 
-1. **Wind Vector**: Calculated based on direction and speed, scaled by the `windFactor`.
-2. **Upslope Vector**: Calculated from the elevation gradient between cells.
-3. **Resultant Vector**: The fire "prefers" to spread in the direction of the combined vector.
+## 💻 Implementation Stack
+- **Engine Core**: `src/logic/wildfireEngineAdapted.ts`
+- **Simulation Loop**: Time-stepped cellular automata.
+- **Visuals**: High-performance 3D rendering in `Terrain3D.tsx`.
 
-## 🏁 Burn Index (BI)
-
-The `getBurnIndex` function categorizes the fire intensity:
-- **Low**: Controllable by ground crews.
-- **Medium**: May require heavy equipment or aerial support.
-- **High**: Dangerous; requires evacuation and large-scale suppression.
-
-## 💻 Implementation Details
-
-- **File**: `src/logic/wildfireEngineAdapted.ts`
-- **Functions**:
-    - `getFireSpreadRate()`: The core physics calculator.
-    - `stepSimulation()`: Advances the grid state by applying the spread rates over time ($\Delta t$).
-    - `getMoistureContent()`: Simulates how local factors like rivers or fire suppression drops (helitack) affect fuel moisture.
+---
+*SAFE Simulation Technical Documentation - Rothermel Implementation v2.1*

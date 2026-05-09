@@ -1,3 +1,11 @@
+/**
+ * SAFE Wildfire Spread Simulator (2D)
+ * 
+ * A high-performance 2D visualization of the cellular automata fire engine.
+ * Allows users to interactively ignite fuel, control wind/moisture vectors,
+ * and analyze fire behavior statistics in a controlled environment.
+ */
+
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { 
   Play, 
@@ -22,6 +30,7 @@ interface SimulationProps {
 }
 
 export const SimulationView: React.FC<SimulationProps> = () => {
+  // --- STATE MANAGEMENT ---
   const [grid, setGrid] = useState<Grid>(() => initializeGrid(100, 100, 0.6));
   const [params, setParams] = useState<SimulationParams>({
     windSpeed: 20,
@@ -32,18 +41,27 @@ export const SimulationView: React.FC<SimulationProps> = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  // Reset Grid
+  /**
+   * handleReset
+   * Re-initializes the simulation grid with the current vegetation density.
+   */
   const handleReset = useCallback(() => {
     setGrid(initializeGrid(100, 100, params.vegDensity));
     setIsPlaying(false);
   }, [params.vegDensity]);
 
-  // Step Simulation
+  /**
+   * handleStep
+   * Advances the simulation by exactly one time step.
+   */
   const handleStep = useCallback(() => {
     setGrid(prev => stepSimulation(prev, params));
   }, [params]);
 
-  // Animation Loop
+  /**
+   * Animation Loop Effect
+   * Manages the execution of simulation steps when 'isPlaying' is active.
+   */
   useEffect(() => {
     if (isPlaying) {
       const interval = setInterval(handleStep, 100);
@@ -51,7 +69,11 @@ export const SimulationView: React.FC<SimulationProps> = () => {
     }
   }, [isPlaying, handleStep]);
 
-  // Draw Grid
+  /**
+   * Canvas Rendering Effect
+   * Provides a WebGL-style high-performance 2D render of the simulation grid.
+   * Uses color mapping to represent fuel, active fire, and charred remains.
+   */
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -68,15 +90,15 @@ export const SimulationView: React.FC<SimulationProps> = () => {
 
         switch (state) {
           case CellState.FUEL:
-            ctx.fillStyle = `rgba(16, 185, 129, ${0.3 + params.vegDensity * 0.5})`; // Emerald
+            ctx.fillStyle = `rgba(16, 185, 129, ${0.3 + params.vegDensity * 0.5})`; 
             break;
           case CellState.BURNING:
-            ctx.fillStyle = '#ef4444'; // Red
+            ctx.fillStyle = '#ef4444'; 
             ctx.shadowBlur = 10;
             ctx.shadowColor = '#ef4444';
             break;
           case CellState.BURNT:
-            ctx.fillStyle = '#1e293b'; // Slate 800
+            ctx.fillStyle = '#1e293b'; 
             ctx.shadowBlur = 0;
             break;
         }
@@ -85,6 +107,10 @@ export const SimulationView: React.FC<SimulationProps> = () => {
     }
   }, [grid, params.vegDensity]);
 
+  /**
+   * handleCanvasClick
+   * Allows user-driven ignition of specific fuel cells on the grid.
+   */
   const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -96,7 +122,7 @@ export const SimulationView: React.FC<SimulationProps> = () => {
 
   return (
     <div className="main-content">
-      {/* Simulation Grid (Left) */}
+      {/* RENDER PANEL */}
       <section className="map-panel" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#020617' }}>
         <div style={{ position: 'relative', width: '90%', height: '90%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <canvas 
@@ -121,7 +147,7 @@ export const SimulationView: React.FC<SimulationProps> = () => {
         </div>
       </section>
 
-      {/* Simulation Controls (Right) */}
+      {/* CONTROL DASHBOARD */}
       <section className="intel-panel custom-scrollbar">
         <header style={{ padding: '32px', borderBottom: '1px solid rgba(255, 255, 255, 0.05)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
@@ -132,7 +158,7 @@ export const SimulationView: React.FC<SimulationProps> = () => {
         </header>
 
         <div style={{ padding: '32px', display: 'flex', flexDirection: 'column', gap: '32px' }}>
-          {/* Sliders */}
+          {/* PARAMETER SLIDERS */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             <Slider 
               icon={<Wind size={18} />}
@@ -174,7 +200,7 @@ export const SimulationView: React.FC<SimulationProps> = () => {
             />
           </div>
 
-          {/* Controls */}
+          {/* SIMULATION STATE CONTROLS */}
           <div style={{ display: 'flex', gap: '12px' }}>
             <button 
               className="btn-primary" 
@@ -185,6 +211,7 @@ export const SimulationView: React.FC<SimulationProps> = () => {
             </button>
             <button 
               className="glass-panel" 
+              title="Step Forward"
               style={{ padding: '8px 16px', borderRadius: '8px', color: 'white', cursor: 'pointer' }}
               onClick={handleStep}
             >
@@ -192,6 +219,7 @@ export const SimulationView: React.FC<SimulationProps> = () => {
             </button>
             <button 
               className="glass-panel" 
+              title="Reset Grid"
               style={{ padding: '8px 16px', borderRadius: '8px', color: 'white', cursor: 'pointer' }}
               onClick={handleReset}
             >
@@ -199,7 +227,7 @@ export const SimulationView: React.FC<SimulationProps> = () => {
             </button>
           </div>
 
-          {/* Stats */}
+          {/* REAL-TIME ANALYTICS */}
           <div className="glass-panel" style={{ padding: '20px', borderRadius: '12px' }}>
             <h3 style={{ fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', color: 'var(--text-secondary)', marginBottom: '16px' }}>Simulation Stats</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -219,6 +247,10 @@ export const SimulationView: React.FC<SimulationProps> = () => {
   );
 };
 
+/**
+ * Slider Sub-component
+ * Custom-styled range input for environmental parameter control.
+ */
 const Slider = ({ icon, label, value, min, max, step = 1, unit, onChange }: any) => (
   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

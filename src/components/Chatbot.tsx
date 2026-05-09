@@ -58,7 +58,12 @@ const Chatbot: React.FC = () => {
     setMessages(prev => [...prev, { role: 'user', content: textToSend }]);
     setIsLoading(true);
 
-    // 1. Check Local Fallback first for instant response
+    /**
+     * LOCAL INTELLIGENCE LAYER
+     * 
+     * Scans the input for specific keywords to provide instant local responses.
+     * Uses Regex with word boundaries (\b) to prevent partial matching (e.g., 'hi' in 'high').
+     */
     const normalizedInput = textToSend.toLowerCase().trim();
     const keywords: Record<string, string> = {
       "safe": "SAFE (Smart Analytics for Fire Emergencies) is a high-fidelity wildfire intelligence platform that uses the Rothermel model and real-time environmental data to predict fire behavior and risk.",
@@ -68,7 +73,7 @@ const Chatbot: React.FC = () => {
     };
 
     for (const [key, val] of Object.entries(keywords)) {
-      // Use word boundaries to prevent matching "hi" inside "high"
+      // Create regex for whole-word exact matching
       const regex = new RegExp(`\\b${key}\\b`, 'i');
       if (regex.test(normalizedInput)) {
         setTimeout(() => {
@@ -79,7 +84,12 @@ const Chatbot: React.FC = () => {
       }
     }
 
-    // 2. Query Server
+    /**
+     * CLOUD INTELLIGENCE LAYER (SERVER)
+     * 
+     * If no local keywords are matched, the request is routed to the multi-provider
+     * API server (Groq, Gemini, etc.) for high-fidelity technical analysis.
+     */
     try {
       const response = await axios.post('http://localhost:3002/api/chat', { message: textToSend });
       if (response.data?.response) {
