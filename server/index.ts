@@ -113,9 +113,9 @@ app.post('/api/chat', async (req: Request, res: Response): Promise<any> => {
 
   // 5. HARD FAILOVER (Technical Summary)
   console.error("All AI providers exhausted.");
-  res.json({ 
-    response: "The SAFE Intelligence Core is currently in maintenance mode. Technical Summary: SAFE is a wildfire predictive platform utilizing the Rothermel Spread Model and real-time environmental vectors to provide high-fidelity fire behavior analysis.", 
-    sources: [] 
+  res.json({
+    response: "The SAFE Intelligence Core is currently in maintenance mode. Technical Summary: SAFE is a wildfire predictive platform utilizing the Rothermel Spread Model and real-time environmental vectors to provide high-fidelity fire behavior analysis.",
+    sources: []
   });
 });
 

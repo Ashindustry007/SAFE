@@ -117,6 +117,7 @@ export class FireEngine {
   public day = 0;
   public burnedCellsInZone: {[key: number]: number} = {};
   private _seed = 123.456;
+  private _lastTime = 0;
 
   public setSeed(val: number) {
     this._seed = val;
@@ -212,6 +213,11 @@ export class FireEngine {
       }
       const ignitionTime = cell.ignitionTime;
       
+      // Decay suppression timer (e.g. helitack drop effects wearing off)
+      if (cell.suppressionTimer > 0) {
+        cell.suppressionTimer = Math.max(0, cell.suppressionTimer - (time - (this as any)._lastTime || 0));
+      }
+      
       // Handle Burning -> Burnt transition
       if (cell.fireState === FireState.Burning && time - ignitionTime > cell.burnTime) {
         newFireStateData[i] = FireState.Burnt;
@@ -274,5 +280,7 @@ export class FireEngine {
         this.cells[i].ignitionTime = newIgnitionData[i];
       }
     }
+    
+    this._lastTime = time;
   }
 }
