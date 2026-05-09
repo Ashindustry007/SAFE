@@ -11,18 +11,38 @@ import React, { useMemo, useEffect } from 'react';
 import * as THREE from 'three';
 import { FireState } from '../logic/concord/cell';
 import type { Cell } from '../logic/concord/cell';
+import { DroughtLevel } from '../logic/concord/types';
 
 import { Html } from '@react-three/drei';
+
+const COLORS = {
+  burningCore: new THREE.Color('#ffb020'),
+  burningFront: new THREE.Color('#ff2a00').multiplyScalar(1.65),
+  burnt: new THREE.Color('#1f1f1f'),
+  burntCool: new THREE.Color('#3d3530'),
+  river: new THREE.Color('#1f6cb0'),
+  fireLine: new THREE.Color('#5d4037'),
+  dryness: new THREE.Color('#c9a063'),
+};
 
 interface Terrain3DProps {
   cells: Cell[];
   width: number;
   height: number;
   activeTool: string;
+  /** Model time in minutes (Concord clock); burn coloring uses this with ignition/burnTime. */
+  simTime?: number;
   onCellInteraction: (x: number, y: number) => void;
 }
 
-export const Terrain3D: React.FC<Terrain3DProps> = ({ cells, width, height, activeTool, onCellInteraction }) => {
+export const Terrain3D: React.FC<Terrain3DProps> = ({
+  cells,
+  width,
+  height,
+  activeTool,
+  simTime = 0,
+  onCellInteraction,
+}) => {
   const [isDragging, setIsDragging] = React.useState(false);
 
   // Pre-construct geometry with color buffer
@@ -60,7 +80,7 @@ export const Terrain3D: React.FC<Terrain3DProps> = ({ cells, width, height, acti
         const cell = cells[idx];
         if (cell && z > 0) {
           posAttr.setZ(i, (cell.baseElevation || 0) / 40);
-          const color = getCellColor(cell);
+          const color = getCellColor(cell, simTime);
           colAttr.setXYZ(i, color.r, color.g, color.b);
         } else {
           // Bottom vertex
@@ -73,7 +93,7 @@ export const Terrain3D: React.FC<Terrain3DProps> = ({ cells, width, height, acti
     posAttr.needsUpdate = true;
     colAttr.needsUpdate = true;
     geometry.computeVertexNormals();
-  }, [cells, geometry, width, height]);
+  }, [cells, geometry, width, height, simTime]);
 
   const handlePointerAction = (e: any) => {
     e.stopPropagation();
@@ -86,34 +106,28 @@ export const Terrain3D: React.FC<Terrain3DProps> = ({ cells, width, height, acti
     }
   };
 
-// Pre-allocate colors to avoid massive garbage collection and WebGL context loss
-const COLORS = {
-  burning: new THREE.Color('#ff4d00').multiplyScalar(1.8),
-  burnt: new THREE.Color('#1a1a1a'),
-  extinguished: new THREE.Color('#2e4a3e'),
-  river: new THREE.Color('#1f6cb0'),
-  fireLine: new THREE.Color('#5d4037'),
-  zone0: new THREE.Color('#0a8c20'),
-  zone1: new THREE.Color('#7a912e'),
-  zone2: new THREE.Color('#00a000')
-};
+  function droughtBlend(zoneIdx: number, droughtLevel: DroughtLevel) {
+    const dryT = THREE.MathUtils.clamp(droughtLevel / DroughtLevel.SevereDrought, 0, 1);
+    const vegHue = zoneIdx === 0 ? new THREE.Color('#0d7f24') : zoneIdx === 1 ? new THREE.Color('#74932a') : new THREE.Color('#1fb34a');
+    return vegHue.clone().lerp(COLORS.dryness, dryT * 0.55);
+  }
 
-  /**
-   * getCellColor
-   * Map cell attributes (FireState, Zone, Features) to specific RGB values.
-   */
-  function getCellColor(cell: Cell) {
-    if (cell.fireState === FireState.Burning) return COLORS.burning;
-    if (cell.fireState === FireState.Burnt) return COLORS.burnt;
+  function getCellColor(cell: Cell, clock: number) {
+    if (cell.fireState === FireState.Burning) {
+      const dur = Math.max(cell.burnTime, 1);
+      const phase = THREE.MathUtils.clamp((clock - cell.ignitionTime) / dur, 0, 1);
+      const spreadBoost = THREE.MathUtils.clamp((cell.spreadRate ?? 0) / 140, 0, 1);
+      const intense = THREE.MathUtils.clamp(phase * 0.75 + spreadBoost * 0.35, 0, 1);
+      return COLORS.burningCore.clone().lerp(COLORS.burningFront, intense);
+    }
+    if (cell.fireState === FireState.Burnt) {
+      if (cell.isFireSurvivor) return COLORS.burntCool;
+      return COLORS.burnt;
+    }
     if (cell.isRiver) return COLORS.river;
     if (cell.isFireLine) return COLORS.fireLine;
-    
-    switch (cell.zoneIdx) {
-      case 0: return COLORS.zone0;
-      case 1: return COLORS.zone1;
-      case 2: return COLORS.zone2;
-      default: return COLORS.zone2;
-    }
+
+    return droughtBlend(cell.zoneIdx, cell.zone.droughtLevel);
   }
 
   return (
@@ -140,10 +154,11 @@ const COLORS = {
         }}
       >
         <primitive object={geometry} attach="geometry" />
-        <meshStandardMaterial  
-          vertexColors 
-          roughness={0.9} 
-          metalness={0.1}
+        <meshStandardMaterial
+          vertexColors
+          roughness={0.82}
+          metalness={0.06}
+          emissiveIntensity={0}
           emissive={new THREE.Color('#000000')}
         />
 
@@ -170,15 +185,22 @@ const COLORS = {
       
       <hemisphereLight intensity={0.6} groundColor="#1a1a1a" color="#ffffff" />
 
-      {cells.filter(c => c.fireState === FireState.Burning).slice(0, 5).map((cell, i) => (
-        <pointLight
-          key={i}
-          position={[cell.x - width / 2, cell.baseElevation / 40 + 2, height / 2 - cell.y]}
-          color="#ff6a00"
-          intensity={15}
-          distance={20}
-        />
-      ))}
+      {cells
+        .filter((c) => c.fireState === FireState.Burning)
+        .slice(0, 8)
+        .map((cell, i) => {
+          const spreadBoost = THREE.MathUtils.clamp((cell.spreadRate ?? 0) / 140, 0, 1);
+          return (
+            <pointLight
+              key={`${cell.x}-${cell.y}-${i}`}
+              position={[cell.x - width / 2, cell.baseElevation / 40 + 2, height / 2 - cell.y]}
+              color="#ff7b2e"
+              intensity={8 + spreadBoost * 32}
+              distance={18 + spreadBoost * 12}
+              decay={2}
+            />
+          );
+        })}
     </group>
   );
 };

@@ -8,7 +8,8 @@
 
 import { Vegetation, DroughtLevel } from './concord/types';
 import { Zone } from './concord/zone';
-import { Cell, FireState } from './concord/cell';
+import { Cell } from './concord/cell';
+import { buildCellsFromConcordPreset, getConcordPreset, isConcordPresetId } from './concord/presets';
 
 export type Scenario = 'Plains' | 'Foothills' | 'Mountains';
 export const Scenario: Record<string, Scenario> = {
@@ -83,3 +84,22 @@ export const generate3DGrid = (width: number, height: number): Cell[] => {
   }
   return cells;
 };
+
+export const PROCEDURAL_TERRAIN_ID = 'proceduralStripes' as const;
+
+/**
+ * Builds a flat Cell[] grid: procedural stripes or a named Concord preset (zoneIndex + zones).
+ */
+export function buildTerrainGrid(
+  width: number,
+  height: number,
+  terrainId: string = PROCEDURAL_TERRAIN_ID
+): Cell[] {
+  if (isConcordPresetId(terrainId)) {
+    const preset = getConcordPreset(terrainId);
+    if (preset) {
+      return buildCellsFromConcordPreset(preset, width, height);
+    }
+  }
+  return generate3DGrid(width, height);
+}
