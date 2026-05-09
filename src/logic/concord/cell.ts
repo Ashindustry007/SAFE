@@ -34,10 +34,10 @@ const FIRE_LINE_DEPTH = 2000;
 const MAX_BURN_TIME = 500;
 
 export class Cell {
-  public x: number; // grid X coord
-  public y: number; // grid Y coord
-  public zone: Zone;
-  public zoneIdx: number;
+  public x!: number; // grid X coord
+  public y!: number; // grid Y coord
+  public zone!: Zone;
+  public zoneIdx!: number;
   public baseElevation = 0;
   public ignitionTime = Infinity;
   public spreadRate = 0;
