@@ -11,7 +11,6 @@ import {
   Play,
   Pause,
   RotateCcw,
-  ChevronLeft,
   Zap,
   Hammer,
   Plane as PlaneIcon,
@@ -51,7 +50,6 @@ function createEngine(grid: Cell[], wind: IWindProps): FireEngine {
 
 
 interface Simulation3DProps {
-  onBack: () => void;
 }
 
 type Tool = 'SPARK' | 'FIRELINE' | 'HELITACK' | 'NONE';
@@ -89,7 +87,7 @@ const SimulationContent = ({ cells, activeTool, clickMarkers, onCellInteraction,
   </>
 );
 
-export const SimulationView3D: React.FC<Simulation3DProps> = ({ onBack }) => {
+export const SimulationView3D: React.FC<Simulation3DProps> = () => {
   const [cells, setCells] = useState<Cell[]>(() => {
     // Non-black placeholder while raster assets load (prevents “all black” scene).
     const zones = CFG.zones.map(z => new Zone(z));
