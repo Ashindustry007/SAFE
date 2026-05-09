@@ -7,8 +7,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { HelpCircle, ChevronDown, ChevronUp, Search, BookOpen } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { ChevronDown, Search } from 'lucide-react';
 import axios from 'axios';
 
 /**

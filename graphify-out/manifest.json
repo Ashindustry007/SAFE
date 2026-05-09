@@ -1,0 +1,938 @@
+{
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\eslint.config.js": {
+    "mtime": 1778275786.997547,
+    "hash": "0355276bc79439afe3c53e3a2470ca1e"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\vite.config.ts": {
+    "mtime": 1778275787.365738,
+    "hash": "88439104b3c207f17d33ef3160e3b080"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\test_api.ts": {
+    "mtime": 1778307304.5323005,
+    "hash": "da7a53626bfb94a6d572c9ffc183ec35"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\test_gemini.py": {
+    "mtime": 1778307286.1329412,
+    "hash": "e1e3dafa085423d11509776ff30a0919"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\cypress.config.ts": {
+    "mtime": 1778303175.009444,
+    "hash": "bc773ed01d450002403aa81789013a3b"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\postcss.config.js": {
+    "mtime": 1778303175.0321026,
+    "hash": "df743714d58bccbc5f890340c36c9276"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\webpack.config.js": {
+    "mtime": 1778303175.242146,
+    "hash": "1db2a8a5df3253ea94ea449fd8df83fe"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\cypress\\e2e\\smoke.cy.ts": {
+    "mtime": 1778303175.0162218,
+    "hash": "ef0e8fe508439aab3026625ae26e5781"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\cypress\\e2e\\terrairn-setup.cy.ts": {
+    "mtime": 1778303175.0167398,
+    "hash": "f0bf14ca2deb7363e1fe69128220a26a"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\cypress\\e2e\\url-params.cy.ts": {
+    "mtime": 1778303175.0167398,
+    "hash": "7a18cbaa7add719288487b4b9edd1993"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\cypress\\e2e\\workspace.cy.ts": {
+    "mtime": 1778303175.0167398,
+    "hash": "a039f682b936e78f76d5f5171e0a0f97"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\cypress\\support\\e2e.js": {
+    "mtime": 1778303175.0192585,
+    "hash": "2531161476c8c3e49c0837081fc05eb0"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\cypress\\support\\elements\\BottomBar.js": {
+    "mtime": 1778303175.0192585,
+    "hash": "0097d7d911ac3678e14cc784ae1d50e9"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\cypress\\support\\elements\\ModelInfo.js": {
+    "mtime": 1778303175.0192585,
+    "hash": "ae4c618dfdb2f6974614b9bdeb3f1263"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\cypress\\support\\elements\\TerrainSetup.js": {
+    "mtime": 1778303175.0192585,
+    "hash": "e06ecf305be6c61d3b68421e408c56ef"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\config.ts": {
+    "mtime": 1778303175.1431582,
+    "hash": "3f6dd82ddd638e41a3a97ad44e73a9bb"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\global.d.ts": {
+    "mtime": 1778303175.1446996,
+    "hash": "6af0a271b5154aeddd31c76151c1c678"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\index.tsx": {
+    "mtime": 1778303175.1467383,
+    "hash": "9923f63ef69af77d2323dd77feb5556a"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\log.ts": {
+    "mtime": 1778303175.1467383,
+    "hash": "1307f03864513c475b438879ab8c14f7"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\material-ui-theme.tsx": {
+    "mtime": 1778303175.1467383,
+    "hash": "d8e1cc8cdd57029ce77841c4d1e8067f"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\presets.ts": {
+    "mtime": 1778303175.1688395,
+    "hash": "311f6673b3e63676801dd9444ea7597a"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\setupTests.ts": {
+    "mtime": 1778303175.239495,
+    "hash": "ef5d0f0b11cb125927fb5c0270c7ebb3"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\types.ts": {
+    "mtime": 1778303175.2405465,
+    "hash": "97ac84c9984b281ff0e87ea1d6898887"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\use-stores.ts": {
+    "mtime": 1778303175.2410703,
+    "hash": "07673b83183f1e0b62f27b16c37c8858"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\charts\\downsample-data.ts": {
+    "mtime": 1778303175.0765178,
+    "hash": "069f85deb00908f2e8d070f467ce979b"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\charts\\utils.ts": {
+    "mtime": 1778303175.0824444,
+    "hash": "cfd3126f9a1652fdbff2e7740e929d6f"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\charts\\components\\bar-chart.tsx": {
+    "mtime": 1778303175.0724115,
+    "hash": "6989e7c5ec72cf7ae0f69567a8c30654"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\charts\\components\\chart.tsx": {
+    "mtime": 1778303175.073098,
+    "hash": "f66660266cd0c794e10a70593fbe40ce"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\charts\\components\\line-chart-controls.tsx": {
+    "mtime": 1778303175.0765178,
+    "hash": "a4f10500e08f8283dd67c2646e31d549"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\charts\\components\\line-chart.tsx": {
+    "mtime": 1778303175.0765178,
+    "hash": "c66c4f3a3454d3f3e8d5cbba17a80917"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\charts\\models\\chart-annotation.test.ts": {
+    "mtime": 1778303175.079394,
+    "hash": "0d211d063d2edf0137c5307d7d1bf2d1"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\charts\\models\\chart-annotation.ts": {
+    "mtime": 1778303175.079394,
+    "hash": "f525cc8e2c357609c86cc3e574de98a0"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\charts\\models\\chart-data-set.ts": {
+    "mtime": 1778303175.081921,
+    "hash": "f2d9ca6c1ea36e0e4142edab38cfc870"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\charts\\models\\chart-data.test.ts": {
+    "mtime": 1778303175.0824444,
+    "hash": "ceae99a57bf600ec9020be8c2273fe4b"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\charts\\models\\chart-data.ts": {
+    "mtime": 1778303175.0824444,
+    "hash": "1c26e257f67187760f692fb6ab850d09"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\components\\app.tsx": {
+    "mtime": 1778303175.087899,
+    "hash": "e49953e48242dfd6aca754b626b845bb"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\components\\base.ts": {
+    "mtime": 1778303175.087899,
+    "hash": "2521d56e5454c76a0ca619a3e957184c"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\components\\bottom-bar.test.tsx": {
+    "mtime": 1778303175.0909412,
+    "hash": "8d7ff4df422449135b2cc26013b6ccb1"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\components\\bottom-bar.tsx": {
+    "mtime": 1778303175.0914638,
+    "hash": "b203504c51a69c48dbdb6b1704bf1bd6"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\components\\drought-selector.tsx": {
+    "mtime": 1778303175.0930328,
+    "hash": "59d463a5564efbe17a319127277c6238"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\components\\fire-intensity-scale.tsx": {
+    "mtime": 1778303175.096181,
+    "hash": "d47dff07eac0c26f9f4580d9f2058113"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\components\\graph.tsx": {
+    "mtime": 1778303175.0978646,
+    "hash": "484f06d69c2a71603b27a60c8d13077e"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\components\\icon-button.tsx": {
+    "mtime": 1778303175.0994823,
+    "hash": "ea08b58cac80dc96833af4c7f662adee"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\components\\log-events.test.tsx": {
+    "mtime": 1778303175.1006596,
+    "hash": "b7a1d6c4d4cef2eac5141f27c1300808"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\components\\right-panel-tab.test.tsx": {
+    "mtime": 1778303175.1022902,
+    "hash": "ed8222024fb0d3711018f32e866170d2"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\components\\right-panel-tab.tsx": {
+    "mtime": 1778303175.1028183,
+    "hash": "43da2551dc3466fcac8938a91c495fa6"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\components\\right-panel.tsx": {
+    "mtime": 1778303175.1050947,
+    "hash": "87f9989709edef1ffe3c8219c717a840"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\components\\simulation-info.test.tsx": {
+    "mtime": 1778303175.1067023,
+    "hash": "b6969fc0ae97d2ec57fb55272ded918c"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\components\\simulation-info.tsx": {
+    "mtime": 1778303175.1067023,
+    "hash": "b8a47856893fb4d9a7a28c5d83fc874b"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\components\\terrain-panel.test.tsx": {
+    "mtime": 1778303175.1087215,
+    "hash": "33fd1d3c4e1968b1e10c4cee5808da3f"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\components\\terrain-panel.tsx": {
+    "mtime": 1778303175.1087215,
+    "hash": "ffb2cb574b8a40d3502cc92f07488756"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\components\\terrain-summary.tsx": {
+    "mtime": 1778303175.1087215,
+    "hash": "bc3eede2c297220330e5b97f2462ea2c"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\components\\terrain-type-selector.tsx": {
+    "mtime": 1778303175.114531,
+    "hash": "65e621870aff308f2d0719c8ed374f96"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\components\\use-custom-cursors.ts": {
+    "mtime": 1778303175.1221933,
+    "hash": "66ce78c4bb6dae0deecd793d44e0ef9f"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\components\\vegetation-selector.tsx": {
+    "mtime": 1778303175.1227787,
+    "hash": "f0657f91cfbd7b2efce1350d9b32828b"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\components\\vertical-selectors.tsx": {
+    "mtime": 1778303175.1227787,
+    "hash": "e2f593101911efbcdfffddf89a44c559"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\components\\wind-circular-control.tsx": {
+    "mtime": 1778303175.1390016,
+    "hash": "46bcba0a1dc003d2b0fb527759b19a91"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\components\\wind-dial.tsx": {
+    "mtime": 1778303175.1395197,
+    "hash": "24a4d440e36bd88d924b2402da50e454"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\components\\zone-selector.tsx": {
+    "mtime": 1778303175.1410642,
+    "hash": "ca582c49f8999b92023caa3946c33de2"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\components\\zones-count-selector.tsx": {
+    "mtime": 1778303175.1410642,
+    "hash": "7954e53fbda6fd2c521bfc27e35958a5"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\components\\top-bar\\about-dialog-content.tsx": {
+    "mtime": 1778303175.1155498,
+    "hash": "be4f34d2e47f25398afacbd58fde9887"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\components\\top-bar\\copyright.tsx": {
+    "mtime": 1778303175.1165955,
+    "hash": "935491ea570f95978d4daa99eae2beb1"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\components\\top-bar\\dialog.test.tsx": {
+    "mtime": 1778303175.1165955,
+    "hash": "063746e881b26c5251ee3419a5ec7fc5"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\components\\top-bar\\dialog.tsx": {
+    "mtime": 1778303175.118615,
+    "hash": "4c7f38bef413b7f43b9f47909f3a3f07"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\components\\top-bar\\share-dialog-content.tsx": {
+    "mtime": 1778303175.1193178,
+    "hash": "6c49ef55d1d7a62a84580ac679227314"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\components\\top-bar\\top-bar.test.tsx": {
+    "mtime": 1778303175.1193178,
+    "hash": "006a3b7d8110e6a9489116dd96210110"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\components\\top-bar\\top-bar.tsx": {
+    "mtime": 1778303175.1193178,
+    "hash": "d151397c374952782e76b244687e7cee"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\components\\view-3d\\fire-line-marker.tsx": {
+    "mtime": 1778303175.1227787,
+    "hash": "1f719bc7b98fdc1f5581e8649ba500fa"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\components\\view-3d\\helpers.ts": {
+    "mtime": 1778303175.1227787,
+    "hash": "836b6827e0c489e648e41152d9be19eb"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\components\\view-3d\\interaction-handler.test.ts": {
+    "mtime": 1778303175.1270533,
+    "hash": "eb8ccda37c5415c0ca248bed2e0521ca"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\components\\view-3d\\interaction-handler.ts": {
+    "mtime": 1778303175.1275873,
+    "hash": "3c518b89b0d6cc7d3fbc8395f4443a23"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\components\\view-3d\\marker.tsx": {
+    "mtime": 1778303175.1281593,
+    "hash": "f3e326f7da85fad465f16e18ac52a8de"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\components\\view-3d\\spark.tsx": {
+    "mtime": 1778303175.1292167,
+    "hash": "b8d887b80c5415ac7830c44669f06be8"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\components\\view-3d\\terrain.tsx": {
+    "mtime": 1778303175.1302733,
+    "hash": "4b03dced664e13f9bf757a35adf100be"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\components\\view-3d\\town-marker.tsx": {
+    "mtime": 1778303175.1308033,
+    "hash": "323a8f757798cc1ba6a0a7159ee27600"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\components\\view-3d\\use-dragging-over-plane-interaction.ts": {
+    "mtime": 1778303175.1313334,
+    "hash": "29631e1ebe4b9c1069d8d94587b060dc"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\components\\view-3d\\use-dragging.ts": {
+    "mtime": 1778303175.1323712,
+    "hash": "d1a97908da4bd1ad309e0b4eaee203c8"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\components\\view-3d\\use-draw-fire-line-interaction.tsx": {
+    "mtime": 1778303175.1329195,
+    "hash": "21909e058be93bee288bce7496e2b06b"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\components\\view-3d\\use-helitack-interaction.ts": {
+    "mtime": 1778303175.1340103,
+    "hash": "0fff84a5fbaa7811525de6b4f80b123b"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\components\\view-3d\\use-place-spark-interaction.tsx": {
+    "mtime": 1778303175.1346643,
+    "hash": "008a42249c3e60504136d9fefbcc5da1"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\components\\view-3d\\use-show-coords-interaction.tsx": {
+    "mtime": 1778303175.1357734,
+    "hash": "fc256b6588a4ed5dffbdbd7190a5686f"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\components\\view-3d\\use-simulation-clicked-interaction.ts": {
+    "mtime": 1778303175.1368537,
+    "hash": "6180520b14b23e41967d4762e3f3510f"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\components\\view-3d\\view-3d.tsx": {
+    "mtime": 1778303175.137371,
+    "hash": "9888259514a266c0ed5d0a82cf1523c6"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\models\\cell.test.ts": {
+    "mtime": 1778303175.1503844,
+    "hash": "ae7c3023e2c50e0749b36f6596be6228"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\models\\cell.ts": {
+    "mtime": 1778303175.1503844,
+    "hash": "8de0caaea8f1eec0b277211ee0ef7ead"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\models\\chart-store.ts": {
+    "mtime": 1778303175.1503844,
+    "hash": "5a0b3b1362c8e002647e517aaafb7712"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\models\\simulation.test.ts": {
+    "mtime": 1778303175.1549618,
+    "hash": "2c666ae6d66040ea30a6edc5a7751511"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\models\\simulation.ts": {
+    "mtime": 1778303175.1596541,
+    "hash": "0e6f9662d8eea70b05ad9dfaf54cbb4f"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\models\\stores.test.ts": {
+    "mtime": 1778303175.1596541,
+    "hash": "15609bf2aa335a63674142430f8cfc16"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\models\\stores.ts": {
+    "mtime": 1778303175.1596541,
+    "hash": "535e7fd696153cffe8c72acf3ba80105"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\models\\ui.ts": {
+    "mtime": 1778303175.1596541,
+    "hash": "9965673646e8e088a7f81455b5d9789b"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\models\\zone.ts": {
+    "mtime": 1778303175.166823,
+    "hash": "1da604c2c7b26b7a820f44fe2bfb2eab"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\models\\engine\\fire-engine.test.ts": {
+    "mtime": 1778303175.151907,
+    "hash": "9fc5e64a58fb5dbbc1e67b76d6dd7c40"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\models\\engine\\fire-engine.ts": {
+    "mtime": 1778303175.154438,
+    "hash": "1400f406f5f75a2021688521d82ab666"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\models\\engine\\get-fire-spread-rate.test.ts": {
+    "mtime": 1778303175.1549618,
+    "hash": "4a056aa1813a2fb9fd5cf6e90081958b"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\models\\engine\\get-fire-spread-rate.ts": {
+    "mtime": 1778303175.1549618,
+    "hash": "4143db9fb3d02ae440c68d99487da100"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\models\\utils\\data-loaders.ts": {
+    "mtime": 1778303175.1596541,
+    "hash": "602f75f476b5880a0a415f4fd10646eb"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\models\\utils\\grid-utils.test.ts": {
+    "mtime": 1778303175.1642263,
+    "hash": "a6e84db03dd710f1d9ba98d4e61f9773"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\models\\utils\\grid-utils.ts": {
+    "mtime": 1778303175.165253,
+    "hash": "9251ad26fb94b782ed5c24cace2f3b00"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\models\\utils\\image-utils.test.ts": {
+    "mtime": 1778303175.1663027,
+    "hash": "6e1aad14acfb8d038b62c657cfbf247c"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\models\\utils\\image-utils.ts": {
+    "mtime": 1778303175.166823,
+    "hash": "24f8487f05b9a874d60e15ae5b840c34"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\__mocks__\\fileMock.js": {
+    "mtime": 1778303175.009444,
+    "hash": "8aaecbe47e02d0e4c8795062447c44c6"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\__mocks__\\screenfull.js": {
+    "mtime": 1778303175.009444,
+    "hash": "f91a2e001ef95a3ccf50c86ff31fb5ed"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\__mocks__\\svgMock.js": {
+    "mtime": 1778303175.009444,
+    "hash": "3ce791ace04669517f3a2f6094dbe573"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\server\\index.ts": {
+    "mtime": 1778311793.1723878,
+    "hash": "f5106fa71f6de04904ef4f3db89bbdb5"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\src\\App.tsx": {
+    "mtime": 1778310925.3609855,
+    "hash": "46db996d165650003c7d4daf474cbfea"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\src\\main.tsx": {
+    "mtime": 1778275787.3731287,
+    "hash": "787e5a07efeb2bf6209d5937195f2f68"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\src\\components\\Chatbot.tsx": {
+    "mtime": 1778310925.3619857,
+    "hash": "893d0759e1815480029a587380880682"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\src\\components\\FAQPage.tsx": {
+    "mtime": 1778310925.3629844,
+    "hash": "1165588a3e6a91f5200edc42f326b2b3"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\src\\components\\Simulation.tsx": {
+    "mtime": 1778310925.3629844,
+    "hash": "71e49f03fefe70e854bc55b58b4472e3"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\src\\components\\SimulationView3D.tsx": {
+    "mtime": 1778311030.8994694,
+    "hash": "748da1cd33cae7b3c1686b9528993cab"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\src\\components\\Terrain3D.tsx": {
+    "mtime": 1778311061.8537672,
+    "hash": "4f71594f5c7710df043cc6f9664c7435"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\src\\logic\\wildfire3D.ts": {
+    "mtime": 1778311092.0105443,
+    "hash": "cd4c3d9e9bab3c427a686e6f5f9d87f5"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\src\\logic\\wildfireSimulation.test.ts": {
+    "mtime": 1778276770.388049,
+    "hash": "ff1f2b85e683f5e35170eaf6a225390e"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\src\\logic\\wildfireSimulation.ts": {
+    "mtime": 1778310925.3696344,
+    "hash": "01764138127adee5da9507cbd4fc97fd"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\src\\logic\\concord\\cell.ts": {
+    "mtime": 1778310931.755005,
+    "hash": "424d085a3217a41262e341743ca297a0"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\src\\logic\\concord\\types.ts": {
+    "mtime": 1778310931.759277,
+    "hash": "78565b140b7cfb6e7e76f43c1598c242"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\src\\logic\\concord\\zone.ts": {
+    "mtime": 1778310931.759277,
+    "hash": "f15fa928cb4a401b66ebb2885e7741dc"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\src\\logic\\concord\\engine\\fire-engine.ts": {
+    "mtime": 1778310931.758575,
+    "hash": "ca64ff2f45117a0e598ec433db6cf70c"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\src\\logic\\concord\\engine\\get-fire-spread-rate.ts": {
+    "mtime": 1778310931.759277,
+    "hash": "0b2c798c146ee38d4a3e9a8d8bbe3c33"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\src\\logic\\concord\\utils\\grid-utils.ts": {
+    "mtime": 1778310931.759277,
+    "hash": "9251ad26fb94b782ed5c24cace2f3b00"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\src\\services\\wildfireApi.ts": {
+    "mtime": 1778310925.3725228,
+    "hash": "733e9edb081400f4cbdf06ca9e2cd96f"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\ARCHITECTURE.md": {
+    "mtime": 1778310925.3574374,
+    "hash": "791d66f20ff9d0dc1649cc332804443d"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\index.html": {
+    "mtime": 1778276023.6318653,
+    "hash": "8759a3b930f08113b59d4942bc991822"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\README.md": {
+    "mtime": 1778310925.3584352,
+    "hash": "8a130972c69115949db480a0a68e66fe"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\SIMULATION_MODEL.md": {
+    "mtime": 1778310925.3589416,
+    "hash": "4880d44628a27b5a12f91801a718ddcb"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\CHANGELOG.md": {
+    "mtime": 1778303175.0050328,
+    "hash": "3bab7e4ca16949d81bb4217c857df209"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\LOGGED-EVENTS.md": {
+    "mtime": 1778303175.009444,
+    "hash": "bf62e8b38796cc818c2ea76017d6c1be"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\README.md": {
+    "mtime": 1778303175.009444,
+    "hash": "fc6a94a46362af337f12ddb9aed80c22"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\specs\\WM-1-add-log-events.md": {
+    "mtime": 1778303175.0321026,
+    "hash": "0887d8ae97feefcd6d9b527a4a9c353e"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\index.html": {
+    "mtime": 1778303175.1452186,
+    "hash": "208f0bd3c971182af59841353c771e45"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\public\\favicon.svg": {
+    "mtime": 1778275787.275999,
+    "hash": "7e840862161341271697daa99a40d76b"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\public\\icons.svg": {
+    "mtime": 1778275787.299827,
+    "hash": "3b4fcfcf393eca4d264dca4a4663bc37"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\assets\\cc-logo-small.svg": {
+    "mtime": 1778303175.0509956,
+    "hash": "35b37d19b282bedd10e6dcac1381e2eb"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\assets\\cc-logo.svg": {
+    "mtime": 1778303175.0509956,
+    "hash": "05906bc75245b9002b74c1577f88124c"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\assets\\fullscreen-dark.svg": {
+    "mtime": 1778303175.052015,
+    "hash": "e1c79da416b9c16fa507774e6cc5d9a4"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\assets\\fullscreen-exit-dark.svg": {
+    "mtime": 1778303175.052015,
+    "hash": "5cd7226e5b64c6fe8768e2effc17ae34"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\assets\\fullscreen-exit.svg": {
+    "mtime": 1778303175.052015,
+    "hash": "b6c659dfa9b6d6542b122a02067a38d9"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\assets\\fullscreen.svg": {
+    "mtime": 1778303175.052015,
+    "hash": "c180089eabd9c17e3f530abcb8909ba7"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\assets\\lock.svg": {
+    "mtime": 1778303175.0590925,
+    "hash": "c8ad5c3b0b2266fd89fa728570d5b1bf"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\assets\\slider-horizontal.svg": {
+    "mtime": 1778303175.061089,
+    "hash": "ce9b79de2e82bc2d1d0239ba7c4fde49"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\assets\\slider-vertical.svg": {
+    "mtime": 1778303175.061089,
+    "hash": "c5a1d2667c0b21596bfe51f19557ca86"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\assets\\wind-arrow.svg": {
+    "mtime": 1778303175.0668,
+    "hash": "c9a58faf7873c2a2d03162ad1a047bdf"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\assets\\wind-dial.svg": {
+    "mtime": 1778303175.0668,
+    "hash": "af16d18c207ac7e451d8b04d5a2b810a"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\assets\\wind-symbol.svg": {
+    "mtime": 1778303175.0668,
+    "hash": "e571bcfeb9d44b1dd044785d07fde7d3"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\assets\\bottom-bar\\fire-line.svg": {
+    "mtime": 1778303175.0364757,
+    "hash": "6dc777f35f79d5da94e468b26c9f7cf1"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\assets\\bottom-bar\\fire-line_disabled.svg": {
+    "mtime": 1778303175.0364757,
+    "hash": "dce50a874c744c7ff0cc27fcb5b12721"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\assets\\bottom-bar\\fire-line_highlight.svg": {
+    "mtime": 1778303175.0374942,
+    "hash": "581a41dadd58011cdb4c3837e62e6c18"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\assets\\bottom-bar\\helitack.svg": {
+    "mtime": 1778303175.0374942,
+    "hash": "da60f17fed1db2e60a6ce3cf6595891c"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\assets\\bottom-bar\\helitack_disabled.svg": {
+    "mtime": 1778303175.0395577,
+    "hash": "9ec44b0f918170284ddf379c0bfe7d67"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\assets\\bottom-bar\\helitack_highlight.svg": {
+    "mtime": 1778303175.0395577,
+    "hash": "1c184a2aeadbdd2359fff1e723613842"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\assets\\bottom-bar\\pause.svg": {
+    "mtime": 1778303175.0406058,
+    "hash": "b5597eaba95ca64d7d95d02bc1268471"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\assets\\bottom-bar\\reload.svg": {
+    "mtime": 1778303175.041114,
+    "hash": "377798250ddb0a6ccbf89ca48adb8d43"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\assets\\bottom-bar\\restart.svg": {
+    "mtime": 1778303175.041114,
+    "hash": "a9d443b05adafd21ab6f8c6fb6bcf838"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\assets\\bottom-bar\\spark.svg": {
+    "mtime": 1778303175.0431867,
+    "hash": "8b56dee80b889bf5fe2543db5656db5a"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\assets\\bottom-bar\\spark_disabled.svg": {
+    "mtime": 1778303175.0431867,
+    "hash": "8b81d6d4400cba7357d14b638a0aa515"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\assets\\bottom-bar\\spark_highlight.svg": {
+    "mtime": 1778303175.0431867,
+    "hash": "62d2786ff00a2ad9dc78a3032ec12067"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\assets\\bottom-bar\\start.svg": {
+    "mtime": 1778303175.0447664,
+    "hash": "1011894128a318cf0d29885d0ea780ec"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\assets\\bottom-bar\\terrain-setup.svg": {
+    "mtime": 1778303175.0452902,
+    "hash": "a00d01f255982f48f6fb8165350efc0f"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\assets\\bottom-bar\\terrain-setup_disabled.svg": {
+    "mtime": 1778303175.0452902,
+    "hash": "e487dc117dde8fc9ce1a1cd68e21935c"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\assets\\bottom-bar\\terrain-setup_highlight.svg": {
+    "mtime": 1778303175.0452902,
+    "hash": "4faee4525fbd645c5230936585e46b77"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\assets\\bottom-bar\\terrain-three.svg": {
+    "mtime": 1778303175.0473094,
+    "hash": "d2de5619941152a522ab08fcf0ac4db0"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\assets\\bottom-bar\\terrain-three_disabled.svg": {
+    "mtime": 1778303175.0473094,
+    "hash": "6681092471aba81c433d1def0a3cbd22"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\assets\\bottom-bar\\terrain-three_highlight.svg": {
+    "mtime": 1778303175.0499723,
+    "hash": "ae65017e7162e6bd31d2c648abe1c135"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\assets\\interactions\\fire-line-cursor.png": {
+    "mtime": 1778303175.0548482,
+    "hash": "66af93744234f8e43728627e169b6ab0"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\assets\\interactions\\fire-line-highlight.png": {
+    "mtime": 1778303175.055873,
+    "hash": "c3ec8f0e682c4cbb65a63a40bb850d2b"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\assets\\interactions\\fire-line.png": {
+    "mtime": 1778303175.056573,
+    "hash": "ed43aed337896339d846c984301740de"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\assets\\interactions\\helitack-cursor-drop.png": {
+    "mtime": 1778303175.056573,
+    "hash": "0a19cff0d9dda9f316eeb4bd71e8436e"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\assets\\interactions\\helitack-cursor.png": {
+    "mtime": 1778303175.056573,
+    "hash": "628deb34a013c1797cbb3845ccb76c63"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\assets\\interactions\\spark-cursor.png": {
+    "mtime": 1778303175.0590925,
+    "hash": "7ceb96deed14131e627045d640ff2b6b"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\assets\\interactions\\spark-highlight.png": {
+    "mtime": 1778303175.0590925,
+    "hash": "031d8f17785a9a6c70ea1e6651aaf940"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\assets\\interactions\\spark.png": {
+    "mtime": 1778303175.0590925,
+    "hash": "70ad49df01af226d4b2271b24bebb6b6"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\assets\\terrain\\drought-med.svg": {
+    "mtime": 1778303175.061089,
+    "hash": "a04756acce00b507845cc01f62b05091"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\assets\\terrain\\drought-mild.svg": {
+    "mtime": 1778303175.061089,
+    "hash": "bbe513531d210d68d90a74ea589da587"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\assets\\terrain\\drought-no.svg": {
+    "mtime": 1778303175.061089,
+    "hash": "bd23edf7260856aee6ccc0d41a0063af"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\assets\\terrain\\drought-severe.svg": {
+    "mtime": 1778303175.0646186,
+    "hash": "b0ea9601243f679d3a6b40f1155a2947"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\assets\\terrain\\vegetation-fll.svg": {
+    "mtime": 1778303175.0652382,
+    "hash": "e42f07789c40be74e192fc7581058ceb"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\assets\\terrain\\vegetation-fsl.svg": {
+    "mtime": 1778303175.0657544,
+    "hash": "2b6e141166ebaa5248ce7a1c477cc91a"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\assets\\terrain\\vegetation-grass.svg": {
+    "mtime": 1778303175.0668,
+    "hash": "2fd366a145cc657b1fc5ef81b5180553"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\assets\\terrain\\vegetation-shrub.svg": {
+    "mtime": 1778303175.0668,
+    "hash": "bdcf8352b893e2d0a75df73d35a08ff1"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\public\\foothills_sample.jpg": {
+    "mtime": 1778303175.2165065,
+    "hash": "c4b98c1c809a006526ccd072969d2d40"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\public\\mountains_sample.jpg": {
+    "mtime": 1778303175.2165065,
+    "hash": "7bf409ba2a1c85eb57c0a1725651f37e"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\public\\plains_sample.jpg": {
+    "mtime": 1778303175.2165065,
+    "hash": "6f240f977cabaf2e50a5144ed295f971"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\public\\data\\complexZones.png": {
+    "mtime": 1778303175.1688395,
+    "hash": "c793d7f58158ca521b5f227453d329d5"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\public\\data\\foothills-foothills-foothills-heightmap.png": {
+    "mtime": 1778303175.17311,
+    "hash": "ab1a45eeea2622d998a702510a7fd25a"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\public\\data\\foothills-foothills-foothills-islands.png": {
+    "mtime": 1778303175.17311,
+    "hash": "afad8fca3348ae03770b50c447d3decf"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\public\\data\\foothills-foothills-heightmap.png": {
+    "mtime": 1778303175.17311,
+    "hash": "ab1a45eeea2622d998a702510a7fd25a"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\public\\data\\foothills-foothills-islands.png": {
+    "mtime": 1778303175.17311,
+    "hash": "afad8fca3348ae03770b50c447d3decf"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\public\\data\\foothills-mountains-heightmap.png": {
+    "mtime": 1778303175.17311,
+    "hash": "a19c92129d7fcdf66cd4ad67c233cf1d"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\public\\data\\foothills-mountains-islands.png": {
+    "mtime": 1778303175.17311,
+    "hash": "52f1c4a548514349531eb7f5c90f1c43"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\public\\data\\foothills-plains-heightmap.png": {
+    "mtime": 1778303175.1820126,
+    "hash": "8e7af1cf4c8de74bec31b4a0e0a14c73"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\public\\data\\foothills-plains-islands.png": {
+    "mtime": 1778303175.1820126,
+    "hash": "9cfcb4bd852a8a14c2f3f4418f038102"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\public\\data\\mountains-foothills-heightmap.png": {
+    "mtime": 1778303175.1820126,
+    "hash": "5e035ac5f7d6c387c6201c60d6eea80d"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\public\\data\\mountains-foothills-islands.png": {
+    "mtime": 1778303175.1874392,
+    "hash": "b5b84c50ce52f71e18ed98d6c8b2d795"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\public\\data\\mountains-foothills-plains-heightmap.png": {
+    "mtime": 1778303175.1895967,
+    "hash": "22127926cc37daeedf3e2cb930d8c802"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\public\\data\\mountains-foothills-plains-islands.png": {
+    "mtime": 1778303175.1906393,
+    "hash": "4473341f002d8192a652f9c238f270b6"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\public\\data\\mountains-mountains-heightmap.png": {
+    "mtime": 1778303175.193314,
+    "hash": "b87bf20c07078e3bd118d73bcd160a3d"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\public\\data\\mountains-mountains-islands.png": {
+    "mtime": 1778303175.1948986,
+    "hash": "e81ce38dd242d16ee6e024364acb022b"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\public\\data\\mountains-mountains-mountains-heightmap.png": {
+    "mtime": 1778303175.1970818,
+    "hash": "b87bf20c07078e3bd118d73bcd160a3d"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\public\\data\\mountains-mountains-mountains-islands.png": {
+    "mtime": 1778303175.1981514,
+    "hash": "e81ce38dd242d16ee6e024364acb022b"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\public\\data\\mountains-plains-heightmap.png": {
+    "mtime": 1778303175.1998098,
+    "hash": "5115a91f345f97653901a910c6ab6e3e"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\public\\data\\mountains-plains-islands.png": {
+    "mtime": 1778303175.2018483,
+    "hash": "80a3d2390e64379c1d2b94c3bf4f4b79"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\public\\data\\plains-foothills-heightmap.png": {
+    "mtime": 1778303175.2038643,
+    "hash": "b3c652b5080d0f7c07c57305ace37ded"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\public\\data\\plains-foothills-islands.png": {
+    "mtime": 1778303175.2048976,
+    "hash": "1cffb7ae661ff8bc2c5e8f5357efd95a"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\public\\data\\plains-mountains-heightmap.png": {
+    "mtime": 1778303175.2048976,
+    "hash": "fd9a66f209d890b9b7c12f00dc1dff84"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\public\\data\\plains-mountains-islands.png": {
+    "mtime": 1778303175.2048976,
+    "hash": "a50dd34ec53576f9aaeab143745efed7"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\public\\data\\plains-plains-heightmap.png": {
+    "mtime": 1778303175.2091177,
+    "hash": "b091fe2ce7cfd9d08a4a5f3c304e222c"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\public\\data\\plains-plains-islands.png": {
+    "mtime": 1778303175.2091177,
+    "hash": "53935fee2ebeeceee9c7dd1cc75794bd"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\public\\data\\plains-plains-plains-heightmap.png": {
+    "mtime": 1778303175.2091177,
+    "hash": "b091fe2ce7cfd9d08a4a5f3c304e222c"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\public\\data\\plains-plains-plains-islands.png": {
+    "mtime": 1778303175.2129433,
+    "hash": "53935fee2ebeeceee9c7dd1cc75794bd"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\public\\data\\river-texmap.png": {
+    "mtime": 1778303175.2129433,
+    "hash": "05bc0ccd14f9ab7ed441bcc4b683c16c"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\public\\terrain\\2-zone-foothills-left.png": {
+    "mtime": 1778303175.2165065,
+    "hash": "da924a69b9edf45ad36b9c784705d7fc"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\public\\terrain\\2-zone-foothills-right.png": {
+    "mtime": 1778303175.2221901,
+    "hash": "badebc6271fc5d3648d3da75a6b3c07d"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\public\\terrain\\2-zone-mountains-left.png": {
+    "mtime": 1778303175.2227151,
+    "hash": "f149f030f1129843865a83f7b56b28aa"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\public\\terrain\\2-zone-mountains-right.png": {
+    "mtime": 1778303175.2227151,
+    "hash": "84a96515fb0e0843ea0d11d0ad009c79"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\public\\terrain\\2-zone-plains-left.png": {
+    "mtime": 1778303175.2248178,
+    "hash": "a1fa7ea73a956716a0fc947d53e2adbb"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\public\\terrain\\2-zone-plains-right.png": {
+    "mtime": 1778303175.2248178,
+    "hash": "c8232df62644236632bb75c933b0d052"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\public\\terrain\\2-zone-river-left.png": {
+    "mtime": 1778303175.2248178,
+    "hash": "048a0351cd1a9249c4cf0b30cb205c0b"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\public\\terrain\\2-zone-river-right.png": {
+    "mtime": 1778303175.2248178,
+    "hash": "7fb2b704e39b4413cdf84f4e5c50ea19"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\public\\terrain\\3-zone-foothills-left.png": {
+    "mtime": 1778303175.2289808,
+    "hash": "75583715301e6248f83eac1db04e5f86"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\public\\terrain\\3-zone-foothills-mid.png": {
+    "mtime": 1778303175.2289808,
+    "hash": "b31a093849162b6a64b69b95b8c3b017"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\public\\terrain\\3-zone-foothills-right.png": {
+    "mtime": 1778303175.2289808,
+    "hash": "edae07fb1ceaa6a297fb3eabd015c45b"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\public\\terrain\\3-zone-mountains-left.png": {
+    "mtime": 1778303175.2289808,
+    "hash": "fe86431763129130dce4a3480e293162"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\public\\terrain\\3-zone-mountains-mid.png": {
+    "mtime": 1778303175.231833,
+    "hash": "fbafc58d77bf7e24a9913b071c715252"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\public\\terrain\\3-zone-mountains-right.png": {
+    "mtime": 1778303175.2323558,
+    "hash": "e7304e6d8600f206cce2f0aa3197aa63"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\public\\terrain\\3-zone-plains-left.png": {
+    "mtime": 1778303175.2323558,
+    "hash": "3dc69cb1a27bf6d3c63e821ed3135a57"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\public\\terrain\\3-zone-plains-mid.png": {
+    "mtime": 1778303175.2348034,
+    "hash": "d6bc9b67ae9081e4c6e1551639625ffb"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\public\\terrain\\3-zone-plains-right.png": {
+    "mtime": 1778303175.235635,
+    "hash": "fde3d726bcc6d1f0fe292e00748039a6"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\public\\terrain\\3-zone-river-left.png": {
+    "mtime": 1778303175.2372227,
+    "hash": "ffa45e867292f0bf0aa95d0059ae1b21"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\public\\terrain\\3-zone-river-mid.png": {
+    "mtime": 1778303175.238113,
+    "hash": "21d2efc6087e6790e1cfbcc5c86d0060"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\src\\public\\terrain\\3-zone-river-right.png": {
+    "mtime": 1778303175.2389033,
+    "hash": "15e4109555a33eafa20cf3da7dd6cb31"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\src\\assets\\hero.png": {
+    "mtime": 1778275787.2406707,
+    "hash": "aead493361b27e7510691c5d7072dfc1"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\src\\assets\\react.svg": {
+    "mtime": 1778275787.3163154,
+    "hash": "f0402b67b6ce880f65666bb49e841696"
+  },
+  "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\src\\assets\\vite.svg": {
+    "mtime": 1778275787.3391638,
+    "hash": "9960a24288958394ac50e57ff638b036"
+  }
+}

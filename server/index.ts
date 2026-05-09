@@ -6,6 +6,7 @@
  */
 
 import express from 'express';
+import type { Request, Response } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { GoogleGenerativeAI } from "@google/generative-ai";
@@ -44,10 +45,10 @@ const groq = new OpenAI({
 /**
  * Initialize Mistral client
  */
-const mistral = new OpenAI({
-  apiKey: process.env.MISTRAL_API_KEY || "none",
-  baseURL: "https://api.mistral.ai/v1"
-});
+// const mistral = new OpenAI({
+//   apiKey: process.env.MISTRAL_API_KEY || "none",
+//   baseURL: "https://api.mistral.ai/v1"
+// });
 
 /**
  * Initialize RunPod client
@@ -62,7 +63,7 @@ const runpod = new OpenAI({
  * Implements a sequential failover chain to ensure 100% availability.
  * Order: Groq -> Gemini -> OpenAI -> RunPod -> Failsafe
  */
-app.post('/api/chat', async (req, res) => {
+app.post('/api/chat', async (req: Request, res: Response): Promise<any> => {
   const { message } = req.body;
   if (!message) return res.status(400).json({ error: "Message is required" });
 
@@ -121,7 +122,7 @@ app.post('/api/chat', async (req, res) => {
 /**
  * Static FAQ Endpoint
  */
-app.get('/api/faqs', (req, res) => {
+app.get('/api/faqs', (_req: Request, res: Response) => {
   res.json([
     { question: "What is SAFE?", answer: "SAFE is a high-fidelity wildfire intelligence platform." },
     { question: "How does the model work?", answer: "It uses the Rothermel formula to predict fire spread based on weather and fuel." },

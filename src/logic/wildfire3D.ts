@@ -6,30 +6,16 @@
  * vegetation profiles, and environmental factors.
  */
 
-import { 
-  Vegetation, 
-  DroughtLevel, 
-  FireState
-} from './wildfireTypes';
-import type { Cell } from './wildfireTypes';
+import { Vegetation, DroughtLevel } from './concord/types';
+import { Zone } from './concord/zone';
+import { Cell } from './concord/cell';
+import { buildCellsFromConcordPreset, getConcordPreset, isConcordPresetId } from './concord/presets';
 
-/**
- * ZoneConfig
- * Defines the environmental characteristics of a specific geographic region.
- */
-export interface ZoneConfig {
-  vegetation: Vegetation;
-  droughtLevel: DroughtLevel;
-}
-
-/**
- * ZONES Mapping
- * Pre-defined configurations for different terrain profiles in the 3D world.
- */
-export const ZONES: Record<string, ZoneConfig> = {
-  MOUNTAINS: { vegetation: Vegetation.Forest, droughtLevel: DroughtLevel.SevereDrought },
-  FOOTHILLS: { vegetation: Vegetation.Shrub, droughtLevel: DroughtLevel.MediumDrought },
-  PLAINS: { vegetation: Vegetation.Grass, droughtLevel: DroughtLevel.MildDrought }
+export type Scenario = 'Plains' | 'Foothills' | 'Mountains';
+export const Scenario: Record<string, Scenario> = {
+  Plains: 'Plains',
+  Foothills: 'Foothills',
+  Mountains: 'Mountains'
 };
 
 /**
@@ -45,57 +31,75 @@ export const generate3DGrid = (width: number, height: number): Cell[] => {
   
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
-      let zone = ZONES.PLAINS;
-      let zoneIdx = 2;
-      let elevation = 0;
+      let zoneConfig: { vegetation: Vegetation, droughtLevel: DroughtLevel };
+      let zoneIdx: number;
+      let elevation: number;
 
-      /**
-       * Procedural Elevation Logic
-       * Divide the map into vertical bands: Mountains (Left), Foothills (Center), Plains (Right)
-       * Uses sine/cosine functions for natural-looking terrain variations.
-       */
+      // Realistic layered noise approximation
+      const h1 = Math.sin(x * 0.1) * Math.cos(y * 0.1);
+      const h2 = Math.sin(x * 0.05 + 2) * Math.cos(y * 0.05 + 1) * 2;
+      const noise = (h1 + h2) / 3;
+
+      // Smooth zone transitions using interpolation (lerp)
+      const t = x / width;
+      let baseElevation: number;
       
-      // Mountains (Left 33%) - Highest elevation, Forested
-      if (x < width * 0.33) {
-        zone = ZONES.MOUNTAINS;
-        zoneIdx = 0;
-        elevation = 1500 + Math.sin(x * 0.5) * 200 + Math.cos(y * 0.5) * 200;
-      } 
-      // Foothills (Middle 33%) - Moderate elevation, Shrubland
-      else if (x < width * 0.66) {
-        zone = ZONES.FOOTHILLS;
-        zoneIdx = 1;
-        elevation = 800 + Math.sin(x * 0.3) * 100 + Math.cos(y * 0.3) * 100;
-      } 
-      // Plains (Right 33%) - Lowest elevation, Grassland
-      else {
-        zone = ZONES.PLAINS;
+      if (t < 0.45) {
+        const blend = Math.max(0, Math.min(1, (t - 0.25) / 0.2));
+        baseElevation = 800 * (1 - blend) + 400 * blend;
+        zoneIdx = blend > 0.5 ? 1 : 0;
+      } else if (t < 0.8) {
+        const blend = Math.max(0, Math.min(1, (t - 0.55) / 0.2));
+        baseElevation = 400 * (1 - blend) + 150 * blend;
+        zoneIdx = blend > 0.5 ? 2 : 1;
+      } else {
+        baseElevation = 150;
         zoneIdx = 2;
-        elevation = 300 + Math.sin(x * 0.1) * 20 + Math.cos(y * 0.1) * 20;
       }
 
-      // Procedural Water Placement: Adds a river winding through the bottom 20% of the map
-      const isRiver = y > height * 0.8 && y < height * 0.85 + Math.sin(x * 0.1) * 2;
+      zoneConfig = zoneIdx === 0 ? { vegetation: Vegetation.Forest, droughtLevel: DroughtLevel.SevereDrought } :
+             zoneIdx === 1 ? { vegetation: Vegetation.Shrub, droughtLevel: DroughtLevel.MediumDrought } :
+                             { vegetation: Vegetation.Grass, droughtLevel: DroughtLevel.MildDrought };
 
-      // Create the 3D cell object
-      cells.push({
+      elevation = baseElevation + noise * (baseElevation * 0.2) + Math.sin(y * 0.1) * (baseElevation * 0.05);
+
+      const riverCenter = height * 0.6 + Math.sin(x * 0.1) * 5;
+      const isRiver = Math.abs(y - riverCenter) < 2.5;
+
+      if (isRiver) {
+        elevation -= 40;
+      }
+
+      const zone = new Zone(zoneConfig);
+
+      cells.push(new Cell({
         x,
         y,
         zone,
         zoneIdx,
         baseElevation: elevation,
-        ignitionTime: Infinity,
-        spreadRate: 0,
-        burnTime: 500,
-        fireState: FireState.Unburnt,
-        isUnburntIsland: false,
-        isFireSurvivor: false,
-        isRiver,
-        isFireLine: false,
-        isFireLineUnderConstruction: false,
-        helitackDropCount: 0
-      });
+        isRiver
+      }));
     }
   }
   return cells;
 };
+
+export const PROCEDURAL_TERRAIN_ID = 'proceduralStripes' as const;
+
+/**
+ * Builds a flat Cell[] grid: procedural stripes or a named Concord preset (zoneIndex + zones).
+ */
+export function buildTerrainGrid(
+  width: number,
+  height: number,
+  terrainId: string = PROCEDURAL_TERRAIN_ID
+): Cell[] {
+  if (isConcordPresetId(terrainId)) {
+    const preset = getConcordPreset(terrainId);
+    if (preset) {
+      return buildCellsFromConcordPreset(preset, width, height);
+    }
+  }
+  return generate3DGrid(width, height);
+}
