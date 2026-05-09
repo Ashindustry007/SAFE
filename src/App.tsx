@@ -46,6 +46,11 @@ const App: React.FC = () => {
   const googleMapRef = useRef<any>(null);
   const [apiKey, setApiKey] = useState(import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '');
   const [isIgniteMode, setIsIgniteMode] = useState(false);
+  const [showWindOverlay, setShowWindOverlay] = useState(false);
+  const [showTraffic, setShowTraffic] = useState(false);
+  const [intelGrid, setIntelGrid] = useState<any[][] | null>(null);
+  const windVectorsRef = useRef<any[]>([]);
+  const trafficLayerRef = useRef<google.maps.TrafficLayer | null>(null);
   const { isSimulating, startSimulation, clearSimulation, errorMsg } = useFireSimulation();
 
   // Removed static initial fetch logic; now handled by map 'idle' event
@@ -113,6 +118,13 @@ const App: React.FC = () => {
             console.log('Fetching intel for new map bounds');
             const data = await fetchWildfireIntel({ north, south, east, west });
             setIntel(data);
+            
+            // Also fetch high-res grid for overlays
+            import('./services/wildfireApi').then(async ({ fetchWildfireGrid }) => {
+              const grid = await fetchWildfireGrid({ north, south, east, west });
+              setIntelGrid(grid);
+            });
+            
             setIsUpdatingIntel(false);
           }
         });
@@ -153,6 +165,74 @@ const App: React.FC = () => {
       map.setOptions({ draggableCursor: '' });
     }
   }, [isIgniteMode, intel, startSimulation]);
+
+  /**
+   * Wind Flow Effect
+   */
+  useEffect(() => {
+    // Clear previous vectors
+    windVectorsRef.current.forEach(v => v.setMap(null));
+    windVectorsRef.current = [];
+
+    if (showWindOverlay && googleMapRef.current && intelGrid) {
+      const map = googleMapRef.current;
+      const bounds = map.getBounds();
+      if (!bounds) return;
+
+      const ne = bounds.getNorthEast();
+      const sw = bounds.getSouthWest();
+      const rows = intelGrid.length;
+      const cols = intelGrid[0].length;
+      const latStep = (ne.lat() - sw.lat()) / rows;
+      const lngStep = (ne.lng() - sw.lng()) / cols;
+
+      const vectors: any[] = [];
+      for (let i = 0; i < rows; i += 2) { // Sparse grid for performance
+        for (let j = 0; j < cols; j += 2) {
+          const data = intelGrid[i][j];
+          const lat = sw.lat() + (i + 0.5) * latStep;
+          const lng = sw.lng() + (j + 0.5) * lngStep;
+          
+          const angle = (data.windDirection - 90) * (Math.PI / 180);
+          const length = 0.005 * (data.windSpeed / 10);
+          
+          const line = new google.maps.Polyline({
+            path: [
+              { lat, lng },
+              { lat: lat + Math.sin(angle) * length, lng: lng + Math.cos(angle) * length }
+            ],
+            geodesic: true,
+            strokeColor: '#f59e0b',
+            strokeOpacity: 0.6,
+            strokeWeight: 2,
+            icons: [{
+              icon: { path: google.maps.SymbolPath.FORWARD_OPEN_ARROW, scale: 2 },
+              offset: '100%'
+            }],
+            map: map
+          });
+          vectors.push(line);
+        }
+      }
+      windVectorsRef.current = vectors;
+    }
+  }, [showWindOverlay, intelGrid]);
+
+  /**
+   * Traffic Overlay Effect
+   */
+  useEffect(() => {
+    if (googleMapRef.current) {
+      if (showTraffic) {
+        if (!trafficLayerRef.current) {
+          trafficLayerRef.current = new google.maps.TrafficLayer();
+        }
+        trafficLayerRef.current.setMap(googleMapRef.current);
+      } else if (trafficLayerRef.current) {
+        trafficLayerRef.current.setMap(null);
+      }
+    }
+  }, [showTraffic]);
 
   return (
     <div className="app-container">
@@ -233,6 +313,58 @@ const App: React.FC = () => {
                 </div>
               </div>
             )}
+            {/* Floating Map Controls */}
+          <div style={{
+            position: 'absolute',
+            top: '12px',
+            right: '50px',
+            display: 'flex',
+            gap: '8px',
+            zIndex: 1
+          }}>
+            <button
+              onClick={() => setShowWindOverlay(!showWindOverlay)}
+              style={{
+                backgroundColor: showWindOverlay ? 'var(--accent-amber)' : 'rgba(15, 15, 18, 0.9)',
+                color: showWindOverlay ? '#000' : 'var(--text-primary)',
+                border: '1px solid var(--accent-amber)',
+                padding: '6px 12px',
+                borderRadius: '6px',
+                fontSize: '12px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                boxShadow: showWindOverlay ? '0 0 15px rgba(245, 158, 11, 0.3)' : 'none'
+              }}
+            >
+              <Wind size={14} />
+              Wind Flow
+            </button>
+            <button
+              onClick={() => setShowTraffic(!showTraffic)}
+              style={{
+                backgroundColor: showTraffic ? '#22c55e' : 'rgba(15, 15, 18, 0.9)',
+                color: showTraffic ? '#000' : 'var(--text-primary)',
+                border: '1px solid #22c55e',
+                padding: '6px 12px',
+                borderRadius: '6px',
+                fontSize: '12px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                boxShadow: showTraffic ? '0 0 15px rgba(34, 197, 94, 0.3)' : 'none'
+              }}
+            >
+              <Navigation size={14} />
+              Busy Streets
+            </button>
+          </div>
             <div ref={mapRef} style={{ height: '100%', width: '100%' }} />
           </section>
 
@@ -246,29 +378,31 @@ const App: React.FC = () => {
                 </p>
               </div>
 
-              <button
-                onClick={() => {
-                  if (isSimulating) {
-                    clearSimulation();
-                    setIsIgniteMode(false);
-                  } else {
-                    if (viewMode !== 'MAP') setViewMode('MAP');
-                    setIsIgniteMode(!isIgniteMode);
-                  }
-                }}
-                className={isIgniteMode ? "btn-primary" : ""}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: '8px',
-                  padding: '12px 24px', borderRadius: '8px', fontWeight: 'bold',
-                  cursor: 'pointer', transition: 'all 0.2s',
-                  backgroundColor: isSimulating ? '#e2e8f0' : (isIgniteMode ? '#ef4444' : '#fff7ed'),
-                  color: isSimulating ? '#64748b' : (isIgniteMode ? '#ffffff' : '#ea580c'),
-                  border: isSimulating ? '1px solid #cbd5e1' : (isIgniteMode ? 'none' : '1px solid #ffedd5'),
-                }}
-              >
-                <Flame size={20} />
-                {isSimulating ? "Clear Simulation" : (isIgniteMode ? "Click Map to Ignite" : "Simulate Fire")}
-              </button>
+              {!(showWindOverlay || showTraffic) && (
+                <button
+                  onClick={() => {
+                    if (isSimulating) {
+                      clearSimulation();
+                      setIsIgniteMode(false);
+                    } else {
+                      if (viewMode !== 'MAP') setViewMode('MAP');
+                      setIsIgniteMode(!isIgniteMode);
+                    }
+                  }}
+                  className={isIgniteMode ? "btn-primary" : ""}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: '8px',
+                    padding: '12px 24px', borderRadius: '8px', fontWeight: 'bold',
+                    cursor: 'pointer', transition: 'all 0.2s',
+                    backgroundColor: isSimulating ? '#e2e8f0' : (isIgniteMode ? '#ef4444' : '#fff7ed'),
+                    color: isSimulating ? '#64748b' : (isIgniteMode ? '#ffffff' : '#ea580c'),
+                    border: isSimulating ? '1px solid #cbd5e1' : (isIgniteMode ? 'none' : '1px solid #ffedd5'),
+                  }}
+                >
+                  <Flame size={20} />
+                  {isSimulating ? "Clear Simulation" : (isIgniteMode ? "Click Map to Ignite" : "Simulate Fire")}
+                </button>
+              )}
             </header>
 
             <div style={{ padding: '32px', display: 'flex', flexDirection: 'column', gap: '24px', opacity: isUpdatingIntel ? 0.5 : 1, transition: 'opacity 0.3s' }}>
@@ -339,6 +473,30 @@ const App: React.FC = () => {
                   trend={intel && intel.droughtIndex > 70 ? "Severe" : "Moderate"}
                 />
               </div>
+
+              {/* Map Intelligence Layers (Scroll Down) */}
+              <div style={{ marginTop: '32px', padding: '24px', backgroundColor: 'rgba(255, 255, 255, 0.03)', borderRadius: '16px', border: '1px solid var(--glass-border)' }}>
+                <h3 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Zap size={16} className="text-amber" />
+                  Map Intelligence Layers
+                </h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <LayerToggle 
+                    label="Live Wind Flow Overlay" 
+                    active={showWindOverlay} 
+                    onChange={() => setShowWindOverlay(!showWindOverlay)} 
+                    icon={<Wind size={16} />}
+                    color="#f59e0b"
+                  />
+                  <LayerToggle 
+                    label="Busy Streets (Traffic)" 
+                    active={showTraffic} 
+                    onChange={() => setShowTraffic(!showTraffic)} 
+                    icon={<Navigation size={16} />}
+                    color="#22c55e"
+                  />
+                </div>
+              </div>
             </div>
           </section>
         </div>
@@ -355,11 +513,11 @@ const App: React.FC = () => {
           <SimulationView />
         </div>
         {/* FAQ & Protocols View */}
-        <div 
-          style={{ 
-            display: viewMode === 'FAQ' ? 'block' : 'none', 
-            width: '100%', 
-            height: '100%', 
+        <div
+          style={{
+            display: viewMode === 'FAQ' ? 'block' : 'none',
+            width: '100%',
+            height: '100%',
             overflow: 'hidden'
           }}
         >
@@ -401,7 +559,7 @@ const NavButton = ({ active, onClick, icon, label }: any) => (
  */
 const LandingPage = ({ onNavigate }: { onNavigate: (mode: ViewMode) => void }) => (
   <div className="landing-container" style={{ background: 'transparent' }}>
-    
+
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -476,6 +634,55 @@ const MetricCard = ({ icon, label, value, trend }: any) => (
     <div style={{ fontSize: '20px', fontWeight: 'bold', color: 'var(--text-primary)' }}>{value}</div>
     <div style={{ fontSize: '10px', color: 'var(--text-secondary)', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
       {trend}
+    </div>
+  </div>
+);
+
+/**
+ * LayerToggle Component
+ * A stylized toggle for map intelligence layers.
+ */
+const LayerToggle = ({ label, active, onChange, icon, color }: any) => (
+  <div 
+    onClick={onChange}
+    style={{
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      padding: '12px 16px',
+      backgroundColor: active ? `${color}15` : 'transparent',
+      border: `1px solid ${active ? color : 'var(--glass-border)'}`,
+      borderRadius: '12px',
+      cursor: 'pointer',
+      transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)'
+    }}
+  >
+    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+      <div style={{ color: active ? color : 'var(--text-secondary)' }}>
+        {icon}
+      </div>
+      <span style={{ fontSize: '13px', fontWeight: 500, color: active ? 'var(--text-primary)' : 'var(--text-secondary)' }}>
+        {label}
+      </span>
+    </div>
+    <div style={{
+      width: '32px',
+      height: '18px',
+      backgroundColor: active ? color : 'rgba(255, 255, 255, 0.1)',
+      borderRadius: '9px',
+      position: 'relative',
+      transition: 'background-color 0.2s'
+    }}>
+      <div style={{
+        position: 'absolute',
+        top: '2px',
+        left: active ? '16px' : '2px',
+        width: '14px',
+        height: '14px',
+        backgroundColor: active ? '#000' : 'var(--text-secondary)',
+        borderRadius: '50%',
+        transition: 'all 0.2s'
+      }} />
     </div>
   </div>
 );
