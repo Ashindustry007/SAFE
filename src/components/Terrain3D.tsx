@@ -1,140 +1,139 @@
 /**
- * SAFE 3D Terrain Renderer
- * 
- * High-performance WebGL terrain mesh component.
- * Converts 2D grid data and elevation profiles into a dynamic 3D surface.
- * Utilizes BufferAttributes for efficient vertex-level color and position updates,
- * allowing real-time visualization of fire spread on complex topography.
+ * Terrain3D (Concord parity)
+ *
+ * This follows Concord's approach from `view-3d/terrain.tsx`:
+ * - one PlaneGeometry with (gridWidth x gridHeight) vertices
+ * - vertex colors updated per cell state
+ * - elevation applied per vertex (scaled from ft -> view units)
  */
 
 import React, { useMemo, useEffect } from 'react';
 import * as THREE from 'three';
-import { FireState } from '../logic/concord/cell';
-import type { Cell } from '../logic/concord/cell';
-import { DroughtLevel } from '../logic/concord/types';
-
 import { Html } from '@react-three/drei';
 
-const COLORS = {
-  burningCore: new THREE.Color('#ffb020'),
-  burningFront: new THREE.Color('#ff2a00').multiplyScalar(1.65),
-  burnt: new THREE.Color('#1f1f1f'),
-  burntCool: new THREE.Color('#3d3530'),
-  river: new THREE.Color('#1f6cb0'),
-  fireLine: new THREE.Color('#5d4037'),
-  dryness: new THREE.Color('#c9a063'),
+import type { Cell } from '../logic/concord/cell';
+import { BurnIndex, FireState } from '../logic/concord/cell';
+import { DroughtLevel } from '../logic/concord/types';
+
+const PLANE_WIDTH = 1;
+
+const getTerrainColor = (droughtLevel: number): [number, number, number, number] => {
+  switch (droughtLevel) {
+    case DroughtLevel.NoDrought:
+      return [0.008, 0.831, 0.039, 1];
+    case DroughtLevel.MildDrought:
+      return [0.573, 0.839, 0.216, 1];
+    case DroughtLevel.MediumDrought:
+      return [0.757, 0.886, 0.271, 1];
+    default:
+      return [0.784, 0.631, 0.271, 1];
+  }
 };
+
+const BURNING_COLOR: [number, number, number, number] = [1, 0, 0, 1];
+const BURNT_COLOR: [number, number, number, number] = [0.2, 0.2, 0.2, 1];
+const FIRE_LINE_UNDER_CONSTRUCTION_COLOR: [number, number, number, number] = [0.5, 0.5, 0, 1];
+
+const BURN_INDEX_LOW: [number, number, number, number] = [1, 0.7, 0, 1];
+const BURN_INDEX_MEDIUM: [number, number, number, number] = [1, 0.5, 0, 1];
+const BURN_INDEX_HIGH: [number, number, number, number] = [1, 0, 0, 1];
+
+const burnIndexColor = (burnIndex: BurnIndex): [number, number, number, number] => {
+  if (burnIndex === BurnIndex.Low) return BURN_INDEX_LOW;
+  if (burnIndex === BurnIndex.Medium) return BURN_INDEX_MEDIUM;
+  return BURN_INDEX_HIGH;
+};
+
+const vertexIdx = (cell: Cell, gridWidth: number, gridHeight: number) =>
+  (gridHeight - 1 - cell.y) * gridWidth + cell.x;
 
 interface Terrain3DProps {
   cells: Cell[];
-  width: number;
-  height: number;
+  gridWidth: number;
+  gridHeight: number;
+  modelWidthFt: number;
+  modelHeightFt: number;
   activeTool: string;
-  /** Model time in minutes (Concord clock); burn coloring uses this with ignition/burnTime. */
   simTime?: number;
+  showBurnIndex?: boolean;
+  riverColor?: [number, number, number, number];
   onCellInteraction: (x: number, y: number) => void;
 }
 
 export const Terrain3D: React.FC<Terrain3DProps> = ({
   cells,
-  width,
-  height,
+  gridWidth,
+  gridHeight,
+  modelWidthFt,
+  modelHeightFt,
   activeTool,
   simTime = 0,
+  showBurnIndex = true,
+  riverColor = [0.067, 0.529, 0.882, 1],
   onCellInteraction,
 }) => {
   const [isDragging, setIsDragging] = React.useState(false);
 
-  // Pre-construct geometry with color buffer
+  const planeHeight = (modelHeightFt * PLANE_WIDTH) / modelWidthFt;
+  const ftToViewUnit = PLANE_WIDTH / modelWidthFt;
+
   const geometry = useMemo(() => {
-    const geo = new THREE.BoxGeometry(width, height, 2, width - 1, height - 1, 1);
-    const posAttr = geo.getAttribute('position');
-    const colors = new Float32Array(posAttr.count * 3);
-    geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    const geo = new THREE.PlaneGeometry(PLANE_WIDTH, planeHeight, gridWidth - 1, gridHeight - 1);
+    // 4 floats per vertex (rgba)
+    geo.setAttribute('color', new THREE.Float32BufferAttribute(new Array(gridWidth * gridHeight * 4).fill(0), 4));
     return geo;
-  }, [width, height]);
+  }, [gridWidth, gridHeight, planeHeight]);
 
-  /**
-   * Reactive Update Effect
-   * Efficiently updates only the vertex colors when the simulation state changes.
-   * This bypasses full mesh re-renders for maximum FPS during fire propagation.
-   */
   useEffect(() => {
-    const posAttr = geometry.getAttribute('position') as THREE.BufferAttribute;
-    const colAttr = geometry.getAttribute('color') as THREE.BufferAttribute;
-    
-    for (let i = 0; i < posAttr.count; i++) {
-      const x = posAttr.getX(i);
-      const y = posAttr.getY(i);
-      const z = posAttr.getZ(i);
-
-      // Map world x,y to grid gx, gy with safety clamps
-      let gx = Math.round(x + width / 2);
-      let gy = Math.round(height / 2 - y);
-      
-      gx = Math.max(0, Math.min(width - 1, gx));
-      gy = Math.max(0, Math.min(height - 1, gy));
-      
-      const idx = gy * width + gx;
-      if (idx >= 0 && idx < cells.length) {
-        const cell = cells[idx];
-        if (cell && z > 0) {
-          posAttr.setZ(i, (cell.baseElevation || 0) / 40);
-          const color = getCellColor(cell, simTime);
-          colAttr.setXYZ(i, color.r, color.g, color.b);
-        } else {
-          // Bottom vertex
-          posAttr.setZ(i, -10); 
-          colAttr.setXYZ(i, 0.1, 0.12, 0.05); 
-        }
-      }
-    }
-
-    posAttr.needsUpdate = true;
-    colAttr.needsUpdate = true;
+    const posArray = (geometry.attributes.position.array as number[]);
+    cells.forEach((cell) => {
+      const zAttrIdx = vertexIdx(cell, gridWidth, gridHeight) * 3 + 2;
+      posArray[zAttrIdx] = cell.elevation * ftToViewUnit;
+    });
     geometry.computeVertexNormals();
-  }, [cells, geometry, width, height, simTime]);
+    (geometry.attributes.position as THREE.BufferAttribute).needsUpdate = true;
+  }, [cells, geometry, gridWidth, gridHeight, ftToViewUnit]);
+
+  useEffect(() => {
+    const colArray = (geometry.attributes.color.array as number[]);
+    cells.forEach((cell) => {
+      const idx = vertexIdx(cell, gridWidth, gridHeight) * 4;
+      let color: [number, number, number, number];
+      if (cell.fireState === FireState.Burning) {
+        color = showBurnIndex ? burnIndexColor(cell.burnIndex) : BURNING_COLOR;
+      } else if (cell.fireState === FireState.Burnt) {
+        color = cell.isFireSurvivor ? getTerrainColor(cell.droughtLevel) : BURNT_COLOR;
+      } else if (cell.isRiver) {
+        color = riverColor;
+      } else if (cell.isFireLineUnderConstruction) {
+        color = FIRE_LINE_UNDER_CONSTRUCTION_COLOR;
+      } else {
+        color = getTerrainColor(cell.droughtLevel);
+      }
+      colArray[idx + 0] = color[0];
+      colArray[idx + 1] = color[1];
+      colArray[idx + 2] = color[2];
+      colArray[idx + 3] = color[3];
+    });
+    (geometry.attributes.color as THREE.BufferAttribute).needsUpdate = true;
+  }, [cells, geometry, gridWidth, gridHeight, showBurnIndex, riverColor, simTime]);
 
   const handlePointerAction = (e: any) => {
     e.stopPropagation();
     const local = e.object.worldToLocal(e.point.clone());
-    const gx = Math.round(local.x + width / 2);
-    const gy = Math.round(height / 2 - local.y);
-    
-    if (gx >= 0 && gx < width && gy >= 0 && gy < height) {
-      onCellInteraction(gx, gy);
-    }
+    // local.x, local.y are in view units around plane center.
+    const u = THREE.MathUtils.clamp((local.x / PLANE_WIDTH) + 0.5, 0, 1);
+    const v = THREE.MathUtils.clamp((local.y / planeHeight) + 0.5, 0, 1);
+    const gx = Math.min(gridWidth - 1, Math.max(0, Math.floor(u * gridWidth)));
+    const gy = Math.min(gridHeight - 1, Math.max(0, Math.floor((1 - v) * gridHeight)));
+    onCellInteraction(gx, gy);
   };
-
-  function droughtBlend(zoneIdx: number, droughtLevel: DroughtLevel) {
-    const dryT = THREE.MathUtils.clamp(droughtLevel / DroughtLevel.SevereDrought, 0, 1);
-    const vegHue = zoneIdx === 0 ? new THREE.Color('#0d7f24') : zoneIdx === 1 ? new THREE.Color('#74932a') : new THREE.Color('#1fb34a');
-    return vegHue.clone().lerp(COLORS.dryness, dryT * 0.55);
-  }
-
-  function getCellColor(cell: Cell, clock: number) {
-    if (cell.fireState === FireState.Burning) {
-      const dur = Math.max(cell.burnTime, 1);
-      const phase = THREE.MathUtils.clamp((clock - cell.ignitionTime) / dur, 0, 1);
-      const spreadBoost = THREE.MathUtils.clamp((cell.spreadRate ?? 0) / 140, 0, 1);
-      const intense = THREE.MathUtils.clamp(phase * 0.75 + spreadBoost * 0.35, 0, 1);
-      return COLORS.burningCore.clone().lerp(COLORS.burningFront, intense);
-    }
-    if (cell.fireState === FireState.Burnt) {
-      if (cell.isFireSurvivor) return COLORS.burntCool;
-      return COLORS.burnt;
-    }
-    if (cell.isRiver) return COLORS.river;
-    if (cell.isFireLine) return COLORS.fireLine;
-
-    return droughtBlend(cell.zoneIdx, cell.zone.droughtLevel);
-  }
 
   return (
     <group>
-      <mesh 
-        rotation={[-Math.PI / 2.1, 0, 0]} 
-        receiveShadow 
+      <mesh
+        rotation={[-Math.PI / 2, 0, 0]}
+        receiveShadow
         castShadow
         frustumCulled={false}
         onPointerDown={(e) => {
@@ -154,28 +153,22 @@ export const Terrain3D: React.FC<Terrain3DProps> = ({
         }}
       >
         <primitive object={geometry} attach="geometry" />
-        <meshStandardMaterial
-          vertexColors
-          roughness={0.82}
-          metalness={0.06}
-          emissiveIntensity={0}
-          emissive={new THREE.Color('#000000')}
-        />
+        <meshStandardMaterial vertexColors roughness={0.95} metalness={0.0} />
 
         {/* City Markers */}
-        <Html position={[-width * 0.25, height * 0.35, 25]} center style={{ pointerEvents: 'none' }}>
+        <Html position={[-0.25, planeHeight * 0.35, 0.02]} center style={{ pointerEvents: 'none' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'white', fontFamily: 'sans-serif', fontSize: '11px', textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>
             <div style={{ width: 6, height: 6, backgroundColor: 'white', borderRadius: '50%', boxShadow: '0 1px 2px rgba(0,0,0,0.8)' }}></div>
             Skyview
           </div>
         </Html>
-        <Html position={[width * 0.1, -height * 0.2, 10]} center style={{ pointerEvents: 'none' }}>
+        <Html position={[0.1, -planeHeight * 0.2, 0.02]} center style={{ pointerEvents: 'none' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'white', fontFamily: 'sans-serif', fontSize: '11px', textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>
             <div style={{ width: 6, height: 6, backgroundColor: 'white', borderRadius: '50%', boxShadow: '0 1px 2px rgba(0,0,0,0.8)' }}></div>
             Rolling Rock
           </div>
         </Html>
-        <Html position={[width * 0.35, -height * 0.05, 5]} center style={{ pointerEvents: 'none' }}>
+        <Html position={[0.35, -planeHeight * 0.05, 0.02]} center style={{ pointerEvents: 'none' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'white', fontFamily: 'sans-serif', fontSize: '11px', textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>
             <div style={{ width: 6, height: 6, backgroundColor: 'white', borderRadius: '50%', boxShadow: '0 1px 2px rgba(0,0,0,0.8)' }}></div>
             Evensville
@@ -183,24 +176,7 @@ export const Terrain3D: React.FC<Terrain3DProps> = ({
         </Html>
       </mesh>
       
-      <hemisphereLight intensity={0.6} groundColor="#1a1a1a" color="#ffffff" />
-
-      {cells
-        .filter((c) => c.fireState === FireState.Burning)
-        .slice(0, 8)
-        .map((cell, i) => {
-          const spreadBoost = THREE.MathUtils.clamp((cell.spreadRate ?? 0) / 140, 0, 1);
-          return (
-            <pointLight
-              key={`${cell.x}-${cell.y}-${i}`}
-              position={[cell.x - width / 2, cell.baseElevation / 40 + 2, height / 2 - cell.y]}
-              color="#ff7b2e"
-              intensity={8 + spreadBoost * 32}
-              distance={18 + spreadBoost * 12}
-              decay={2}
-            />
-          );
-        })}
+      <hemisphereLight intensity={0.55} groundColor="#1a1a1a" color="#ffffff" />
     </group>
   );
 };
