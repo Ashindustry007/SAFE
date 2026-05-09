@@ -10,7 +10,8 @@ import {
   CloudRain,
   Navigation,
   Zap,
-  HelpCircle
+  HelpCircle,
+  MessageSquare
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { fetchWildfireIntel } from './services/wildfireApi';
@@ -20,7 +21,7 @@ import Chatbot from './components/Chatbot';
 import FAQPage from './components/FAQPage';
 import './App.css';
 
-type ViewMode = 'MAP' | 'SIMULATION' | 'FAQ';
+type ViewMode = 'MAP' | 'SIMULATION' | 'FAQ' | 'CHAT';
 
 const App: React.FC = () => {
   const [viewMode, setViewMode] = useState<ViewMode>('MAP');
@@ -124,6 +125,21 @@ const App: React.FC = () => {
             }}
           >
             <HelpCircle size={22} />
+          </button>
+          <button 
+            onClick={() => setViewMode('CHAT')}
+            style={{ 
+              background: 'none', 
+              border: 'none', 
+              color: viewMode === 'CHAT' ? 'var(--accent-amber)' : 'inherit', 
+              cursor: 'pointer', 
+              transition: 'all 0.2s',
+              padding: '12px',
+              borderRadius: '8px',
+              backgroundColor: viewMode === 'CHAT' ? 'rgba(245, 158, 11, 0.1)' : 'transparent'
+            }}
+          >
+            <MessageSquare size={22} />
           </button>
         </nav>
       </aside>
@@ -257,8 +273,17 @@ const App: React.FC = () => {
         >
           <FAQPage />
         </div>
+        {/* Chat View */}
+        <div 
+          style={{ 
+            display: viewMode === 'CHAT' ? 'block' : 'none', 
+            width: '100%', 
+            height: '100%'
+          }}
+        >
+          <Chatbot />
+        </div>
       </main>
-      <Chatbot />
     </div>
   );
 };

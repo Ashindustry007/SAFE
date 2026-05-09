@@ -38,10 +38,23 @@ const model = new ChatGoogleGenerativeAI({
 });
 
 let vectorStore: MemoryVectorStore;
-let faqs: { question: string; answer: string }[] = [];
+let faqs: { question: string; answer: string }[] = [
+  { question: "Hi", answer: "Hello! I am the SAFE Intelligence Assistant. You can ask me about wildfire simulations, the Rothermel model, or fire risk analytics." },
+  { question: "What is SAFE?", answer: "SAFE (Smart Analytics for Fire Emergencies) is a high-fidelity wildfire intelligence and simulation platform using Rothermel's surface fire spread model." },
+  { question: "How does the simulation model work?", answer: "The simulation uses the Rothermel model, which considers fuel types, moisture, wind speed, and slope to predict fire behavior." },
+  { question: "What data sources does SAFE use?", answer: "SAFE integrates real-time environmental data including temperature, humidity, wind vectors, and vegetation maps." },
+  { question: "Is the simulation real-time?", answer: "Yes, the simulation runs in real-time using WebGL-accelerated 3D rendering for high-performance visualization." },
+  { question: "What is the Rothermel model?", answer: "The Rothermel Surface Fire Spread Model is a mathematical formula used to predict the rate of spread and intensity of forest fires." },
+  { question: "Who created SAFE?", answer: "SAFE was developed as part of the Reboot the Earth hackathon to provide advanced wildfire analytics." }
+];
 
 async function initializeKnowledgeBase() {
   console.log("Initializing knowledge base...");
+  
+  // 1. Generate FAQs first (has robust fallbacks)
+  await generateFAQs();
+
+  // 2. Load documents for vector store
   const docsToLoad = ['README.md', 'ARCHITECTURE.md', 'SIMULATION_MODEL.md'];
   const allDocs: Document[] = [];
 
@@ -58,36 +71,39 @@ async function initializeKnowledgeBase() {
     chunkOverlap: 200,
   });
 
-  const splitDocs = await textSplitter.splitDocuments(allDocs);
-  vectorStore = await MemoryVectorStore.fromDocuments(splitDocs, embeddings);
-  
-  console.log("Knowledge base initialized.");
-  
-  // Generate initial FAQs if none exist (simplified for demo)
-  generateFAQs();
+  try {
+    const splitDocs = await textSplitter.splitDocuments(allDocs);
+    vectorStore = await MemoryVectorStore.fromDocuments(splitDocs, embeddings);
+    console.log("Knowledge base (Vector Store) initialized.");
+  } catch (error) {
+    console.warn("Vector store initialization failed (quota likely reached). AI will answer from general knowledge.");
+  }
 }
 
 async function generateFAQs() {
+  // Check if we already have faqs to avoid redundant API calls
+  if (faqs.length > 2) return;
+
   try {
     const response = await model.invoke([
-      ["system", "You are an AI assistant for the SAFE (Smart Analytics for Fire Emergencies) project. Based on the documentation provided, generate 5-7 frequently asked questions and their answers. Format as a JSON array of objects with 'question' and 'answer' keys."],
+      ["system", "You are an AI assistant for the SAFE (Smart Analytics for Fire Emergencies) project. Based on the documentation provided, generate 5 frequently asked questions and their answers. Format as a JSON array of objects with 'question' and 'answer' keys."],
       ["human", "Generate the FAQs now."]
     ]);
     
-    // Simple extraction of JSON from response
     const content = response.content as string;
     const jsonMatch = content.match(/\[[\s\S]*\]/);
     if (jsonMatch) {
       faqs = JSON.parse(jsonMatch[0]);
-    } else {
-      // Fallback static FAQs if generation fails
-      faqs = [
-        { question: "What is SAFE?", answer: "SAFE (Smart Analytics for Fire Emergencies) is a high-fidelity wildfire intelligence and simulation platform." },
-        { question: "What model does the simulation use?", answer: "The simulation is based on the Rothermel Surface Fire Spread Model." }
-      ];
     }
   } catch (error) {
-    console.error("Error generating FAQs:", error);
+    console.warn("Could not generate dynamic FAQs (quota reached), using high-fidelity fallbacks.");
+    faqs = [
+      { question: "What is SAFE?", answer: "SAFE (Smart Analytics for Fire Emergencies) is a high-fidelity wildfire intelligence and simulation platform using Rothermel's surface fire spread model." },
+      { question: "How does the simulation model work?", answer: "The simulation uses the Rothermel model, which considers fuel types, moisture, wind speed, and slope to predict fire behavior." },
+      { question: "What data sources does SAFE use?", answer: "SAFE integrates real-time environmental data including temperature, humidity, wind vectors, and vegetation maps." },
+      { question: "Is the simulation real-time?", answer: "Yes, the simulation runs in real-time using WebGL-accelerated 3D rendering for high-performance visualization." },
+      { question: "What is the Rothermel model?", answer: "The Rothermel Surface Fire Spread Model is a mathematical formula used to predict the rate of spread and intensity of forest fires." }
+    ];
   }
 }
 
@@ -96,20 +112,30 @@ app.post('/api/chat', async (req, res) => {
   if (!message) return res.status(400).json({ error: "Message is required" });
 
   try {
-    // 1. Search for relevant context
-    const contextDocs = await vectorStore.similaritySearch(message, 3);
-    const contextText = contextDocs.map(d => d.pageContent).join("\n\n");
+    let contextText = "";
+    
+    // 1. Search for relevant context if vector store is ready
+    if (vectorStore) {
+      try {
+        const contextDocs = await vectorStore.similaritySearch(message, 3);
+        contextText = contextDocs.map(d => d.pageContent).join("\n\n");
+      } catch (err) {
+        console.error("Vector search error:", err);
+      }
+    } else {
+      console.warn("Vector store not initialized. Answering from general knowledge.");
+    }
 
     // 2. Generate response
     const response = await model.invoke([
-      ["system", `You are a helpful assistant for the SAFE project. Use the following context to answer the user's question. If you don't know the answer based on the context, use your general knowledge but clarify that it's not explicitly in the docs.\n\nContext:\n${contextText}`],
+      ["system", `You are a helpful assistant for the SAFE project. ${contextText ? `Use the following context to answer the user's question. If you don't know the answer based on the context, use your general knowledge but clarify that it's not explicitly in the docs.\n\nContext:\n${contextText}` : "The internal knowledge base is currently being initialized or unavailable. Please answer based on your general knowledge of wildfire safety and the SAFE (Smart Analytics for Fire Emergencies) project."}`],
       ["human", message]
     ]);
 
     res.json({ response: response.content });
   } catch (error: any) {
     console.error("Chat error:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "I'm currently experiencing high traffic. Please try again in a moment." });
   }
 });
 
