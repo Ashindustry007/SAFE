@@ -1,4 +1,4 @@
-export type CellState = 'unburned' | 'burning' | 'burntOut' | 'survived';
+export type CellState = 'unburned' | 'burning' | 'burntOut' | 'survived' | 'water';
 
 export interface FireCell {
   x: number;
@@ -8,6 +8,7 @@ export interface FireCell {
   state: CellState;
   elevation: number; // in feet
   burnTimeElapsed: number; // in minutes
+  fuel: number; // 0.0 (Water/Rock) to 1.0 (Dense Forest)
 }
 
 export interface SimulationIntel {
@@ -18,8 +19,6 @@ export interface SimulationIntel {
 }
 
 export interface SimulationParams {
-  gridWidth: number;
-  gridHeight: number;
   cellSizeFt: number;
   dt: number; // minutes per tick
   baseRate: number;
@@ -29,8 +28,6 @@ export interface SimulationParams {
 }
 
 export const DEFAULT_PARAMS: SimulationParams = {
-  gridWidth: 21,
-  gridHeight: 21,
   cellSizeFt: 500,
   dt: 5, // Small time step for realistic probability curves
   baseRate: 0.015, // Tuned so wind/slope heavily influence spread
@@ -40,18 +37,38 @@ export const DEFAULT_PARAMS: SimulationParams = {
 };
 
 export class FireSimulation {
-  grid: FireCell[][] = [];
+  grid: Map<string, FireCell> = new Map();
+  activeFires: Set<string> = new Set();
+  missingChunksQueue: Set<string> = new Set(); // Stores specific cell keys that are missing
+  
   params: SimulationParams;
   intel: SimulationIntel;
 
   constructor(
-    initialGrid: FireCell[][], 
+    initialGrid: FireCell[], 
     intel: SimulationIntel,
     params: SimulationParams = DEFAULT_PARAMS
   ) {
-    this.grid = initialGrid;
     this.intel = intel;
     this.params = params;
+    
+    for (const cell of initialGrid) {
+      const key = `${cell.x},${cell.y}`;
+      this.grid.set(key, cell);
+      if (cell.state === 'burning') {
+        this.activeFires.add(key);
+      }
+    }
+  }
+
+  public addCells(cells: FireCell[]) {
+    for (const cell of cells) {
+      const key = `${cell.x},${cell.y}`;
+      if (!this.grid.has(key)) {
+        this.grid.set(key, cell);
+      }
+      this.missingChunksQueue.delete(key);
+    }
   }
 
   // Map 0-100 drought index to 0-3 equivalent for F_drought
@@ -104,55 +121,58 @@ export class FireSimulation {
     const F_vegetation = this.getVegetationFactor();
     const F_drought = this.getDroughtFactor();
 
-    const P = F_wind * F_slope * F_vegetation * F_drought * this.params.baseRate * this.params.dt;
+    // The key optimization: multiply by neighbor's fuel density. 
+    // If neighbor.fuel is 0 (Water/Rock), P becomes 0 and fire STOPS.
+    const P = F_wind * F_slope * F_vegetation * F_drought * neighbor.fuel * this.params.baseRate * this.params.dt;
     return Math.min(Math.max(P, 0), 1);
   }
 
   public tick(): void {
-    const newGrid: FireCell[][] = [];
-    const height = this.params.gridHeight;
-    const width = this.params.gridWidth;
-
-    // Deep copy grid
-    for (let y = 0; y < height; y++) {
-      newGrid[y] = [];
-      for (let x = 0; x < width; x++) {
-        newGrid[y][x] = { ...this.grid[y][x] };
-      }
-    }
-
     const nextStates: {x: number, y: number, state: CellState}[] = [];
+    const newlyExtinguishedKeys: string[] = [];
 
-    // Phase 1 & 2 combined logic
-    for (let y = 0; y < height; y++) {
-      for (let x = 0; x < width; x++) {
-        const cell = this.grid[y][x];
+    for (const key of this.activeFires) {
+      const cell = this.grid.get(key);
+      if (!cell || cell.state !== 'burning') {
+        newlyExtinguishedKeys.push(key);
+        continue;
+      }
 
-        if (cell.state === 'burning') {
-          // Phase 2: Age
-          newGrid[y][x].burnTimeElapsed += this.params.dt;
-          if (newGrid[y][x].burnTimeElapsed >= this.params.minCellBurnTime) {
-            // Check survival if forest
-            if (this.intel.vegetationType.toLowerCase().includes('forest') && Math.random() < 0.1) {
-              newGrid[y][x].state = 'survived';
-            } else {
-              newGrid[y][x].state = 'burntOut';
-            }
+      // Phase 2: Age
+      cell.burnTimeElapsed += this.params.dt;
+      // Dense fuel burns longer than sparse fuel
+      const maxBurnTime = this.params.minCellBurnTime * (0.5 + cell.fuel); 
+      if (cell.burnTimeElapsed >= maxBurnTime) {
+        // Check survival if forest
+        if (this.intel.vegetationType.toLowerCase().includes('forest') && Math.random() < 0.1) {
+          cell.state = 'survived';
+        } else {
+          cell.state = 'burntOut';
+        }
+        newlyExtinguishedKeys.push(key);
+      }
+
+      // Phase 1: Spread
+      // Check neighbors in radius 2
+      for (let ny = cell.y - 2; ny <= cell.y + 2; ny++) {
+        for (let nx = cell.x - 2; nx <= cell.x + 2; nx++) {
+          if (nx === cell.x && ny === cell.y) continue;
+          
+          const nKey = `${nx},${ny}`;
+          const neighbor = this.grid.get(nKey);
+          
+          if (!neighbor) {
+            // Missing chunk logic! We don't have this cell. 
+            // Queue it up so the frontend fetches it.
+            this.missingChunksQueue.add(nKey);
+            continue;
           }
 
-          // Phase 1: Spread
-          // Check neighbors in radius 2.5
-          for (let ny = Math.max(0, y - 2); ny <= Math.min(height - 1, y + 2); ny++) {
-            for (let nx = Math.max(0, x - 2); nx <= Math.min(width - 1, x + 2); nx++) {
-              if (nx === x && ny === y) continue;
-              const neighbor = this.grid[ny][nx];
-              if (neighbor.state === 'unburned') {
-                const P = this.calcIgnitionProb(cell, neighbor);
-                if (Math.random() < P) {
-                  // Mark to ignite
-                  nextStates.push({ x: nx, y: ny, state: 'burning' });
-                }
-              }
+          // Fire only spreads to unburned cells with fuel
+          if (neighbor.state === 'unburned' && neighbor.fuel > 0) {
+            const P = this.calcIgnitionProb(cell, neighbor);
+            if (Math.random() < P) {
+              nextStates.push({ x: nx, y: ny, state: 'burning' });
             }
           }
         }
@@ -161,11 +181,19 @@ export class FireSimulation {
 
     // Apply new ignitions
     for (const ns of nextStates) {
-      if (newGrid[ns.y][ns.x].state === 'unburned') {
-        newGrid[ns.y][ns.x].state = ns.state;
+      const nKey = `${ns.x},${ns.y}`;
+      const cell = this.grid.get(nKey);
+      if (cell && cell.state === 'unburned') {
+        cell.state = ns.state;
+        if (ns.state === 'burning') {
+          this.activeFires.add(nKey);
+        }
       }
     }
 
-    this.grid = newGrid;
+    // Cleanup active fires
+    for (const key of newlyExtinguishedKeys) {
+      this.activeFires.delete(key);
+    }
   }
 }
