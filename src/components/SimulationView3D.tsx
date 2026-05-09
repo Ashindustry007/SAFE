@@ -470,41 +470,7 @@ err=${terrainLoadError ?? "none"}`}
         </div>
       )}
 
-      <div
-        style={{
-          position: 'absolute',
-          top: '80px',
-          right: '24px',
-          backgroundColor: 'rgba(0,0,0,0.6)',
-          padding: '12px 24px',
-          borderRadius: '16px',
-          border: '1px solid rgba(255,255,255,0.1)',
-          color: 'white',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'flex-end',
-          pointerEvents: 'none',
-          backdropFilter: 'blur(8px)',
-        }}
-      >
-        <div
-          style={{
-            fontSize: '10px',
-            textTransform: 'uppercase',
-            letterSpacing: '0.1em',
-            color: 'rgba(255,255,255,0.5)',
-            fontWeight: 'bold',
-            marginBottom: '4px',
-          }}
-        >
-          Time Elapsed
-        </div>
-        <div style={{ fontSize: '24px', fontFamily: 'monospace', fontWeight: 'bold' }}>
-          Day {Math.floor(time / 1440) + 1},{' '}
-          {String(Math.floor((time % 1440) / 60)).padStart(2, '0')}:
-          {String(Math.floor(time % 60)).padStart(2, '0')}
-        </div>
-      </div>
+
 
       <div
         style={{
@@ -818,14 +784,11 @@ err=${terrainLoadError ?? "none"}`}
           border: '1px solid #e5e7eb',
         }}
       >
-        <button
-          type="button"
+        <ToolBtn
           onClick={() => setIsSetupOpen(true)}
-          className="tool-btn"
-          style={{ outline: 'none', boxShadow: 'none', border: 'none' }}
-        >
-          <Settings size={20} /> <span style={{ fontSize: '10px' }}>Setup</span>
-        </button>
+          icon={<Settings size={20} />}
+          label="Setup"
+        />
         <div style={{ width: 1, height: 32, backgroundColor: '#e5e7eb' }} />
 
         <ToolBtn
@@ -877,6 +840,15 @@ err=${terrainLoadError ?? "none"}`}
           icon={<PlaneIcon size={20} />}
           label="Helitack"
         />
+
+        <div style={{ width: 1, height: 32, backgroundColor: '#e5e7eb' }} />
+        
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: '90px' }}>
+          <div style={{ fontSize: '9px', color: '#6b7280', fontWeight: 'bold', letterSpacing: '0.05em' }}>TIME ELAPSED</div>
+          <div style={{ fontSize: '15px', fontFamily: 'monospace', fontWeight: 'bold', color: '#1f2937' }}>
+            D{Math.floor(time / 1440) + 1} {String(Math.floor((time % 1440) / 60)).padStart(2, '0')}:{String(Math.floor(time % 60)).padStart(2, '0')}
+          </div>
+        </div>
 
         <div style={{ width: 1, height: 32, backgroundColor: '#e5e7eb' }} />
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
