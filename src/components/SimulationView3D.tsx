@@ -5,8 +5,8 @@
  */
 
 import React, { useState, useEffect, useRef, useLayoutEffect, useCallback } from 'react';
-import { Canvas } from '@react-three/fiber';
-import { Sky, Html, OrbitControls, PerspectiveCamera } from '@react-three/drei';
+import { Canvas, useFrame } from '@react-three/fiber';
+import { Sky, OrbitControls, PerspectiveCamera, View } from '@react-three/drei';
 import {
   Play,
   Pause,
@@ -19,6 +19,7 @@ import {
   Compass,
   CheckCircle2,
   X,
+  Columns,
 } from 'lucide-react';
 import { Terrain3D } from './Terrain3D';
 import { Vegetation, DroughtLevel } from '../logic/concord/types';
@@ -47,13 +48,46 @@ function createEngine(grid: Cell[], wind: IWindProps): FireEngine {
   return new FireEngine(grid, wind, [], ENGINE_CFG);
 }
 
-const TOWNS = CFG.towns.map(t => ({ name: t.name, xFrac: t.x, yFrac: t.y }));
+
 
 interface Simulation3DProps {
   onBack: () => void;
 }
 
 type Tool = 'SPARK' | 'FIRELINE' | 'HELITACK' | 'NONE';
+
+const SimulationContent = ({ cells, activeTool, clickMarkers, onCellInteraction, time }: any) => (
+  <>
+    <ambientLight intensity={0.65} />
+    <directionalLight position={[1.2, 1.8, 1.1]} intensity={2.0} castShadow />
+    <Sky sunPosition={[1, 0.4, 0.6]} />
+    <group position={[0, 0, 0]}>
+      <Terrain3D
+        cells={cells}
+        gridWidth={GRID_WIDTH}
+        gridHeight={GRID_HEIGHT}
+        modelWidthFt={MODEL_WIDTH_FT}
+        modelHeightFt={MODEL_HEIGHT_FT}
+        cellSizeFt={CELL_SIZE_FT}
+        activeTool={activeTool}
+        simTime={time}
+        showBurnIndex={true}
+        riverColor={CFG.riverColor}
+        onCellInteraction={onCellInteraction}
+      />
+      {clickMarkers.map((m: any, i: number) => {
+        const color = m.tool === 'SPARK' ? '#f59e0b' : m.tool === 'FIRELINE' ? '#8b5a2b' : '#38bdf8';
+        return (
+          <group key={`${m.x}-${m.y}-${m.t}-${i}`} position={[(m.x / (GRID_WIDTH - 1) - 0.5) * 1, m.z + 0.01, (m.y / (GRID_HEIGHT - 1) - 0.5) * (MODEL_HEIGHT_FT / MODEL_WIDTH_FT)]}>
+            <mesh position={[0, 0.03, 0]}><cylinderGeometry args={[0.0035, 0.0035, 0.06, 10]} /><meshStandardMaterial color={color} /></mesh>
+            <mesh position={[0, 0.065, 0]}><sphereGeometry args={[0.0075, 12, 12]} /><meshStandardMaterial color={color} /></mesh>
+          </group>
+        );
+      })}
+
+    </group>
+  </>
+);
 
 export const SimulationView3D: React.FC<Simulation3DProps> = ({ onBack }) => {
   const [cells, setCells] = useState<Cell[]>(() => {
@@ -90,7 +124,17 @@ export const SimulationView3D: React.FC<Simulation3DProps> = ({ onBack }) => {
   const [setupStep, setSetupStep] = useState(1);
   const [selectedZone, setSelectedZone] = useState<number>(0);
 
+  const [isCompareMode, setIsCompareMode] = useState(false);
+  const [cellsB, setCellsB] = useState<Cell[]>([]);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const viewARef = useRef<HTMLDivElement>(null);
+  const viewBRef = useRef<HTMLDivElement>(null);
+  const camARef = useRef<any>(null);
+  const camBRef = useRef<any>(null);
+  const controlsARef = useRef<any>(null);
+  const controlsBRef = useRef<any>(null);
   const engineRef = useRef<FireEngine | null>(null);
+  const engineRefB = useRef<FireEngine | null>(null);
   const timerRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -100,9 +144,12 @@ export const SimulationView3D: React.FC<Simulation3DProps> = ({ onBack }) => {
       setTerrainLoadError(null);
       try {
         const grid = await buildCellsFromAssets(CFG);
+        const gridB = await buildCellsFromAssets(CFG);
         if (cancelled) return;
         engineRef.current = createEngine(grid, wind);
+        engineRefB.current = createEngine(gridB, wind);
         setCells(grid);
+        setCellsB(gridB);
         setTime(0);
         setIsPlaying(false);
         setFireLineStart(null);
@@ -130,13 +177,17 @@ export const SimulationView3D: React.FC<Simulation3DProps> = ({ onBack }) => {
 
   useEffect(() => {
     if (engineRef.current) engineRef.current.wind = wind;
+    if (engineRefB.current) engineRefB.current.wind = wind;
   }, [wind]);
 
   const reloadTerrain = useCallback(async () => {
     setIsLoadingTerrain(true);
     const grid = await buildCellsFromAssets(CFG);
+    const gridB = await buildCellsFromAssets(CFG);
     engineRef.current = createEngine(grid, wind);
+    engineRefB.current = createEngine(gridB, wind);
     setCells(grid);
+    setCellsB(gridB);
     setTime(0);
     setIsPlaying(false);
     setFireLineStart(null);
@@ -152,9 +203,17 @@ export const SimulationView3D: React.FC<Simulation3DProps> = ({ onBack }) => {
       timerRef.current = window.setInterval(() => {
         setTime((t) => {
           const nextTime = t + minutesPerTick;
+          const tickSeed = Math.random();
+          
           if (engineRef.current) {
+            (engineRef.current as any).setSeed(tickSeed);
             engineRef.current.updateFire(nextTime);
             setCells([...engineRef.current.cells]);
+          }
+          if (engineRefB.current) {
+            (engineRefB.current as any).setSeed(tickSeed);
+            engineRefB.current.updateFire(nextTime);
+            setCellsB([...engineRefB.current.cells]);
           }
           return nextTime;
         });
@@ -184,7 +243,9 @@ export const SimulationView3D: React.FC<Simulation3DProps> = ({ onBack }) => {
         }
       }
       engineRef.current = createEngine(grid, wind);
+      engineRefB.current = createEngine([...grid.map(c => new Cell({...c}))], wind);
       setCells(grid);
+      setCellsB([...engineRefB.current.cells]);
       setTime(0);
       setIsPlaying(false);
       setFireLineStart(null);
@@ -226,81 +287,82 @@ export const SimulationView3D: React.FC<Simulation3DProps> = ({ onBack }) => {
   ).length;
   const burnPercentage = totalBurnable > 0 ? (totalBurned / totalBurnable) * 100 : 0;
 
-  return (
-    <div
-      style={{
-        width: '100vw',
-        height: '100vh',
-        backgroundColor: '#cbd5e1',
-        position: 'relative',
-        overflow: 'hidden',
-      }}
-    >
-      {/* Always-visible debug banner so we know React is rendering */}
-      <div
-        style={{
-          position: "absolute",
-          top: 10,
-          left: 10,
-          zIndex: 9999,
-          background: "rgba(0,0,0,0.55)",
-          color: "white",
-          padding: "6px 10px",
-          borderRadius: 10,
-          fontSize: 12,
-          fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-          pointerEvents: "none",
-          maxWidth: 520,
-          whiteSpace: "pre-wrap",
-        }}
-      >
-        {`SAFE_SIM_DEBUG
-loading=${isLoadingTerrain}
-cells=${cells.length}
-err=${terrainLoadError ?? "none"}`}
-      </div>
-      <Canvas shadows>
-        <color attach="background" args={['#cbd5e1']} />
-        {/* Concord-normalized plane uses width=1, so camera must be close. */}
-        <PerspectiveCamera makeDefault position={[0, 0.7, 0.9]} fov={55} />
-        <OrbitControls enablePan enableZoom maxPolarAngle={Math.PI / 2.05} target={[0, 0, 0]} />
-        <ambientLight intensity={0.65} />
-        <directionalLight position={[1.2, 1.8, 1.1]} intensity={2.0} castShadow />
-        <Sky sunPosition={[1, 0.4, 0.6]} />
 
-        <group position={[0, 0, 0]}>
-          <Terrain3D
-            cells={cells}
-            gridWidth={GRID_WIDTH}
-            gridHeight={GRID_HEIGHT}
-            modelWidthFt={MODEL_WIDTH_FT}
-            modelHeightFt={MODEL_HEIGHT_FT}
-            cellSizeFt={CELL_SIZE_FT}
-            activeTool={activeTool}
-            simTime={time}
-            showBurnIndex={true}
-            riverColor={CFG.riverColor}
-            onCellInteraction={(x, y) => {
+
+  return (
+    <div ref={containerRef} style={{ width: '100vw', height: '100vh', backgroundColor: '#cbd5e1', position: 'relative', overflow: 'hidden', pointerEvents: 'auto' }}>
+      <div style={{ position: 'absolute', inset: 0, display: 'flex', zIndex: 1, pointerEvents: 'none' }}>
+        <div ref={viewARef} style={{ flex: 1, position: 'relative', pointerEvents: 'auto' }}>
+          {isCompareMode && (
+            <div style={{
+              position: 'absolute',
+              top: '80px',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              background: 'rgba(15, 23, 42, 0.8)',
+              backdropFilter: 'blur(8px)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              color: 'white',
+              padding: '6px 16px',
+              borderRadius: '99px',
+              fontSize: '11px',
+              fontWeight: '800',
+              letterSpacing: '0.1em',
+              textTransform: 'uppercase',
+              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+              pointerEvents: 'none',
+            }}>
+              Controlled Simulation
+            </div>
+          )}
+        </div>
+        {isCompareMode && (
+          <div ref={viewBRef} style={{ flex: 1, position: 'relative', borderLeft: '2px solid rgba(255,255,255,0.1)', pointerEvents: 'auto' }}>
+            <div style={{
+              position: 'absolute',
+              top: '80px',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              background: 'rgba(239, 68, 68, 0.8)',
+              backdropFilter: 'blur(8px)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              color: 'white',
+              padding: '6px 16px',
+              borderRadius: '99px',
+              fontSize: '11px',
+              fontWeight: '800',
+              letterSpacing: '0.1em',
+              textTransform: 'uppercase',
+              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+              pointerEvents: 'none',
+            }}>
+              Uncontrolled Baseline
+            </div>
+          </div>
+        )}
+      </div>
+
+      <Canvas style={{ position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none' }} eventSource={containerRef}>
+        <View track={viewARef as any}>
+          <PerspectiveCamera ref={camARef} makeDefault position={[0, 0.7, 0.9]} fov={55} />
+          <SimulationContent cells={cells} activeTool={activeTool} clickMarkers={clickMarkers} time={time} onCellInteraction={(x: number, y: number) => {
+              /* ... interaction logic ... */
               if (isLoadingTerrain) return;
               const idx = y * GRID_WIDTH + x;
               const nextCells = [...cells];
               const cell = nextCells[idx];
               const z = (cell?.elevation ?? cell?.baseElevation ?? 0) * (1 / MODEL_WIDTH_FT);
-
-              const addMarker = (tool: Tool) => {
-                setClickMarkers((prev) => {
-                  const next = [...prev, { x, y, z, tool, t: time }];
-                  return next.length > 12 ? next.slice(next.length - 12) : next;
-                });
-              };
-
+              const addMarker = (tool: Tool) => setClickMarkers((prev) => { const next = [...prev, { x, y, z, tool, t: time }]; return next.length > 12 ? next.slice(next.length - 12) : next; });
+              
               if (activeTool === 'SPARK') {
                 if (!cell.isRiver && !cell.isNonburnable && cell.fireState === FireState.Unburnt) {
                   cell.ignitionTime = 0;
-                  cell.fireState = FireState.Unburnt;
-                  cell.spreadRate = 0;
-                  if (engineRef.current) {
-                    engineRef.current.removeUnburntIsland(cell);
+                  if (engineRef.current) engineRef.current.removeUnburntIsland(cell);
+                  if (engineRefB.current) {
+                    const cellB = engineRefB.current.cells[idx];
+                    cellB.ignitionTime = 0;
+                    engineRefB.current.removeUnburntIsland(cellB);
+                    setCellsB([...engineRefB.current.cells]);
                   }
                   addMarker('SPARK');
                 }
@@ -309,34 +371,34 @@ err=${terrainLoadError ?? "none"}`}
                   setFireLineStart({ x, y });
                   cell.isFireLine = true;
                   cell.ignitionTime = Infinity;
+                  // Sync to engine
+                  if (engineRef.current) {
+                    const engineCell = engineRef.current.cells[idx];
+                    engineCell.isFireLine = true;
+                    engineCell.ignitionTime = Infinity;
+                  }
                   addMarker('FIRELINE');
                 } else {
-                  let x0 = fireLineStart.x;
-                  let y0 = fireLineStart.y;
-                  let x1 = x;
-                  let y1 = y;
-                  const dx = Math.abs(x1 - x0);
-                  const dy = Math.abs(y1 - y0);
-                  const sx = x0 < x1 ? 1 : -1;
-                  const sy = y0 < y1 ? 1 : -1;
+                  let x0 = fireLineStart.x; let y0 = fireLineStart.y;
+                  let x1 = x; let y1 = y;
+                  const dx = Math.abs(x1 - x0); const dy = Math.abs(y1 - y0);
+                  const sx = x0 < x1 ? 1 : -1; const sy = y0 < y1 ? 1 : -1;
                   let err = dx - dy;
-
                   while (true) {
                     const lineIdx = y0 * GRID_WIDTH + x0;
-                    if (nextCells[lineIdx]) {
-                      nextCells[lineIdx].isFireLine = true;
-                      nextCells[lineIdx].ignitionTime = Infinity;
+                    if (nextCells[lineIdx]) { 
+                      nextCells[lineIdx].isFireLine = true; 
+                      nextCells[lineIdx].ignitionTime = Infinity; 
+                      if (engineRef.current) {
+                        const ec = engineRef.current.cells[lineIdx];
+                        ec.isFireLine = true;
+                        ec.ignitionTime = Infinity;
+                      }
                     }
                     if (x0 === x1 && y0 === y1) break;
                     const e2 = 2 * err;
-                    if (e2 > -dy) {
-                      err -= dy;
-                      x0 += sx;
-                    }
-                    if (e2 < dx) {
-                      err += dx;
-                      y0 += sy;
-                    }
+                    if (e2 > -dy) { err -= dy; x0 += sx; }
+                    if (e2 < dx) { err += dx; y0 += sy; }
                   }
                   setFireLineStart({ x, y });
                   addMarker('FIRELINE');
@@ -346,16 +408,20 @@ err=${terrainLoadError ?? "none"}`}
                 for (let ddx = -radius; ddx <= radius; ddx++) {
                   for (let ddy = -radius; ddy <= radius; ddy++) {
                     if (ddx * ddx + ddy * ddy <= radius * radius) {
-                      const nx = x + ddx;
-                      const ny = y + ddy;
+                      const nx = x + ddx; const ny = y + ddy;
                       if (nx >= 0 && nx < GRID_WIDTH && ny >= 0 && ny < GRID_HEIGHT) {
                         const targetIdx = ny * GRID_WIDTH + nx;
                         const targetCell = nextCells[targetIdx];
                         if (targetCell) {
                           targetCell.helitackDropCount++;
                           targetCell.ignitionTime = Infinity;
-                          if (targetCell.fireState === FireState.Burning) {
-                            targetCell.fireState = FireState.Unburnt;
+                          if (targetCell.fireState === FireState.Burning) targetCell.fireState = FireState.Unburnt;
+                          // Sync to engine
+                          if (engineRef.current) {
+                            const ec = engineRef.current.cells[targetIdx];
+                            ec.helitackDropCount++;
+                            ec.ignitionTime = Infinity;
+                            if (ec.fireState === FireState.Burning) ec.fireState = FireState.Unburnt;
                           }
                         }
                       }
@@ -365,124 +431,28 @@ err=${terrainLoadError ?? "none"}`}
                 addMarker('HELITACK');
               }
               setCells(nextCells);
-            }}
-          />
-
-          {/* Click markers (last ~12). Helps users see where they interacted. */}
-          {clickMarkers.map((m, i) => {
-            const color =
-              m.tool === 'SPARK' ? '#f59e0b' :
-              m.tool === 'FIRELINE' ? '#8b5a2b' :
-              m.tool === 'HELITACK' ? '#38bdf8' : '#ffffff';
-            // Terrain3D coordinate frame: x centered, y is height axis, z is gridY mapped with (height/2 - y)
-            return (
-              <group
-                key={`${m.x}-${m.y}-${m.t}-${i}`}
-                position={[
-                  (m.x / (GRID_WIDTH - 1) - 0.5) * 1,
-                  m.z + 0.01,
-                  (m.y / (GRID_HEIGHT - 1) - 0.5) * (MODEL_HEIGHT_FT / MODEL_WIDTH_FT),
-                ]}
-              >
-                <mesh position={[0, 0.03, 0]}>
-                  <cylinderGeometry args={[0.0035, 0.0035, 0.06, 10]} />
-                  <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.9} />
-                </mesh>
-                <mesh position={[0, 0.065, 0]}>
-                  <sphereGeometry args={[0.0075, 12, 12]} />
-                  <meshStandardMaterial color={color} emissive={color} emissiveIntensity={1.1} />
-                </mesh>
-              </group>
-            );
-          })}
-
-          {TOWNS.map((town) => {
-            const gridX = Math.max(0, Math.min(GRID_WIDTH - 1, Math.floor(town.xFrac * GRID_WIDTH)));
-            const gridY = Math.max(0, Math.min(GRID_HEIGHT - 1, Math.floor(town.yFrac * GRID_HEIGHT)));
-            const cellIdx = gridY * GRID_WIDTH + gridX;
-            const cell = cells[cellIdx];
-            if (!cell) return null;
-            const isBurned =
-              cell.fireState === FireState.Burning || cell.fireState === FireState.Burnt;
-            return (
-              <Html
-                key={town.name}
-                position={[
-                  (cell.x / (GRID_WIDTH - 1) - 0.5) * 1,
-                  (cell.elevation ?? cell.baseElevation) * (1 / MODEL_WIDTH_FT) + 0.05,
-                  (cell.y / (GRID_HEIGHT - 1) - 0.5) * (MODEL_HEIGHT_FT / MODEL_WIDTH_FT),
-                ]}
-                center
-              >
-                <div
-                  style={{
-                    backgroundColor: isBurned
-                      ? 'rgba(239, 68, 68, 0.9)'
-                      : 'rgba(0, 0, 0, 0.6)',
-                    color: 'white',
-                    padding: '4px 8px',
-                    borderRadius: '4px',
-                    fontSize: '10px',
-                    fontWeight: 'bold',
-                    border: `1px solid ${isBurned ? '#b91c1c' : 'rgba(255,255,255,0.2)'}`,
-                    whiteSpace: 'nowrap',
-                    pointerEvents: 'none',
-                  }}
-                >
-                  {town.name} {isBurned && '🔥'}
-                </div>
-              </Html>
-            );
-          })}
-        </group>
+          }} />
+          <OrbitControls ref={controlsARef} makeDefault />
+        </View>
+        {isCompareMode && (
+          <View track={viewBRef as any}>
+            <PerspectiveCamera ref={camBRef} makeDefault position={[0, 0.7, 0.9]} fov={55} />
+            <SimulationContent cells={cellsB} activeTool={'NONE'} clickMarkers={clickMarkers.filter(m => m.tool === 'SPARK')} time={time} onCellInteraction={() => {}} />
+            <OrbitControls ref={controlsBRef} makeDefault />
+            <SyncCameras camA={camARef} camB={camBRef} controlsA={controlsARef} controlsB={controlsBRef} />
+          </View>
+        )}
       </Canvas>
 
       {(isLoadingTerrain || terrainLoadError) && (
-        <div style={{
-          position: "absolute",
-          inset: 0,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          pointerEvents: "none",
-        }}>
-          <div style={{
-            background: "rgba(0,0,0,0.6)",
-            color: "white",
-            padding: "12px 16px",
-            borderRadius: "12px",
-            maxWidth: 520,
-            fontSize: 12,
-            fontFamily: "ui-sans-serif, system-ui",
-          }}>
-            {terrainLoadError ? (
-              <>
-                <div style={{ fontWeight: 700, marginBottom: 6 }}>Terrain asset load failed</div>
-                <div style={{ opacity: 0.9 }}>{terrainLoadError}</div>
-                <div style={{ opacity: 0.75, marginTop: 8 }}>
-                  Check `public/concord-data/*` is served and reachable (try opening `http://localhost:5176/concord-data/river-texmap.png`).
-                </div>
-              </>
-            ) : (
-              <div style={{ fontWeight: 700 }}>Loading Concord terrain assets…</div>
-            )}
+        <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div style={{ background: "rgba(0,0,0,0.6)", color: "white", padding: "12px 16px", borderRadius: "12px" }}>
+            {terrainLoadError ? terrainLoadError : "Loading..."}
           </div>
         </div>
       )}
 
-
-
-      <div
-        style={{
-          position: 'absolute',
-          top: 20,
-          left: 0,
-          right: 0,
-          display: 'flex',
-          justifyContent: 'center',
-          gap: '20px',
-        }}
-      >
+      <div style={{ position: 'absolute', top: '24px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '20px', zIndex: 10 }}>
         {[0, 1, 2].map((idx) => {
           const config = cells.find((c) => c.zoneIdx === idx)?.zone;
           const labels = ['Mountains', 'Foothills', 'Plains'];
@@ -782,8 +752,17 @@ err=${terrainLoadError ?? "none"}`}
           gap: '24px',
           boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)',
           border: '1px solid #e5e7eb',
+          zIndex: 50,
         }}
       >
+        <ToolBtn
+          active={isCompareMode}
+          onClick={() => setIsCompareMode(!isCompareMode)}
+          icon={<Columns size={20} />}
+          label="Compare"
+        />
+        <div style={{ width: 1, height: 32, backgroundColor: '#e5e7eb' }} />
+
         <ToolBtn
           onClick={() => setIsSetupOpen(true)}
           icon={<Settings size={20} />}
@@ -842,7 +821,7 @@ err=${terrainLoadError ?? "none"}`}
         />
 
         <div style={{ width: 1, height: 32, backgroundColor: '#e5e7eb' }} />
-        
+
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: '90px' }}>
           <div style={{ fontSize: '9px', color: '#6b7280', fontWeight: 'bold', letterSpacing: '0.05em' }}>TIME ELAPSED</div>
           <div style={{ fontSize: '15px', fontFamily: 'monospace', fontWeight: 'bold', color: '#1f2937' }}>
@@ -904,6 +883,22 @@ err=${terrainLoadError ?? "none"}`}
       </button>
     </div>
   );
+};
+
+const SyncCameras = ({ camA, camB, controlsA, controlsB }: any) => {
+  useFrame(() => {
+    if (camA.current && camB.current && controlsA.current && controlsB.current) {
+      // Sync camera
+      camB.current.position.copy(camA.current.position);
+      camB.current.quaternion.copy(camA.current.quaternion);
+      camB.current.updateMatrixWorld();
+      
+      // Sync OrbitControls target to keep them looking at the same spot
+      controlsB.current.target.copy(controlsA.current.target);
+      controlsB.current.update();
+    }
+  });
+  return null;
 };
 
 const ToolBtn = ({ active, onClick, icon, label }: any) => (
