@@ -9,11 +9,12 @@
 
 import React, { useMemo, useEffect } from 'react';
 import * as THREE from 'three';
-import { Html } from '@react-three/drei';
+// Terrain mesh only (labels/markers rendered by parent view).
 
 import type { Cell } from '../logic/concord/cell';
 import { BurnIndex, FireState } from '../logic/concord/cell';
 import { DroughtLevel } from '../logic/concord/types';
+import { feetToGrid, uvToFeet } from '../logic/concord/mapping';
 
 const PLANE_WIDTH = 1;
 
@@ -53,6 +54,7 @@ interface Terrain3DProps {
   gridHeight: number;
   modelWidthFt: number;
   modelHeightFt: number;
+  cellSizeFt: number;
   activeTool: string;
   simTime?: number;
   showBurnIndex?: boolean;
@@ -66,6 +68,7 @@ export const Terrain3D: React.FC<Terrain3DProps> = ({
   gridHeight,
   modelWidthFt,
   modelHeightFt,
+  cellSizeFt,
   activeTool,
   simTime = 0,
   showBurnIndex = true,
@@ -122,10 +125,22 @@ export const Terrain3D: React.FC<Terrain3DProps> = ({
     e.stopPropagation();
     const local = e.object.worldToLocal(e.point.clone());
     // local.x, local.y are in view units around plane center.
-    const u = THREE.MathUtils.clamp((local.x / PLANE_WIDTH) + 0.5, 0, 1);
-    const v = THREE.MathUtils.clamp((local.y / planeHeight) + 0.5, 0, 1);
-    const gx = Math.min(gridWidth - 1, Math.max(0, Math.floor(u * gridWidth)));
-    const gy = Math.min(gridHeight - 1, Math.max(0, Math.floor((1 - v) * gridHeight)));
+    const u = THREE.MathUtils.clamp(local.x / PLANE_WIDTH + 0.5, 0, 1);
+    const v = THREE.MathUtils.clamp(local.y / planeHeight + 0.5, 0, 1);
+    const { xFt, yFt } = uvToFeet(u, v, {
+      modelWidthFt,
+      modelHeightFt,
+      gridWidth,
+      gridHeight,
+      cellSizeFt,
+    });
+    const { gx, gy } = feetToGrid(xFt, yFt, {
+      modelWidthFt,
+      modelHeightFt,
+      gridWidth,
+      gridHeight,
+      cellSizeFt,
+    });
     onCellInteraction(gx, gy);
   };
 
@@ -155,25 +170,6 @@ export const Terrain3D: React.FC<Terrain3DProps> = ({
         <primitive object={geometry} attach="geometry" />
         <meshStandardMaterial vertexColors roughness={0.95} metalness={0.0} />
 
-        {/* City Markers */}
-        <Html position={[-0.25, planeHeight * 0.35, 0.02]} center style={{ pointerEvents: 'none' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'white', fontFamily: 'sans-serif', fontSize: '11px', textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>
-            <div style={{ width: 6, height: 6, backgroundColor: 'white', borderRadius: '50%', boxShadow: '0 1px 2px rgba(0,0,0,0.8)' }}></div>
-            Skyview
-          </div>
-        </Html>
-        <Html position={[0.1, -planeHeight * 0.2, 0.02]} center style={{ pointerEvents: 'none' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'white', fontFamily: 'sans-serif', fontSize: '11px', textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>
-            <div style={{ width: 6, height: 6, backgroundColor: 'white', borderRadius: '50%', boxShadow: '0 1px 2px rgba(0,0,0,0.8)' }}></div>
-            Rolling Rock
-          </div>
-        </Html>
-        <Html position={[0.35, -planeHeight * 0.05, 0.02]} center style={{ pointerEvents: 'none' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'white', fontFamily: 'sans-serif', fontSize: '11px', textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>
-            <div style={{ width: 6, height: 6, backgroundColor: 'white', borderRadius: '50%', boxShadow: '0 1px 2px rgba(0,0,0,0.8)' }}></div>
-            Evensville
-          </div>
-        </Html>
       </mesh>
       
       <hemisphereLight intensity={0.55} groundColor="#1a1a1a" color="#ffffff" />

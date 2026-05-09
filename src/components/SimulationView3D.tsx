@@ -24,38 +24,28 @@ import { Terrain3D } from './Terrain3D';
 import { Vegetation, DroughtLevel } from '../logic/concord/types';
 import type { IWindProps } from '../logic/concord/types';
 import { FireState, Cell } from '../logic/concord/cell';
+import { Zone } from '../logic/concord/zone';
 import { FireEngine } from '../logic/concord/engine/fire-engine';
-import { buildTerrainGrid, PROCEDURAL_TERRAIN_ID } from '../logic/wildfire3D';
 import { getDefaultFireEngineConfig } from '../logic/concord/engine-config';
-import { isConcordPresetId, CONCORD_PRESET_IDS } from '../logic/concord/presets';
+import { DEFAULT_THREE_ZONE_CONFIG, defaultWindFromConfig } from '../logic/concord/default-config';
+import { buildCellsFromAssets } from '../logic/concord/build-asset-terrain';
 
 // Higher resolution grid (closer to Concord feel).
 // Note: Terrain3D uses a subdivided BoxGeometry; very high values can hurt FPS.
-// Concord defaults (see wildfire-model `config.ts`):
-// modelWidth 120000ft, modelHeight 80000ft, gridWidth 240 -> cellSize 500ft, gridHeight 160.
-const MODEL_WIDTH_FT = 120000;
-const MODEL_HEIGHT_FT = 80000;
-const GRID_WIDTH = 240;
-const CELL_SIZE_FT = MODEL_WIDTH_FT / GRID_WIDTH; // 500
-const GRID_HEIGHT = Math.ceil(MODEL_HEIGHT_FT / CELL_SIZE_FT); // 160
+const CFG = DEFAULT_THREE_ZONE_CONFIG;
+const MODEL_WIDTH_FT = CFG.modelWidth;
+const MODEL_HEIGHT_FT = CFG.modelHeight;
+const GRID_WIDTH = CFG.gridWidth;
+const GRID_HEIGHT = CFG.gridHeight;
+const CELL_SIZE_FT = CFG.cellSize;
 
 const ENGINE_CFG = getDefaultFireEngineConfig(GRID_WIDTH, GRID_HEIGHT, CELL_SIZE_FT);
-
-function readInitialTerrainId(): string {
-  if (typeof window === 'undefined') return PROCEDURAL_TERRAIN_ID;
-  const p = new URLSearchParams(window.location.search).get('preset');
-  return p && isConcordPresetId(p) ? p : PROCEDURAL_TERRAIN_ID;
-}
 
 function createEngine(grid: Cell[], wind: IWindProps): FireEngine {
   return new FireEngine(grid, wind, [], ENGINE_CFG);
 }
 
-const TOWNS = [
-  { name: 'Skyview', xFrac: 0.12, yFrac: 0.68 },
-  { name: 'Rolling Rock', xFrac: 0.60, yFrac: 0.25 },
-  { name: 'Evensville', xFrac: 0.78, yFrac: 0.55 },
-];
+const TOWNS = CFG.towns.map(t => ({ name: t.name, xFrac: t.x, yFrac: t.y }));
 
 interface Simulation3DProps {
   onBack: () => void;
@@ -64,12 +54,29 @@ interface Simulation3DProps {
 type Tool = 'SPARK' | 'FIRELINE' | 'HELITACK' | 'NONE';
 
 export const SimulationView3D: React.FC<Simulation3DProps> = ({ onBack }) => {
-  const [terrainId, setTerrainId] = useState<string>(() => readInitialTerrainId());
-  const [cells, setCells] = useState<Cell[]>(() =>
-    buildTerrainGrid(GRID_WIDTH, GRID_HEIGHT, readInitialTerrainId())
-  );
-  // Concord default windSpeed is 0 (mph).
-  const [wind, setWind] = useState<IWindProps>({ speed: 0, direction: 0 });
+  const [cells, setCells] = useState<Cell[]>(() => {
+    // Non-black placeholder while raster assets load (prevents “all black” scene).
+    const zones = CFG.zones.map(z => new Zone(z));
+    const next: Cell[] = [];
+    for (let y = 0; y < GRID_HEIGHT; y++) {
+      for (let x = 0; x < GRID_WIDTH; x++) {
+        const zoneIdx = x < GRID_WIDTH / 3 ? 0 : x < (2 * GRID_WIDTH) / 3 ? 1 : 2;
+        next.push(new Cell({
+          x,
+          y,
+          zone: zones[zoneIdx],
+          zoneIdx,
+          baseElevation: 0,
+          isRiver: false,
+          isUnburntIsland: false,
+        }));
+      }
+    }
+    return next;
+  });
+  const [wind, setWind] = useState<IWindProps>(() => defaultWindFromConfig(CFG));
+  const [isLoadingTerrain, setIsLoadingTerrain] = useState(true);
+  const [terrainLoadError, setTerrainLoadError] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [time, setTime] = useState(0);
   const [activeTool, setActiveTool] = useState<Tool>('NONE');
@@ -83,8 +90,34 @@ export const SimulationView3D: React.FC<Simulation3DProps> = ({ onBack }) => {
   const engineRef = useRef<FireEngine | null>(null);
   const timerRef = useRef<number | null>(null);
 
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      setIsLoadingTerrain(true);
+      setTerrainLoadError(null);
+      try {
+        const grid = await buildCellsFromAssets(CFG);
+        if (cancelled) return;
+        engineRef.current = createEngine(grid, wind);
+        setCells(grid);
+        setTime(0);
+        setIsPlaying(false);
+        setFireLineStart(null);
+        setClickMarkers([]);
+        setIsLoadingTerrain(false);
+      } catch (e: any) {
+        if (cancelled) return;
+        setTerrainLoadError(e?.message ?? String(e));
+        setIsLoadingTerrain(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   useLayoutEffect(() => {
-    engineRef.current = createEngine(cells, wind);
+    // engine is created after terrain load
     return () => {
       engineRef.current = null;
     };
@@ -96,15 +129,16 @@ export const SimulationView3D: React.FC<Simulation3DProps> = ({ onBack }) => {
     if (engineRef.current) engineRef.current.wind = wind;
   }, [wind]);
 
-  const applyTerrainAndResetEngine = useCallback((id: string) => {
-    const grid = buildTerrainGrid(GRID_WIDTH, GRID_HEIGHT, id);
+  const reloadTerrain = useCallback(async () => {
+    setIsLoadingTerrain(true);
+    const grid = await buildCellsFromAssets(CFG);
     engineRef.current = createEngine(grid, wind);
-    setTerrainId(id);
-    setCells([...grid]);
+    setCells(grid);
     setTime(0);
     setIsPlaying(false);
     setFireLineStart(null);
     setClickMarkers([]);
+    setIsLoadingTerrain(false);
   }, [wind]);
 
   // Concord: 1 model day (1440 min) in 8 real seconds => 180 min/sec.
@@ -170,13 +204,37 @@ export const SimulationView3D: React.FC<Simulation3DProps> = ({ onBack }) => {
         overflow: 'hidden',
       }}
     >
+      {/* Always-visible debug banner so we know React is rendering */}
+      <div
+        style={{
+          position: "absolute",
+          top: 10,
+          left: 10,
+          zIndex: 9999,
+          background: "rgba(0,0,0,0.55)",
+          color: "white",
+          padding: "6px 10px",
+          borderRadius: 10,
+          fontSize: 12,
+          fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+          pointerEvents: "none",
+          maxWidth: 520,
+          whiteSpace: "pre-wrap",
+        }}
+      >
+        {`SAFE_SIM_DEBUG
+loading=${isLoadingTerrain}
+cells=${cells.length}
+err=${terrainLoadError ?? "none"}`}
+      </div>
       <Canvas shadows>
         <color attach="background" args={['#cbd5e1']} />
-        <PerspectiveCamera makeDefault position={[0, 40, 50]} fov={55} />
-        <OrbitControls enablePan enableZoom maxPolarAngle={Math.PI / 2.1} />
-        <ambientLight intensity={0.5} />
-        <directionalLight position={[100, 100, 50]} intensity={1.5} castShadow />
-        <Sky sunPosition={[100, 10, 100]} />
+        {/* Concord-normalized plane uses width=1, so camera must be close. */}
+        <PerspectiveCamera makeDefault position={[0, 0.7, 0.9]} fov={55} />
+        <OrbitControls enablePan enableZoom maxPolarAngle={Math.PI / 2.05} target={[0, 0, 0]} />
+        <ambientLight intensity={0.65} />
+        <directionalLight position={[1.2, 1.8, 1.1]} intensity={2.0} castShadow />
+        <Sky sunPosition={[1, 0.4, 0.6]} />
 
         <group position={[0, 0, 0]}>
           <Terrain3D
@@ -185,13 +243,17 @@ export const SimulationView3D: React.FC<Simulation3DProps> = ({ onBack }) => {
             gridHeight={GRID_HEIGHT}
             modelWidthFt={MODEL_WIDTH_FT}
             modelHeightFt={MODEL_HEIGHT_FT}
+            cellSizeFt={CELL_SIZE_FT}
             activeTool={activeTool}
             simTime={time}
+            showBurnIndex={true}
+            riverColor={CFG.riverColor}
             onCellInteraction={(x, y) => {
+              if (isLoadingTerrain) return;
               const idx = y * GRID_WIDTH + x;
               const nextCells = [...cells];
               const cell = nextCells[idx];
-              const z = (cell?.baseElevation ?? 0) * (1 / MODEL_WIDTH_FT);
+              const z = (cell?.elevation ?? cell?.baseElevation ?? 0) * (1 / MODEL_WIDTH_FT);
 
               const addMarker = (tool: Tool) => {
                 setClickMarkers((prev) => {
@@ -290,13 +352,13 @@ export const SimulationView3D: React.FC<Simulation3DProps> = ({ onBack }) => {
                   ((GRID_HEIGHT - 1 - m.y) / (GRID_HEIGHT - 1) - 0.5) * (MODEL_HEIGHT_FT / MODEL_WIDTH_FT),
                 ]}
               >
-                <mesh position={[0, 1.8, 0]}>
-                  <cylinderGeometry args={[0.18, 0.18, 3.6, 10]} />
-                  <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.85} />
+                <mesh position={[0, 0.03, 0]}>
+                  <cylinderGeometry args={[0.0035, 0.0035, 0.06, 10]} />
+                  <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.9} />
                 </mesh>
-                <mesh position={[0, 3.8, 0]}>
-                  <sphereGeometry args={[0.42, 12, 12]} />
-                  <meshStandardMaterial color={color} emissive={color} emissiveIntensity={1.0} />
+                <mesh position={[0, 0.065, 0]}>
+                  <sphereGeometry args={[0.0075, 12, 12]} />
+                  <meshStandardMaterial color={color} emissive={color} emissiveIntensity={1.1} />
                 </mesh>
               </group>
             );
@@ -342,6 +404,39 @@ export const SimulationView3D: React.FC<Simulation3DProps> = ({ onBack }) => {
           })}
         </group>
       </Canvas>
+
+      {(isLoadingTerrain || terrainLoadError) && (
+        <div style={{
+          position: "absolute",
+          inset: 0,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          pointerEvents: "none",
+        }}>
+          <div style={{
+            background: "rgba(0,0,0,0.6)",
+            color: "white",
+            padding: "12px 16px",
+            borderRadius: "12px",
+            maxWidth: 520,
+            fontSize: 12,
+            fontFamily: "ui-sans-serif, system-ui",
+          }}>
+            {terrainLoadError ? (
+              <>
+                <div style={{ fontWeight: 700, marginBottom: 6 }}>Terrain asset load failed</div>
+                <div style={{ opacity: 0.9 }}>{terrainLoadError}</div>
+                <div style={{ opacity: 0.75, marginTop: 8 }}>
+                  Check `public/concord-data/*` is served and reachable (try opening `http://localhost:5176/concord-data/river-texmap.png`).
+                </div>
+              </>
+            ) : (
+              <div style={{ fontWeight: 700 }}>Loading Concord terrain assets…</div>
+            )}
+          </div>
+        </div>
+      )}
 
       <div
         style={{
@@ -691,7 +786,12 @@ export const SimulationView3D: React.FC<Simulation3DProps> = ({ onBack }) => {
           border: '1px solid #e5e7eb',
         }}
       >
-        <button type="button" onClick={() => setIsSetupOpen(true)} className="tool-btn">
+        <button
+          type="button"
+          onClick={() => setIsSetupOpen(true)}
+          className="tool-btn"
+          style={{ outline: 'none', boxShadow: 'none', border: 'none' }}
+        >
           <Settings size={20} /> <span style={{ fontSize: '10px' }}>Setup</span>
         </button>
         <div style={{ width: 1, height: 32, backgroundColor: '#e5e7eb' }} />
@@ -705,11 +805,7 @@ export const SimulationView3D: React.FC<Simulation3DProps> = ({ onBack }) => {
           icon={<Zap size={20} />}
           label="Spark"
         />
-        <ToolBtn
-          onClick={() => applyTerrainAndResetEngine(terrainId)}
-          icon={<RotateCcw size={20} />}
-          label="Reload"
-        />
+        <ToolBtn onClick={reloadTerrain} icon={<RotateCcw size={20} />} label="Reload" />
 
         <button
           type="button"

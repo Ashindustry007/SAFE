@@ -29,17 +29,20 @@ export const PRESET_DEFAULT_THREE_ZONE: ConcordPresetDefinition = {
     {
       terrainType: TerrainType.Mountains,
       vegetation: Vegetation.Forest,
-      droughtLevel: DroughtLevel.NoDrought,
+      // Match Concord screenshot labels (Forest • Severe).
+      droughtLevel: DroughtLevel.SevereDrought,
     },
     {
       terrainType: TerrainType.Foothills,
       vegetation: Vegetation.Shrub,
-      droughtLevel: DroughtLevel.MildDrought,
+      // Shrub • Medium
+      droughtLevel: DroughtLevel.MediumDrought,
     },
     {
       terrainType: TerrainType.Plains,
       vegetation: Vegetation.Grass,
-      droughtLevel: DroughtLevel.MediumDrought,
+      // Grass • Mild
+      droughtLevel: DroughtLevel.MildDrought,
     },
   ],
   zoneIndex: [[0, 1, 2]],
@@ -105,12 +108,12 @@ export function getConcordPreset(id: string): ConcordPresetDefinition | undefine
 function elevationBase(terrainType: TerrainType): number {
   switch (terrainType) {
     case TerrainType.Mountains:
-      return 780;
+      return 14000;
     case TerrainType.Foothills:
-      return 380;
+      return 7000;
     case TerrainType.Plains:
     default:
-      return 130;
+      return 1200;
   }
 }
 
@@ -127,6 +130,10 @@ export function buildCellsFromConcordPreset(
 
   const river = preset.river;
 
+  // Concord fills terrain edges visually and blocks fire spread near edges.
+  const edgeFill = true;
+  const nonburnableBorder = 2; // cells
+
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
       const iy = rows.length === 1 ? 0 : Math.min(rows.length - 1, Math.floor((y / height) * rows.length));
@@ -141,21 +148,29 @@ export function buildCellsFromConcordPreset(
         droughtLevel: spec.droughtLevel,
       });
 
-      const h1 = Math.sin(x * 0.1) * Math.cos(y * 0.1);
-      const h2 = Math.sin(x * 0.05 + 2) * Math.cos(y * 0.05 + 1) * 2;
+      // More realistic relief (mountains need ridges).
+      const h1 = Math.sin(x * 0.065) * Math.cos(y * 0.065);
+      const h2 = Math.sin(x * 0.022 + 2) * Math.cos(y * 0.022 + 1) * 2;
       const noise = (h1 + h2) / 3;
+      const ridge = 1 - Math.abs(2 * Math.abs(noise) - 1);
+      const ridgeBoost = Math.pow(Math.max(0, ridge), 3);
 
       let elevation = elevationBase(spec.terrainType);
-      elevation += noise * elevation * 0.18 + Math.sin(y * 0.1) * elevation * 0.04;
+      const amp = spec.terrainType === TerrainType.Mountains ? 0.55 : spec.terrainType === TerrainType.Foothills ? 0.30 : 0.10;
+      elevation += noise * elevation * amp + ridgeBoost * elevation * (amp * 0.55);
 
       let isRiver = false;
       if (river) {
         const riverCenter = height * river.centerYFrac + Math.sin(x * 0.1) * 5;
         if (Math.abs(y - riverCenter) < river.halfWidthCells) {
           isRiver = true;
-          elevation -= 40;
+          elevation -= 800;
         }
       }
+
+      const isEdge = edgeFill && (x === 0 || x === width - 1 || y === 0 || y === height - 1);
+      const isNonburnableBorder =
+        edgeFill && (x <= nonburnableBorder || x >= width - 1 - nonburnableBorder || y <= nonburnableBorder || y >= height - 1 - nonburnableBorder);
 
       cells.push(
         new Cell({
@@ -163,8 +178,9 @@ export function buildCellsFromConcordPreset(
           y,
           zone,
           zoneIdx,
-          baseElevation: elevation,
+          baseElevation: isEdge ? 0 : elevation,
           isRiver,
+          isUnburntIsland: isNonburnableBorder,
         })
       );
     }
