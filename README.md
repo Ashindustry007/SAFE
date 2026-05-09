@@ -1,73 +1,83 @@
-# React + TypeScript + Vite
+# SAFE 🛰️ - Smart Analytics for Fire Emergencies
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**SAFE** is a high-fidelity wildfire intelligence and simulation platform designed to empower first responders and environmental agencies with real-time risk assessment and predictive fire modeling.
 
-Currently, two official plugins are available:
+![SAFE Dashboard Mockup](safe_wildfire_dashboard_mockup_1778295236468.png)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## 🌟 Key Features
 
-## React Compiler
+- **Environmental Intelligence Dashboard**: Real-time integration of meteorological data including temperature, humidity, wind velocity, and drought indices.
+- **High-Resolution Risk Mapping**: Interactive Google Maps integration with custom styling and regional risk overlays.
+- **3D Physics-Based Simulation**: A sophisticated fire spread engine based on the **Rothermel Surface Fire Spread Model**, accounting for fuel types, moisture, wind, and topography.
+- **Interactive Terrain**: 3D terrain visualization using `react-three-fiber` and `Three.js` for immersive simulation analysis.
+- **Predictive Analytics**: Dynamic fire risk scoring (0-100%) calculated from environmental sensory data.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 🛠️ Tech Stack
 
-## Expanding the ESLint configuration
+- **Frontend**: React 19, TypeScript, Vite
+- **3D Graphics**: Three.js, @react-three/fiber, @react-three/drei
+- **Mapping**: Google Maps JavaScript API
+- **Animations**: Framer Motion
+- **Icons**: Lucide React
+- **Data Handling**: Axios, LocalStorage Caching
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## 🚀 Getting Started
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+### Prerequisites
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+- Node.js (v18+)
+- npm or yarn
+- Google Maps API Key (with Maps JavaScript API enabled)
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+### Installation
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+1. **Clone the repository**:
+   ```bash
+   git clone <repository-url>
+   cd SAFE
+   ```
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+2. **Install dependencies**:
+   ```bash
+   npm install
+   ```
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+3. **Set up Environment Variables**:
+   Create a `.env` file in the root directory and add your Google Maps API Key:
+   ```env
+   VITE_GOOGLE_MAPS_API_KEY=your_api_key_here
+   ```
+
+4. **Run the development server**:
+   ```bash
+   npm run dev
+   ```
+
+## 🧠 The Simulation Engine
+
+Unlike simple grid-based cellular automata, SAFE utilizes an adapted **Rothermel Model**. This allows the simulation to factor in:
+- **Fuel Bed Properties**: Specific heat content, mineral content, and packing ratios for Grass, Shrub, and Forest ecosystems.
+- **Moisture Damping**: How fuel moisture content inhibits fire spread.
+- **Topographical Effects**: Slope-driven fire acceleration.
+- **Wind Vectoring**: Dynamic influence of wind direction and speed on spread rates.
+
+For a detailed deep dive into the math, see [SIMULATION_MODEL.md](./SIMULATION_MODEL.md).
+
+## 📂 Project Structure
+
+- `src/components`: UI components and 3D views.
+- `src/logic`: Core simulation engines and mathematical models.
+- `src/services`: API integrations for wildfire intelligence.
+- `src/assets`: Static assets and styling.
+
+## 🔮 Future Roadmap
+
+- [ ] Real-time IoT sensor integration (LoRaWAN/MQTT).
+- [ ] Satellite imagery overlay (Sentinel-2/MODIS).
+- [ ] Multi-scenario comparison tools.
+- [ ] Mobile-optimized field responder view.
+
+---
+
+Built with ❤️ for **Reboot the Earth Hackathon**.
+
