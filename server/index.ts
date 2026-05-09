@@ -3,12 +3,11 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';
-import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
-import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
+import { OpenAIEmbeddings } from "@langchain/openai";
+import { ChatOpenAI } from "@langchain/openai";
 import { MemoryVectorStore } from "langchain/vectorstores/memory";
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 import { Document } from "@langchain/core/documents";
-import { TaskType } from "@google/generative-ai";
 
 dotenv.config();
 
@@ -25,36 +24,29 @@ if (!GEMINI_API_KEY) {
 }
 
 // Initialize LangChain components
-const embeddings = new GoogleGenerativeAIEmbeddings({
-  apiKey: GEMINI_API_KEY,
-  modelName: "gemini-embedding-2",
-  taskType: TaskType.RETRIEVAL_DOCUMENT,
+// Configuration from Python script
+const DEFAULT_MODEL = "gpt-4o";
+
+const embeddings = new OpenAIEmbeddings({
+  apiKey: process.env.OPENAI_API_KEY,
 });
 
-const model = new ChatGoogleGenerativeAI({
-  apiKey: GEMINI_API_KEY,
-  modelName: "gemini-2.0-flash",
-  maxOutputTokens: 2048,
+const model = new ChatOpenAI({
+  modelName: "gpt-4o",
+  apiKey: process.env.OPENAI_API_KEY,
 });
 
 let vectorStore: MemoryVectorStore;
 let faqs: { question: string; answer: string }[] = [
-  { question: "Hi", answer: "Hello! I am the SAFE Intelligence Assistant. You can ask me about wildfire simulations, the Rothermel model, or fire risk analytics." },
   { question: "What is SAFE?", answer: "SAFE (Smart Analytics for Fire Emergencies) is a high-fidelity wildfire intelligence and simulation platform using Rothermel's surface fire spread model." },
   { question: "How does the simulation model work?", answer: "The simulation uses the Rothermel model, which considers fuel types, moisture, wind speed, and slope to predict fire behavior." },
   { question: "What data sources does SAFE use?", answer: "SAFE integrates real-time environmental data including temperature, humidity, wind vectors, and vegetation maps." },
-  { question: "Is the simulation real-time?", answer: "Yes, the simulation runs in real-time using WebGL-accelerated 3D rendering for high-performance visualization." },
-  { question: "What is the Rothermel model?", answer: "The Rothermel Surface Fire Spread Model is a mathematical formula used to predict the rate of spread and intensity of forest fires." },
-  { question: "Who created SAFE?", answer: "SAFE was developed as part of the Reboot the Earth hackathon to provide advanced wildfire analytics." }
+  { question: "What is the Rothermel model?", answer: "The Rothermel Surface Fire Spread Model is a mathematical formula used to predict the rate of spread and intensity of forest fires." }
 ];
 
 async function initializeKnowledgeBase() {
-  console.log("Initializing knowledge base...");
+  console.log("Initializing knowledge base via Triton...");
   
-  // 1. Generate FAQs first (has robust fallbacks)
-  await generateFAQs();
-
-  // 2. Load documents for vector store
   const docsToLoad = ['README.md', 'ARCHITECTURE.md', 'SIMULATION_MODEL.md'];
   const allDocs: Document[] = [];
 
@@ -62,83 +54,89 @@ async function initializeKnowledgeBase() {
     const filePath = path.join(process.cwd(), fileName);
     if (fs.existsSync(filePath)) {
       const content = fs.readFileSync(filePath, 'utf-8');
-      allDocs.push(new Document({ pageContent: content, metadata: { source: fileName } }));
+      allDocs.push(new Document({ 
+        pageContent: content, 
+        metadata: { source: fileName, fullPath: filePath } 
+      }));
     }
   }
 
   const textSplitter = new RecursiveCharacterTextSplitter({
-    chunkSize: 1000,
-    chunkOverlap: 200,
+    chunkSize: 500,
+    chunkOverlap: 100,
   });
 
   try {
     const splitDocs = await textSplitter.splitDocuments(allDocs);
     vectorStore = await MemoryVectorStore.fromDocuments(splitDocs, embeddings);
-    console.log("Knowledge base (Vector Store) initialized.");
-  } catch (error) {
-    console.warn("Vector store initialization failed (quota likely reached). AI will answer from general knowledge.");
+    console.log("Triton Knowledge Base initialized.");
+  } catch (error: any) {
+    console.warn("Vector store initialization failed:", error.message);
   }
 }
 
-async function generateFAQs() {
-  // Check if we already have faqs to avoid redundant API calls
-  if (faqs.length > 2) return;
+// Ported from Python: extract sources and line numbers
+function extractSources(docs: any[]) {
+  const sources: any[] = [];
+  const seen = new Set();
 
-  try {
-    const response = await model.invoke([
-      ["system", "You are an AI assistant for the SAFE (Smart Analytics for Fire Emergencies) project. Based on the documentation provided, generate 5 frequently asked questions and their answers. Format as a JSON array of objects with 'question' and 'answer' keys."],
-      ["human", "Generate the FAQs now."]
-    ]);
+  for (const doc of docs) {
+    const filename = doc.metadata.source;
+    const content = doc.pageContent;
+    const fullText = fs.readFileSync(path.join(process.cwd(), filename), 'utf-8');
     
-    const content = response.content as string;
-    const jsonMatch = content.match(/\[[\s\S]*\]/);
-    if (jsonMatch) {
-      faqs = JSON.parse(jsonMatch[0]);
+    // Simple line number estimation
+    const startIndex = fullText.indexOf(content.substring(0, 50));
+    if (startIndex !== -1) {
+      const startLine = fullText.substring(0, startIndex).split('\n').length;
+      const endLine = startLine + content.split('\n').length - 1;
+      
+      const key = `${filename}:${startLine}-${endLine}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        sources.push({ file: filename, lines: [startLine, endLine] });
+      }
     }
-  } catch (error) {
-    console.warn("Could not generate dynamic FAQs (quota reached), using high-fidelity fallbacks.");
-    faqs = [
-      { question: "What is SAFE?", answer: "SAFE (Smart Analytics for Fire Emergencies) is a high-fidelity wildfire intelligence and simulation platform using Rothermel's surface fire spread model." },
-      { question: "How does the simulation model work?", answer: "The simulation uses the Rothermel model, which considers fuel types, moisture, wind speed, and slope to predict fire behavior." },
-      { question: "What data sources does SAFE use?", answer: "SAFE integrates real-time environmental data including temperature, humidity, wind vectors, and vegetation maps." },
-      { question: "Is the simulation real-time?", answer: "Yes, the simulation runs in real-time using WebGL-accelerated 3D rendering for high-performance visualization." },
-      { question: "What is the Rothermel model?", answer: "The Rothermel Surface Fire Spread Model is a mathematical formula used to predict the rate of spread and intensity of forest fires." }
-    ];
   }
+  return sources;
 }
 
 app.post('/api/chat', async (req, res) => {
   const { message } = req.body;
   if (!message) return res.status(400).json({ error: "Message is required" });
 
-  console.log(`[Chat] Incoming message: "${message}"`);
+  console.log(`[Triton Chat] Query: "${message}"`);
 
   try {
     let contextText = "";
+    let sources: any[] = [];
     
-    // 1. Search for relevant context if vector store is ready
     if (vectorStore) {
-      try {
-        const contextDocs = await vectorStore.similaritySearch(message, 3);
-        contextText = contextDocs.map(d => d.pageContent).join("\n\n");
-        console.log(`[Chat] Found ${contextDocs.length} context documents.`);
-      } catch (err) {
-        console.error("[Chat] Vector search error:", err);
-      }
+      const contextDocs = await vectorStore.similaritySearch(message, 4);
+      contextText = contextDocs.map(d => `${d.metadata.source}: ${d.pageContent}`).join("\n\n");
+      sources = extractSources(contextDocs);
     }
 
-    // 2. Generate response
-    console.log("[Chat] Invoking Gemini model...");
     const response = await model.invoke([
-      ["system", `You are a helpful assistant for the SAFE project. ${contextText ? `Use the following context to answer the user's question. If you don't know the answer based on the context, use your general knowledge but clarify that it's not explicitly in the docs.\n\nContext:\n${contextText}` : "The internal knowledge base is currently being initialized or unavailable. Please answer based on your general knowledge of wildfire safety and the SAFE (Smart Analytics for Fire Emergencies) project."}`],
+      ["system", `You are a technical documentation assistant. Answer the user's question using only the provided context chunks.
+      Rules:
+      - If the context is insufficient, say you do not know based on the provided context.
+      - Keep the answer concise and factual.
+      - Do not invent APIs, arguments, or behaviors not supported by context.
+      
+      Context:
+      ${contextText}`],
       ["human", message]
     ]);
 
-    console.log(`[Chat] Gemini response: "${(response.content as string).substring(0, 50)}..."`);
-    res.json({ response: response.content });
+    res.json({ 
+      response: response.content,
+      sources: sources 
+    });
   } catch (error: any) {
-    console.error("[Chat] Error:", error.message);
-    res.status(500).json({ error: "I'm currently experiencing high traffic. Please try again in a moment." });
+    console.error("[Triton] Error:", error.message);
+    const fallback = "The SAFE Intelligence Core (Triton) is experiencing high load. Project Summary: SAFE uses the Rothermel Model to predict fire spread based on real-time environmental data.";
+    res.json({ response: fallback });
   }
 });
 

@@ -6,6 +6,7 @@ import axios from 'axios';
 interface Message {
   role: 'user' | 'bot';
   content: string;
+  sources?: { file: string; lines: number[] }[];
 }
 
 const Chatbot: React.FC = () => {
@@ -29,6 +30,9 @@ const Chatbot: React.FC = () => {
     "what factors determine wildfire risk?": "Wildfire risk is determined by several critical factors: vegetation dryness (fuel load), current temperature, humidity levels, and wind vectors.",
     "what real-time data is integrated?": "SAFE integrates live data from weather stations (wind, temp, humidity), satellite vegetation maps, and historical fire records.",
     "how do i run a custom fire scenario?": "You can initiate a custom simulation in the 'Simulation' tab by setting the ignition point, wind parameters, and fuel moisture levels.",
+    "what are you": "I am the SAFE Intelligence Assistant, a specialized AI designed to help you navigate wildfire analytics, environmental data, and fire spread simulations.",
+    "who are you": "I am the SAFE Intelligence Assistant, a specialized AI designed to help you navigate wildfire analytics, environmental data, and fire spread simulations.",
+    "what do you do": "I provide insights into wildfire behavior, risk assessment, and technical documentation for the SAFE platform.",
     "hi": "Hello! I am the SAFE Intelligence Assistant. You can ask me about wildfire simulations, fire risk factors, or our data sources.",
     "hello": "Hello! I am the SAFE Intelligence Assistant. You can ask me about wildfire simulations, fire risk factors, or our data sources."
   };
@@ -51,7 +55,19 @@ const Chatbot: React.FC = () => {
 
     // 1. Check Local Fallback first for instant response
     const normalizedInput = textToSend.toLowerCase().trim();
-    for (const [key, val] of Object.entries(localKnowledge)) {
+    const keywords: Record<string, string> = {
+      "safe": "SAFE (Smart Analytics for Fire Emergencies) is a high-fidelity wildfire intelligence platform that uses the Rothermel model and real-time environmental data to predict fire behavior and risk.",
+      "rothermel": "The Rothermel model is a mathematical formula used to predict the rate of spread and intensity of forest fires based on fuel moisture, wind, and terrain.",
+      "risk": "Wildfire risk is determined by several critical factors: vegetation dryness (fuel load), current temperature, humidity levels, and wind vectors.",
+      "data": "SAFE integrates live data from weather stations (wind, temp, humidity), satellite vegetation maps, and historical fire records.",
+      "scenario": "You can initiate a custom simulation in the 'Simulation' tab by setting the ignition point, wind parameters, and fuel moisture levels.",
+      "simulation": "You can initiate a custom simulation in the 'Simulation' tab by setting the ignition point, wind parameters, and fuel moisture levels.",
+      "you": "I am the SAFE Intelligence Assistant, a specialized AI designed to help you navigate wildfire analytics, environmental data, and fire spread simulations.",
+      "hi": "Hello! I am the SAFE Intelligence Assistant. You can ask me about wildfire simulations, fire risk factors, or our data sources.",
+      "hello": "Hello! I am the SAFE Intelligence Assistant. You can ask me about wildfire simulations, fire risk factors, or our data sources."
+    };
+
+    for (const [key, val] of Object.entries(keywords)) {
       if (normalizedInput.includes(key)) {
         setTimeout(() => {
           setMessages(prev => [...prev, { role: 'bot', content: val }]);
@@ -65,7 +81,11 @@ const Chatbot: React.FC = () => {
     try {
       const response = await axios.post('http://localhost:3002/api/chat', { message: textToSend });
       if (response.data?.response) {
-        setMessages(prev => [...prev, { role: 'bot', content: response.data.response }]);
+        setMessages(prev => [...prev, {
+          role: 'bot',
+          content: response.data.response,
+          sources: response.data.sources
+        }]);
       } else {
         throw new Error("Invalid response structure");
       }
@@ -82,16 +102,16 @@ const Chatbot: React.FC = () => {
       <aside className="chat-sidebar">
         <div className="chat-sidebar-logo">
           <div className="logo-icon">S</div>
-          <h1 style={{fontSize: '1.4rem', fontWeight: 900, color: '#0f172a'}}>SAFE AI</h1>
+          <h1 style={{ fontSize: '1.4rem', fontWeight: 900, color: '#0f172a' }}>SAFE AI</h1>
         </div>
-        
+
         <button className="new-session-btn" onClick={() => setMessages([{ role: 'bot', content: 'Session reset. Intelligence core active. How can I help?' }])}>
           <MessageSquare size={18} />
           New Intelligence Session
         </button>
 
         <div className="suggestions-list">
-          <p style={{fontSize: '0.7rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '1rem'}}>Intelligence Queries</p>
+          <p style={{ fontSize: '0.7rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '1rem' }}>Intelligence Queries</p>
           {suggestions.map((item, i) => (
             <button
               key={i}
@@ -104,8 +124,8 @@ const Chatbot: React.FC = () => {
           ))}
         </div>
 
-        <div style={{paddingTop: '1.5rem', borderTop: '1px solid #f1f5f9', textAlign: 'center'}}>
-          <span style={{fontSize: '0.65rem', fontWeight: 700, color: '#cbd5e1', letterSpacing: '0.05em'}}>SAFE NEURAL CORE v2.0</span>
+        <div style={{ paddingTop: '1.5rem', borderTop: '1px solid #f1f5f9', textAlign: 'center' }}>
+          <span style={{ fontSize: '0.65rem', fontWeight: 700, color: '#cbd5e1', letterSpacing: '0.05em' }}>SAFE NEURAL CORE v2.0</span>
         </div>
       </aside>
 
@@ -120,6 +140,18 @@ const Chatbot: React.FC = () => {
                 <div className="message-content">
                   <p className="sender-name">{msg.role === 'bot' ? 'Assistant Intelligence' : 'User Terminal'}</p>
                   <div className="text-body">{msg.content}</div>
+                  {msg.sources && msg.sources.length > 0 && (
+                    <div style={{ marginTop: '1rem', paddingTop: '0.75rem', borderTop: '1px solid #f1f5f9' }}>
+                      <p style={{ fontSize: '0.65rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Sources:</p>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                        {msg.sources.map((src, idx) => (
+                          <div key={idx} style={{ fontSize: '0.7rem', padding: '0.2rem 0.5rem', backgroundColor: '#f8fafc', border: '1px solid #eef2ff', borderRadius: '6px', color: '#6366f1' }}>
+                            <span style={{ fontWeight: 700 }}>{src.file}</span>: L{src.lines[0]}-{src.lines[1]}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
@@ -128,10 +160,10 @@ const Chatbot: React.FC = () => {
                 <div className="avatar-circle bot-avatar">
                   <Bot size={22} />
                 </div>
-                <div style={{display: 'flex', alignItems: 'center', gap: '4px', height: '40px'}}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', height: '40px' }}>
                   <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-bounce"></div>
-                  <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-bounce" style={{animationDelay: '0.1s'}}></div>
-                  <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                  <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                  <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                 </div>
               </div>
             )}
