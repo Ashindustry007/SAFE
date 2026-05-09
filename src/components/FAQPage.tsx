@@ -1,8 +1,18 @@
+/**
+ * SAFE FAQ & Knowledge Repository
+ * 
+ * A dynamic documentation component that provides technical answers about the
+ * SAFE platform, wildfire simulation modeling, and data integrations.
+ * Fetches data from the server with a robust local fallback system.
+ */
+
 import React, { useState, useEffect } from 'react';
-import { HelpCircle, ChevronDown, ChevronUp, Search, BookOpen } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { ChevronDown, Search } from 'lucide-react';
 import axios from 'axios';
 
+/**
+ * FAQ Data Structure
+ */
 interface FAQ {
   question: string;
   answer: string;
@@ -14,6 +24,11 @@ const FAQPage: React.FC = () => {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  /**
+   * Data Fetching Effect
+   * Synchronizes with the backend intelligence API.
+   * Provides high-quality technical fallbacks if the server is offline.
+   */
   useEffect(() => {
     const fetchFAQs = async () => {
       try {
@@ -21,8 +36,8 @@ const FAQPage: React.FC = () => {
         setFaqs(response.data);
       } catch (error) {
         console.error("Error fetching FAQs:", error);
+        // TECHNICAL FALLBACKS
         setFaqs([
-          { question: "Hi", answer: "Hello! I am the SAFE Intelligence Assistant. You can ask me about wildfire simulations, the Rothermel model, or fire risk analytics." },
           { question: "What is SAFE?", answer: "SAFE (Smart Analytics for Fire Emergencies) is a high-fidelity wildfire intelligence and simulation platform using Rothermel's surface fire spread model." },
           { question: "How does the simulation model work?", answer: "The simulation uses the Rothermel model, which considers fuel types, moisture, wind speed, and slope to predict fire behavior." },
           { question: "What data sources does SAFE use?", answer: "SAFE integrates real-time environmental data including temperature, humidity, wind vectors, and vegetation maps." },
@@ -36,6 +51,10 @@ const FAQPage: React.FC = () => {
     fetchFAQs();
   }, []);
 
+  /**
+   * Filter Logic
+   * Real-time search filtering across questions and technical answers.
+   */
   const filteredFaqs = faqs.filter(faq => 
     faq.question.toLowerCase().includes(searchTerm.toLowerCase()) ||
     faq.answer.toLowerCase().includes(searchTerm.toLowerCase())
@@ -52,6 +71,7 @@ const FAQPage: React.FC = () => {
           <p style={{color: '#64748b', fontSize: '1.125rem'}}>Comprehensive technical documentation for SAFE.</p>
         </header>
 
+        {/* SEARCH INTERFACE */}
         <div style={{position: 'relative', marginBottom: '3rem'}}>
           <Search style={{position: 'absolute', left: '1.5rem', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8'}} size={20} />
           <input
@@ -65,6 +85,7 @@ const FAQPage: React.FC = () => {
           />
         </div>
 
+        {/* FAQ ACCORDION LIST */}
         {isLoading ? (
           <div style={{textAlign: 'center', padding: '4rem 0'}}>
             <p style={{color: '#64748b'}}>Synchronizing intelligence...</p>

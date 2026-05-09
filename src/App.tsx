@@ -1,3 +1,12 @@
+/// <reference types="@types/google.maps" />
+/**
+ * SAFE Application Root
+ * 
+ * The main entry point for the SAFE wildfire intelligence platform.
+ * Manages global view states (Map, Simulation, FAQ, Chat) and coordinates
+ * the fetching of regional wildfire intelligence data.
+ */
+
 import React, { useEffect, useState, useRef } from 'react';
 import { setOptions, importLibrary } from '@googlemaps/js-api-loader';
 import { 
@@ -10,25 +19,40 @@ import {
   CloudRain,
   Navigation,
   Zap,
-  CircleHelp,
+  HelpCircle,
   MessageSquare,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { fetchWildfireIntel } from './services/wildfireApi';
 import type { WildfireData } from './services/wildfireApi';
 import { SimulationView3D as SimulationView } from './components/SimulationView3D';
+import { useFireSimulation } from './hooks/useFireSimulation';
 import Chatbot from './components/Chatbot';
 import { FAQProtocols } from './components/FAQProtocols';
 import './App.css';
 
-type ViewMode = 'MAP' | 'SIMULATION' | 'FAQ' | 'CHAT';
+/**
+ * ViewMode Navigation Type
+ * Defines the primary routing states for the main content area.
+ */
+type ViewMode = 'LANDING' | 'MAP' | 'SIMULATION' | 'FAQ' | 'CHAT';
 
 const App: React.FC = () => {
-  const [viewMode, setViewMode] = useState<ViewMode>('MAP');
+  const [viewMode, setViewMode] = useState<ViewMode>('LANDING');
   const [intel, setIntel] = useState<WildfireData | null>(null);
+  const [isUpdatingIntel, setIsUpdatingIntel] = useState(false);
   const mapRef = useRef<HTMLDivElement>(null);
+  const googleMapRef = useRef<any>(null);
   const [apiKey, setApiKey] = useState(import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '');
+  const [isIgniteMode, setIsIgniteMode] = useState(false);
+  const { isSimulating, startSimulation, clearSimulation, errorMsg } = useFireSimulation();
 
+  // Removed static initial fetch logic; now handled by map 'idle' event
+  /**
+   * Data Loading Effect
+   * Fetches regional wildfire intelligence on mount.
+   * Implements a 1-hour localStorage cache to minimize API calls.
+   */
   useEffect(() => {
     const loadInitialData = async () => {
       const CACHE_KEY = 'wildfire_intel_cache';
@@ -55,6 +79,10 @@ const App: React.FC = () => {
     loadInitialData();
   }, []);
 
+  /**
+   * Google Maps Initialization
+   * Dynamically loads the Google Maps JavaScript API and renders the dashboard map.
+   */
   useEffect(() => {
     if (mapRef.current && apiKey) {
       setOptions({
@@ -63,90 +91,115 @@ const App: React.FC = () => {
       });
 
       importLibrary('maps').then(({ Map }: any) => {
-        new Map(mapRef.current!, {
+        const map = new Map(mapRef.current!, {
           center: { lat: 37.7749, lng: -122.4194 },
           zoom: 8,
           styles: lightColorfulMapStyle,
           disableDefaultUI: false,
         });
+        googleMapRef.current = map;
+
+        // Fetch data when map stops moving
+        map.addListener('idle', async () => {
+          const bounds = map.getBounds();
+          if (bounds) {
+            setIsUpdatingIntel(true);
+            const north = bounds.getNorthEast().lat();
+            const east = bounds.getNorthEast().lng();
+            const south = bounds.getSouthWest().lat();
+            const west = bounds.getSouthWest().lng();
+            
+            console.log('Fetching intel for new map bounds');
+            const data = await fetchWildfireIntel({ north, south, east, west });
+            setIntel(data);
+            setIsUpdatingIntel(false);
+          }
+        });
       });
     }
   }, [apiKey]);
 
+  useEffect(() => {
+    if (!googleMapRef.current) return;
+    const map = googleMapRef.current;
+    
+    // Clear previous listener
+    google.maps.event.clearListeners(map, 'click');
+
+    if (isIgniteMode) {
+      // Change cursor to crosshair
+      map.setOptions({ draggableCursor: 'crosshair' });
+
+      map.addListener('click', (e: any) => {
+        if (intel) {
+          // Zoom in to see the simulation properly
+          map.setZoom(14);
+          map.panTo(e.latLng);
+          
+          startSimulation(map, e.latLng, {
+            windSpeed: intel.windSpeed,
+            windDirection: intel.windDirection,
+            droughtIndex: intel.droughtIndex,
+            vegetationType: intel.vegetationType
+          });
+          setIsIgniteMode(false); // Turn off after ignite
+          map.setOptions({ draggableCursor: '' });
+        } else {
+          console.warn("Intel data not loaded yet.");
+        }
+      });
+    } else {
+      map.setOptions({ draggableCursor: '' });
+    }
+  }, [isIgniteMode, intel, startSimulation]);
+
   return (
     <div className="app-container">
-      {/* Sidebar Navigation - PERSISTENT */}
-      <aside className="sidebar">
-        <div style={{ padding: '8px', backgroundColor: 'rgba(245, 158, 11, 0.2)', borderRadius: '12px', color: 'var(--accent-amber)' }}>
-          <Flame size={24} />
-        </div>
-        <nav style={{ display: 'flex', flexDirection: 'column', gap: '24px', color: 'var(--text-secondary)' }}>
-          <button 
-            onClick={() => setViewMode('MAP')}
-            style={{ 
-              background: 'none', 
-              border: 'none', 
-              color: viewMode === 'MAP' ? 'var(--accent-amber)' : 'inherit', 
-              cursor: 'pointer', 
-              transition: 'all 0.2s',
-              padding: '12px',
-              borderRadius: '8px',
-              backgroundColor: viewMode === 'MAP' ? 'rgba(245, 158, 11, 0.1)' : 'transparent'
-            }}
-          >
-            <MapIcon size={22} />
-          </button>
-          <button 
-            onClick={() => setViewMode('SIMULATION')}
-            style={{ 
-              background: 'none', 
-              border: 'none', 
-              color: viewMode === 'SIMULATION' ? 'var(--accent-amber)' : 'inherit', 
-              cursor: 'pointer', 
-              transition: 'all 0.2s',
-              padding: '12px',
-              borderRadius: '8px',
-              backgroundColor: viewMode === 'SIMULATION' ? 'rgba(245, 158, 11, 0.1)' : 'transparent'
-            }}
-          >
-            <Zap size={22} />
-          </button>
-          <button 
-            onClick={() => setViewMode('FAQ')}
-            style={{ 
-              background: 'none', 
-              border: 'none', 
-              color: viewMode === 'FAQ' ? 'var(--accent-amber)' : 'inherit', 
-              cursor: 'pointer', 
-              transition: 'all 0.2s',
-              padding: '12px',
-              borderRadius: '8px',
-              backgroundColor: viewMode === 'FAQ' ? 'rgba(245, 158, 11, 0.1)' : 'transparent'
-            }}
-            aria-label="FAQ protocols"
-            title="FAQ protocols"
-          >
-            <CircleHelp size={22} />
-          </button>
-          <button 
-            onClick={() => setViewMode('CHAT')}
-            style={{ 
-              background: 'none', 
-              border: 'none', 
-              color: viewMode === 'CHAT' ? 'var(--accent-amber)' : 'inherit', 
-              cursor: 'pointer', 
-              transition: 'all 0.2s',
-              padding: '12px',
-              borderRadius: '8px',
-              backgroundColor: viewMode === 'CHAT' ? 'rgba(245, 158, 11, 0.1)' : 'transparent'
-            }}
-          >
-            <MessageSquare size={22} />
-          </button>
-        </nav>
-      </aside>
+      {/* Top Navigation Bar - Hidden on Landing Page */}
+      {viewMode !== 'LANDING' && (
+        <header className="top-nav">
+          <div className="nav-brand" onClick={() => setViewMode('LANDING')}>
+            <div className="brand-icon">
+              <Flame size={20} />
+            </div>
+            <span className="brand-name">SAFE</span>
+          </div>
+          
+          <nav className="nav-links">
+            <NavButton 
+              active={viewMode === 'MAP'} 
+              onClick={() => setViewMode('MAP')}
+              icon={<MapIcon size={18} />}
+              label="Intelligence"
+            />
+            <NavButton 
+              active={viewMode === 'SIMULATION'} 
+              onClick={() => setViewMode('SIMULATION')}
+              icon={<Zap size={18} />}
+              label="Simulation"
+            />
+            <NavButton 
+              active={viewMode === 'FAQ'} 
+              onClick={() => setViewMode('FAQ')}
+              icon={<HelpCircle size={18} />}
+              label="Resources"
+            />
+            <NavButton 
+              active={viewMode === 'CHAT'} 
+              onClick={() => setViewMode('CHAT')}
+              icon={<MessageSquare size={18} />}
+              label="Assistant"
+            />
+          </nav>
+        </header>
+      )}
 
       <main className="main-content">
+        {/* Landing Page */}
+        {viewMode === 'LANDING' && (
+          <LandingPage onNavigate={setViewMode} />
+        )}
+
         {/* Map & Intelligence Dashboard */}
         <div 
           style={{ 
@@ -183,18 +236,53 @@ const App: React.FC = () => {
 
           {/* Intelligence Panel (Right) */}
           <section className="intel-panel custom-scrollbar" style={{ flex: 2, backgroundColor: '#ffffff', color: '#1e293b', overflowY: 'auto' }}>
-            <header style={{ padding: '32px', borderBottom: '1px solid #e2e8f0' }}>
-              <h1 style={{ fontSize: '30px', fontWeight: 'bold', marginBottom: '8px', color: '#0f172a' }}>Environmental <span className="text-amber">Intelligence</span></h1>
-              <p style={{ color: '#64748b' }}>Regional risk analysis based on real-time sensory data.</p>
+            <header style={{ padding: '32px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <h1 style={{ fontSize: '30px', fontWeight: 'bold', marginBottom: '8px', color: '#0f172a' }}>Environmental <span className="text-amber">Intelligence</span></h1>
+                <p style={{ color: '#64748b' }}>
+                  {isUpdatingIntel ? 'Scanning current region...' : 'Regional risk analysis based on real-time sensory data.'}
+                </p>
+              </div>
+              
+              <button 
+                onClick={() => {
+                  if (isSimulating) {
+                    clearSimulation();
+                    setIsIgniteMode(false);
+                  } else {
+                    if (viewMode !== 'MAP') setViewMode('MAP');
+                    setIsIgniteMode(!isIgniteMode);
+                  }
+                }}
+                className={isIgniteMode ? "btn-primary" : ""}
+                style={{ 
+                  display: 'flex', alignItems: 'center', gap: '8px',
+                  padding: '12px 24px', borderRadius: '8px', fontWeight: 'bold',
+                  cursor: 'pointer', transition: 'all 0.2s',
+                  backgroundColor: isSimulating ? '#e2e8f0' : (isIgniteMode ? '#ef4444' : '#fff7ed'),
+                  color: isSimulating ? '#64748b' : (isIgniteMode ? '#ffffff' : '#ea580c'),
+                  border: isSimulating ? '1px solid #cbd5e1' : (isIgniteMode ? 'none' : '1px solid #ffedd5'),
+                }}
+              >
+                <Flame size={20} />
+                {isSimulating ? "Clear Simulation" : (isIgniteMode ? "Click Map to Ignite" : "Simulate Fire")}
+              </button>
             </header>
 
-            <div style={{ padding: '32px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            <div style={{ padding: '32px', display: 'flex', flexDirection: 'column', gap: '24px', opacity: isUpdatingIntel ? 0.5 : 1, transition: 'opacity 0.3s' }}>
+              {errorMsg && (
+                <div style={{ padding: '16px', backgroundColor: '#fee2e2', color: '#991b1b', borderRadius: '8px', border: '1px solid #fecaca' }}>
+                  <strong>Error:</strong> {errorMsg}
+                </div>
+              )}
               {/* Risk Score */}
               <div style={{ backgroundColor: '#fff7ed', padding: '24px', borderRadius: '16px', borderLeft: '4px solid var(--accent-amber)', border: '1px solid #ffedd5' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
                   <div>
                     <h3 style={{ color: '#9a3412', fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Fire Risk Probability</h3>
-                    <div style={{ fontSize: '36px', fontWeight: 'bold', marginTop: '4px', color: '#ea580c' }}>74<span style={{ fontSize: '20px' }}>%</span></div>
+                    <div style={{ fontSize: '36px', fontWeight: 'bold', marginTop: '4px', color: '#ea580c' }}>
+                      {intel ? Math.min(100, Math.round((intel.droughtIndex * 0.4) + (intel.windSpeed * 0.4) + (intel.temperature * 0.2))) : '...'}<span style={{ fontSize: '20px' }}>%</span>
+                    </div>
                   </div>
                   <div style={{ backgroundColor: '#ffedd5', padding: '8px', borderRadius: '8px', color: '#ea580c' }}>
                     <Flame size={24} />
@@ -203,7 +291,7 @@ const App: React.FC = () => {
                 <div style={{ width: '100%', backgroundColor: '#fed7aa', height: '8px', borderRadius: '4px', overflow: 'hidden' }}>
                   <motion.div 
                     initial={{ width: 0 }}
-                    animate={{ width: '74%' }}
+                    animate={{ width: intel ? Math.min(100, Math.round((intel.droughtIndex * 0.4) + (intel.windSpeed * 0.4) + (intel.temperature * 0.2))) + '%' : '0%' }}
                     transition={{ duration: 1.5, ease: "easeOut" }}
                     style={{ backgroundColor: '#ea580c', height: '100%' }} 
                   />
@@ -216,13 +304,13 @@ const App: React.FC = () => {
                   icon={<Thermometer className="text-red" size={20} />}
                   label="Temperature"
                   value={intel?.temperature ? `${intel.temperature}°C` : '...'}
-                  trend="Extreme Heat"
+                  trend={intel && intel.temperature > 30 ? "Extreme Heat" : "Normal"}
                 />
                 <MetricCard 
                   icon={<CloudRain className="text-blue" size={20} />}
                   label="Humidity"
                   value={intel?.humidity ? `${intel.humidity}%` : '...'}
-                  trend="Very Dry"
+                  trend={intel && intel.humidity < 30 ? "Very Dry" : "Normal"}
                 />
                 <MetricCard 
                   icon={<Wind className="text-blue" size={20} />}
@@ -234,7 +322,7 @@ const App: React.FC = () => {
                   icon={<Trees className="text-emerald" size={20} />}
                   label="Vegetation"
                   value={intel?.vegetationType ?? '...'}
-                  trend="High Dryness"
+                  trend={intel?.vegetationType === 'Forest' ? "High Risk Fuel" : "Medium Risk"}
                 />
                 <MetricCard 
                   icon={<Navigation className="text-blue" size={20} />}
@@ -246,7 +334,7 @@ const App: React.FC = () => {
                   icon={<Droplets className="text-amber" size={20} />}
                   label="Drought Index"
                   value={intel?.droughtIndex ? `${intel.droughtIndex}/100` : '...'}
-                  trend="Severe"
+                  trend={intel && intel.droughtIndex > 70 ? "Severe" : "Moderate"}
                 />
               </div>
             </div>
@@ -262,7 +350,7 @@ const App: React.FC = () => {
             position: 'relative' 
           }}
         >
-          <SimulationView onBack={() => setViewMode('MAP')} />
+          <SimulationView />
         </div>
 
         {/* FAQ & Protocols View */}
@@ -292,6 +380,94 @@ const App: React.FC = () => {
   );
 };
 
+/**
+ * NavButton Component
+ * Premium navigation button for the top bar.
+ */
+const NavButton = ({ active, onClick, icon, label }: any) => (
+  <button 
+    onClick={onClick}
+    className={`nav-btn ${active ? 'active' : ''}`}
+  >
+    <span className="nav-btn-icon">{icon}</span>
+    <span className="nav-btn-label">{label}</span>
+  </button>
+);
+
+/**
+ * Landing Page Component
+ * Minimal, aesthetic entry point for the platform.
+ */
+const LandingPage = ({ onNavigate }: { onNavigate: (mode: ViewMode) => void }) => (
+  <div className="landing-container">
+    <div className="landing-bg">
+      <div className="glow-1"></div>
+      <div className="glow-2"></div>
+    </div>
+    
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.8 }}
+      className="landing-content"
+    >
+      <div className="landing-logo-box">
+        <Flame size={48} className="text-amber" />
+      </div>
+      
+      <h1 className="landing-title">SAFE</h1>
+      <p className="landing-subtitle">Simulated Analysis of Fire Ecology</p>
+      
+      <div className="landing-divider"></div>
+      
+      <div className="landing-grid">
+        <LandingCard 
+          title="Intelligence"
+          desc="Real-time environmental risk assessment"
+          icon={<MapIcon size={24} />}
+          onClick={() => onNavigate('MAP')}
+        />
+        <LandingCard 
+          title="Simulation"
+          desc="Predictive 3D wildfire spread modeling"
+          icon={<Zap size={24} />}
+          onClick={() => onNavigate('SIMULATION')}
+        />
+        <LandingCard 
+          title="Resources"
+          desc="Ecological data & expert guidelines"
+          icon={<HelpCircle size={24} />}
+          onClick={() => onNavigate('FAQ')}
+        />
+        <LandingCard 
+          title="Assistant"
+          desc="AI-powered emergency response support"
+          icon={<MessageSquare size={24} />}
+          onClick={() => onNavigate('CHAT')}
+        />
+      </div>
+    </motion.div>
+  </div>
+);
+
+const LandingCard = ({ title, desc, icon, onClick }: any) => (
+  <motion.div 
+    whileHover={{ scale: 1.02, backgroundColor: 'rgba(255, 255, 255, 0.05)' }}
+    whileTap={{ scale: 0.98 }}
+    onClick={onClick}
+    className="landing-card"
+  >
+    <div className="landing-card-icon">{icon}</div>
+    <h3>{title}</h3>
+    <p>{desc}</p>
+  </motion.div>
+);
+
+
+/**
+ * MetricCard Component
+ * Displays a single environmental data point with an icon and trend label.
+ */
 const MetricCard = ({ icon, label, value, trend }: any) => (
   <div className="glass-panel metric-card" style={{ backgroundColor: '#f8fafc', borderColor: '#e2e8f0' }}>
     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
@@ -307,6 +483,10 @@ const MetricCard = ({ icon, label, value, trend }: any) => (
   </div>
 );
 
+/**
+ * Google Maps Stylization
+ * Curated color palette for high-readability wildfire environmental mapping.
+ */
 const lightColorfulMapStyle = [
   { elementType: "geometry", stylers: [{ color: "#ebe3cd" }] },
   { elementType: "labels.text.fill", stylers: [{ color: "#523735" }] },

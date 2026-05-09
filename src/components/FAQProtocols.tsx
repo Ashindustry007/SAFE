@@ -14,20 +14,28 @@ const emergencyContacts = [
 const resourceGroups = [
   {
     title: 'Non-Emergency Information',
-    note: 'During a wildfire, public lines often get jammed. Use these for non-life-threatening inquiries.',
+    note: 'During a wildfire, 9-1-1 and public emergency lines often get jammed. Please keep those lines clear for life-threatening emergencies and use the resources below for general inquiries and updates:',
     items: [
-      { label: '2-1-1', detail: 'Local disaster resources, evacuation centers, animal shelters, road closures, and community assistance.' },
-      { label: '5-1-1', detail: 'Real-time travel information, traffic updates, and road closures that may affect evacuation routes.' },
-      { label: 'CAL FIRE Info', detail: 'State-level wildfire status updates. General information line: 916-653-5123.' },
-    ],
-  },
-  {
-    title: 'Recovery & Reporting',
-    note: 'Use specialized lines for utility, animal, and health concerns once immediate danger is handled.',
-    items: [
-      { label: 'Power Outages', detail: 'Call your utility provider, such as SDG&E at 1-800-411-7343 or PG&E at 1-800-743-5000.' },
-      { label: 'Animal Rescue', detail: 'Contact local humane societies or animal services for pet and livestock shelter or rescue.' },
-      { label: 'Poison Control', detail: 'For smoke inhalation concerns or accidental ingestion, call 1-800-222-1222.' },
+      {
+        label: 'Community Assistance',
+        detail: 'Local disaster resources, evacuation center locations, animal shelter info, and community assistance.',
+        contact: '📞 Dial or 🌐 211.org',
+      },
+      {
+        label: 'Travel & Traffic',
+        detail: 'Real-time travel information, traffic updates, and road closures that may affect your evacuation routes.',
+        contact: '📞 Dial 5-1-1 or check your state\'s Department of Transportation website',
+      },
+      {
+        label: 'InciWeb (National Incident Information System)',
+        detail: 'Official updates on specific, large-scale wildfires across the United States.',
+        contact: '🌐 inciweb.wildfire.gov',
+      },
+      {
+        label: 'FEMA Disaster Assistance',
+        detail: 'What they do: Post-fire recovery, shelter locations, and federal assistance information.',
+        contact: '📞 Call 800-621-3362 or 🌐 visit disasterassistance.gov',
+      },
     ],
   },
 ];
@@ -233,7 +241,7 @@ export const FAQProtocols: React.FC = () => {
 
   return (
     <section style={{ height: '100%', width: '100%', backgroundColor: '#f8fafc', color: '#0f172a', overflow: 'hidden' }}>
-      <div style={{ height: '100%', display: 'grid', gridTemplateColumns: '300px minmax(0, 1fr)' }}>
+      <div style={{ height: '100%', display: 'grid', gridTemplateColumns: '330px minmax(0, 1fr)' }}>
         <aside style={{ borderRight: '1px solid #e2e8f0', backgroundColor: '#ffffff', display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
           <header style={{ padding: '28px 24px 20px', borderBottom: '1px solid #e2e8f0' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#b45309', marginBottom: '10px' }}>
@@ -245,21 +253,25 @@ export const FAQProtocols: React.FC = () => {
 
           <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
             {emergencyContacts.map((contact) => (
-              <article key={contact.label} style={{ border: '1px solid #e2e8f0', borderRadius: '8px', padding: '14px', backgroundColor: '#fff7ed' }}>
+              <article key={contact.label} style={{ border: '1px solid #fecaca', borderRadius: '8px', padding: '14px', backgroundColor: '#fff7ed' }}>
                 <div style={{ fontSize: '12px', color: '#9a3412', fontWeight: 700, marginBottom: '5px' }}>{contact.label}</div>
-                <div style={{ fontSize: '18px', fontWeight: 800, color: '#0f172a', marginBottom: '8px' }}>{contact.value}</div>
-                <p style={{ fontSize: '12px', lineHeight: 1.45, color: '#64748b', margin: 0 }}>{contact.note}</p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '18px', fontWeight: 800, color: '#0f172a', marginBottom: '8px' }}>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '26px', height: '26px', borderRadius: '999px', border: '1px solid #ef4444', backgroundColor: '#fee2e2', fontSize: '14px' }}>📞</span>
+                  {contact.value}
+                </div>
+                <p style={{ fontSize: '11px', lineHeight: 1.45, color: '#64748b', margin: 0 }}>{contact.note}</p>
               </article>
             ))}
             {resourceGroups.map((group) => (
-              <article key={group.title} style={{ border: '1px solid #e2e8f0', borderRadius: '8px', padding: '14px', backgroundColor: '#f8fafc' }}>
+              <article key={group.title} style={{ border: '1px solid #fed7aa', borderRadius: '8px', padding: '14px', backgroundColor: '#fffbeb' }}>
                 <div style={{ fontSize: '12px', color: '#334155', fontWeight: 800, marginBottom: '6px' }}>{group.title}</div>
-                <p style={{ fontSize: '12px', lineHeight: 1.45, color: '#64748b', margin: '0 0 12px' }}>{group.note}</p>
+                <p style={{ fontSize: '11px', lineHeight: 1.45, color: '#64748b', margin: '0 0 12px' }}>{group.note}</p>
                 <div style={{ display: 'grid', gap: '10px' }}>
                   {group.items.map((item) => (
                     <div key={item.label}>
                       <div style={{ fontSize: '12px', fontWeight: 800, color: '#0f172a', marginBottom: '3px' }}>{item.label}</div>
-                      <p style={{ fontSize: '12px', lineHeight: 1.45, color: '#64748b', margin: 0 }}>{item.detail}</p>
+                      <p style={{ fontSize: '11px', lineHeight: 1.45, color: '#64748b', margin: 0 }}>{item.detail}</p>
+                      <div style={{ fontSize: '11px', lineHeight: 1.45, color: '#92400e', fontWeight: 800, marginTop: '4px' }}>{item.contact}</div>
                     </div>
                   ))}
                 </div>

@@ -1,93 +1,178 @@
-import React, { useMemo, useRef, useEffect } from 'react';
+/**
+ * Terrain3D (Concord parity)
+ *
+ * This follows Concord's approach from `view-3d/terrain.tsx`:
+ * - one PlaneGeometry with (gridWidth x gridHeight) vertices
+ * - vertex colors updated per cell state
+ * - elevation applied per vertex (scaled from ft -> view units)
+ */
+
+import React, { useMemo, useEffect } from 'react';
 import * as THREE from 'three';
-import { FireState } from '../logic/wildfireTypes';
-import type { Cell } from '../logic/wildfireTypes';
+// Terrain mesh only (labels/markers rendered by parent view).
+
+import type { Cell } from '../logic/concord/cell';
+import { BurnIndex, FireState } from '../logic/concord/cell';
+import { DroughtLevel } from '../logic/concord/types';
+import { feetToGrid, uvToFeet } from '../logic/concord/mapping';
+
+const PLANE_WIDTH = 1;
+
+const getTerrainColor = (droughtLevel: number): [number, number, number, number] => {
+  switch (droughtLevel) {
+    case DroughtLevel.NoDrought:
+      return [0.008, 0.831, 0.039, 1];
+    case DroughtLevel.MildDrought:
+      return [0.573, 0.839, 0.216, 1];
+    case DroughtLevel.MediumDrought:
+      return [0.757, 0.886, 0.271, 1];
+    default:
+      return [0.784, 0.631, 0.271, 1];
+  }
+};
+
+const BURNING_COLOR: [number, number, number, number] = [1, 0, 0, 1];
+const BURNT_COLOR: [number, number, number, number] = [0.2, 0.2, 0.2, 1];
+const FIRE_LINE_UNDER_CONSTRUCTION_COLOR: [number, number, number, number] = [0.5, 0.5, 0, 1];
+
+const BURN_INDEX_LOW: [number, number, number, number] = [1, 0.7, 0, 1];
+const BURN_INDEX_MEDIUM: [number, number, number, number] = [1, 0.5, 0, 1];
+const BURN_INDEX_HIGH: [number, number, number, number] = [1, 0, 0, 1];
+
+const burnIndexColor = (burnIndex: BurnIndex): [number, number, number, number] => {
+  if (burnIndex === BurnIndex.Low) return BURN_INDEX_LOW;
+  if (burnIndex === BurnIndex.Medium) return BURN_INDEX_MEDIUM;
+  return BURN_INDEX_HIGH;
+};
+
+const vertexIdx = (cell: Cell, gridWidth: number) =>
+  cell.y * gridWidth + cell.x;
 
 interface Terrain3DProps {
   cells: Cell[];
-  width: number;
-  height: number;
-  onCellClick: (x: number, y: number) => void;
+  gridWidth: number;
+  gridHeight: number;
+  modelWidthFt: number;
+  modelHeightFt: number;
+  cellSizeFt: number;
+  activeTool: string;
+  simTime?: number;
+  showBurnIndex?: boolean;
+  riverColor?: [number, number, number, number];
+  onCellInteraction: (x: number, y: number) => void;
 }
 
-export const Terrain3D: React.FC<Terrain3DProps> = ({ cells, width, height, onCellClick }) => {
-  const geometryRef = useRef<THREE.PlaneGeometry>(null);
+export const Terrain3D: React.FC<Terrain3DProps> = ({
+  cells,
+  gridWidth,
+  gridHeight,
+  modelWidthFt,
+  modelHeightFt,
+  cellSizeFt,
+  activeTool,
+  simTime = 0,
+  showBurnIndex = true,
+  riverColor = [0.067, 0.529, 0.882, 1],
+  onCellInteraction,
+}) => {
+  const [isDragging, setIsDragging] = React.useState(false);
 
-  const { positions, colors } = useMemo(() => {
-    const posArr = new Float32Array(width * height * 3);
-    const colArr = new Float32Array(width * height * 3);
+  const planeHeight = (modelHeightFt * PLANE_WIDTH) / modelWidthFt;
+  const ftToViewUnit = PLANE_WIDTH / modelWidthFt;
 
-    cells.forEach((cell, i) => {
-      const idx = i * 3;
-      posArr[idx] = cell.x - width / 2;
-      posArr[idx + 1] = height / 2 - cell.y;
-      posArr[idx + 2] = cell.baseElevation / 100; // Scale elevation
-
-      const color = getCellColor(cell);
-      colArr[idx] = color.r;
-      colArr[idx + 1] = color.g;
-      colArr[idx + 2] = color.b;
-    });
-
-    return { positions: posArr, colors: colArr };
-  }, [width, height, cells.length]);
+  const geometry = useMemo(() => {
+    const geo = new THREE.PlaneGeometry(PLANE_WIDTH, planeHeight, gridWidth - 1, gridHeight - 1);
+    // 4 floats per vertex (rgba)
+    geo.setAttribute('color', new THREE.Float32BufferAttribute(new Array(gridWidth * gridHeight * 4).fill(0), 4));
+    return geo;
+  }, [gridWidth, gridHeight, planeHeight]);
 
   useEffect(() => {
-    if (!geometryRef.current) return;
-    const colorAttr = geometryRef.current.getAttribute('color') as THREE.BufferAttribute;
-    
-    cells.forEach((cell, i) => {
-      const color = getCellColor(cell);
-      colorAttr.setXYZ(i, color.r, color.g, color.b);
+    const posArray = (geometry.attributes.position.array as unknown as number[]);
+    cells.forEach((cell) => {
+      const zAttrIdx = vertexIdx(cell, gridWidth) * 3 + 2;
+      posArray[zAttrIdx] = cell.elevation * ftToViewUnit;
     });
-    colorAttr.needsUpdate = true;
-  }, [cells]);
+    geometry.computeVertexNormals();
+    (geometry.attributes.position as THREE.BufferAttribute).needsUpdate = true;
+  }, [cells, geometry, gridWidth, gridHeight, ftToViewUnit]);
 
-  function getCellColor(cell: Cell) {
-    if (cell.fireState === FireState.Burning) {
-      return new THREE.Color('#ff9800'); // Glowing Orange
-    }
-    if (cell.fireState === FireState.Burnt) {
-      return new THREE.Color('#000000'); // Solid Black
-    }
-    if (cell.isRiver) {
-      return new THREE.Color('#1976d2'); // Blue River
-    }
-    if (cell.isFireLine) {
-      return new THREE.Color('#795548'); // Brown Fire Line
-    }
-    
-    // Exact Zone Colors
-    switch (cell.zoneIdx) {
-      case 0: return new THREE.Color('#2e7d32'); // Mountains
-      case 1: return new THREE.Color('#4caf50'); // Foothills
-      case 2: return new THREE.Color('#8bc34a'); // Plains
-      default: return new THREE.Color('#4caf50');
-    }
-  }
+  useEffect(() => {
+    const colArray = (geometry.attributes.color.array as unknown as number[]);
+    cells.forEach((cell) => {
+      const idx = vertexIdx(cell, gridWidth) * 4;
+      let color: [number, number, number, number];
+      if (cell.fireState === FireState.Burning) {
+        color = showBurnIndex ? burnIndexColor(cell.burnIndex) : BURNING_COLOR;
+      } else if (cell.fireState === FireState.Burnt) {
+        color = cell.isFireSurvivor ? getTerrainColor(cell.droughtLevel) : BURNT_COLOR;
+      } else if (cell.isRiver) {
+        color = riverColor;
+      } else if (cell.isFireLineUnderConstruction) {
+        color = FIRE_LINE_UNDER_CONSTRUCTION_COLOR;
+      } else {
+        color = getTerrainColor(cell.droughtLevel);
+      }
+      colArray[idx + 0] = color[0];
+      colArray[idx + 1] = color[1];
+      colArray[idx + 2] = color[2];
+      colArray[idx + 3] = color[3];
+    });
+    (geometry.attributes.color as THREE.BufferAttribute).needsUpdate = true;
+  }, [cells, geometry, gridWidth, gridHeight, showBurnIndex, riverColor, simTime]);
+
+  const handlePointerAction = (e: any) => {
+    e.stopPropagation();
+    const local = e.object.worldToLocal(e.point.clone());
+    // local.x, local.y are in view units around plane center.
+    const u = THREE.MathUtils.clamp(local.x / PLANE_WIDTH + 0.5, 0, 1);
+    const v = THREE.MathUtils.clamp(local.y / planeHeight + 0.5, 0, 1);
+    const { xFt, yFt } = uvToFeet(u, v, {
+      modelWidthFt,
+      modelHeightFt,
+      gridWidth,
+      gridHeight,
+      cellSizeFt,
+    });
+    const { gx, gy } = feetToGrid(xFt, yFt, {
+      modelWidthFt,
+      modelHeightFt,
+      gridWidth,
+      gridHeight,
+      cellSizeFt,
+    });
+    onCellInteraction(gx, gy);
+  };
 
   return (
-    <mesh 
-      rotation={[-Math.PI / 3, 0, 0]} 
-      onClick={(e) => {
-        e.stopPropagation();
-        const point = e.point;
-        const gx = Math.round(point.x + width / 2);
-        const gy = Math.round(height / 2 - point.y);
-        onCellClick(gx, gy);
-      }}
-    >
-      <planeGeometry ref={geometryRef} args={[width, height, width - 1, height - 1]}>
-        <bufferAttribute
-          attach="attributes-position"
-          args={[positions, 3]}
-        />
-        <bufferAttribute
-          attach="attributes-color"
-          args={[colors, 3]}
-        />
-      </planeGeometry>
-      <meshStandardMaterial vertexColors flatShading={true} roughness={0.9} metalness={0.1} />
-    </mesh>
+    <group>
+      <mesh
+        rotation={[-Math.PI / 2, 0, 0]}
+        receiveShadow
+        castShadow
+        frustumCulled={false}
+        onPointerDown={(e) => {
+          setIsDragging(true);
+          handlePointerAction(e);
+        }}
+        onPointerUp={() => setIsDragging(false)}
+        onPointerMove={(e) => {
+          if (isDragging && activeTool === 'FIRELINE') {
+            handlePointerAction(e);
+          }
+        }}
+        onClick={(e) => {
+          if (activeTool !== 'FIRELINE') {
+            handlePointerAction(e);
+          }
+        }}
+      >
+        <primitive object={geometry} attach="geometry" />
+        <meshStandardMaterial vertexColors roughness={0.95} metalness={0.0} />
+
+      </mesh>
+      
+      <hemisphereLight intensity={0.55} groundColor="#1a1a1a" color="#ffffff" />
+    </group>
   );
 };
