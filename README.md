@@ -31,13 +31,16 @@ SAFE features the **Concord Engine**, a state-of-the-art modular simulation suit
 - **Simulation Logic**: Modular Concord TypeScript engine.
 
 ## SAFE
+LANDING PAGE
 <img width="1799" height="1004" alt="LANDING PAGE" src="https://github.com/user-attachments/assets/8d7c7270-f692-4abc-8ca0-2f7f2c3d3e0b" />
+LIVE MAP SIMULATION
 <img width="1800" height="1004" alt="LIVE SIMULATION" src="https://github.com/user-attachments/assets/fc7b909d-99f4-4bb1-a75b-6255a7c833c0" />
+UNCONTROLLED-CONTROLLED SIMULATION
+<img width="1793" height="1073" alt="SIMULATION" src="https://github.com/user-attachments/assets/b402ae2b-c088-4b0f-9026-5f5d3411f8bd" />
+RESOURCES
 <img width="1800" height="1002" alt="RESOURCES" src="https://github.com/user-attachments/assets/2c7c760a-cb46-44f1-8eaa-eb083b245c71" />
+ASSISTANT
 <img width="1800" height="1003" alt="ASSISTANT" src="https://github.com/user-attachments/assets/b44dd6cc-ed97-4ef5-92c5-81e8a80d9f77" />
-
-
-
 
 
 ---
