@@ -45,7 +45,7 @@ const App: React.FC = () => {
   const googleMapRef = useRef<any>(null);
   const [apiKey, setApiKey] = useState(import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '');
   const [isIgniteMode, setIsIgniteMode] = useState(false);
-  const { isSimulating, startSimulation, clearSimulation, errorMsg } = useFireSimulation();
+  const { isSimulating, startSimulation, clearSimulation, errorMsg, time } = useFireSimulation();
 
   // Removed static initial fetch logic; now handled by map 'idle' event
   /**
@@ -141,7 +141,7 @@ const App: React.FC = () => {
             windDirection: intel.windDirection,
             droughtIndex: intel.droughtIndex,
             vegetationType: intel.vegetationType
-          });
+          }, apiKey);
           setIsIgniteMode(false); // Turn off after ignite
           map.setOptions({ draggableCursor: '' });
         } else {
@@ -274,6 +274,25 @@ const App: React.FC = () => {
                 <div style={{ padding: '16px', backgroundColor: '#fee2e2', color: '#991b1b', borderRadius: '8px', border: '1px solid #fecaca' }}>
                   <strong>Error:</strong> {errorMsg}
                 </div>
+              )}
+              {isSimulating && (
+                <motion.div 
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  style={{ backgroundColor: '#f0f9ff', padding: '20px', borderRadius: '16px', borderLeft: '4px solid #0ea5e9', border: '1px solid #bae6fd' }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                      <h3 style={{ color: '#0369a1', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Simulation Timeline</h3>
+                      <div style={{ fontSize: '28px', fontWeight: 'bold', marginTop: '4px', color: '#0284c7', fontFamily: 'monospace' }}>
+                        D{Math.floor(time / 1440) + 1} {String(Math.floor((time % 1440) / 60)).padStart(2, '0')}:{String(Math.floor(time % 60)).padStart(2, '0')}
+                      </div>
+                    </div>
+                    <div style={{ backgroundColor: '#e0f2fe', padding: '8px', borderRadius: '8px', color: '#0284c7' }}>
+                      <Navigation size={24} className="animate-pulse" />
+                    </div>
+                  </div>
+                </motion.div>
               )}
               {/* Risk Score */}
               <div style={{ backgroundColor: '#fff7ed', padding: '24px', borderRadius: '16px', borderLeft: '4px solid var(--accent-amber)', border: '1px solid #ffedd5' }}>
