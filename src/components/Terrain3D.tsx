@@ -45,7 +45,7 @@ const burnIndexColor = (burnIndex: BurnIndex): [number, number, number, number] 
   return BURN_INDEX_HIGH;
 };
 
-const vertexIdx = (cell: Cell, gridWidth: number, gridHeight: number) =>
+const vertexIdx = (cell: Cell, gridWidth: number) =>
   cell.y * gridWidth + cell.x;
 
 interface Terrain3DProps {
@@ -88,9 +88,9 @@ export const Terrain3D: React.FC<Terrain3DProps> = ({
   }, [gridWidth, gridHeight, planeHeight]);
 
   useEffect(() => {
-    const posArray = (geometry.attributes.position.array as number[]);
+    const posArray = (geometry.attributes.position.array as unknown as number[]);
     cells.forEach((cell) => {
-      const zAttrIdx = vertexIdx(cell, gridWidth, gridHeight) * 3 + 2;
+      const zAttrIdx = vertexIdx(cell, gridWidth) * 3 + 2;
       posArray[zAttrIdx] = cell.elevation * ftToViewUnit;
     });
     geometry.computeVertexNormals();
@@ -98,9 +98,9 @@ export const Terrain3D: React.FC<Terrain3DProps> = ({
   }, [cells, geometry, gridWidth, gridHeight, ftToViewUnit]);
 
   useEffect(() => {
-    const colArray = (geometry.attributes.color.array as number[]);
+    const colArray = (geometry.attributes.color.array as unknown as number[]);
     cells.forEach((cell) => {
-      const idx = vertexIdx(cell, gridWidth, gridHeight) * 4;
+      const idx = vertexIdx(cell, gridWidth) * 4;
       let color: [number, number, number, number];
       if (cell.fireState === FireState.Burning) {
         color = showBurnIndex ? burnIndexColor(cell.burnIndex) : BURNING_COLOR;
