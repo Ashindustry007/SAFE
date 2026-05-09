@@ -16,7 +16,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3002;
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY || process.env.VITE_GOOGLE_MAPS_API_KEY;
 const GCP_PROJECT_ID = process.env.GCP_PROJECT_ID;
 
@@ -111,6 +111,8 @@ app.post('/api/chat', async (req, res) => {
   const { message } = req.body;
   if (!message) return res.status(400).json({ error: "Message is required" });
 
+  console.log(`[Chat] Incoming message: "${message}"`);
+
   try {
     let contextText = "";
     
@@ -119,22 +121,23 @@ app.post('/api/chat', async (req, res) => {
       try {
         const contextDocs = await vectorStore.similaritySearch(message, 3);
         contextText = contextDocs.map(d => d.pageContent).join("\n\n");
+        console.log(`[Chat] Found ${contextDocs.length} context documents.`);
       } catch (err) {
-        console.error("Vector search error:", err);
+        console.error("[Chat] Vector search error:", err);
       }
-    } else {
-      console.warn("Vector store not initialized. Answering from general knowledge.");
     }
 
     // 2. Generate response
+    console.log("[Chat] Invoking Gemini model...");
     const response = await model.invoke([
       ["system", `You are a helpful assistant for the SAFE project. ${contextText ? `Use the following context to answer the user's question. If you don't know the answer based on the context, use your general knowledge but clarify that it's not explicitly in the docs.\n\nContext:\n${contextText}` : "The internal knowledge base is currently being initialized or unavailable. Please answer based on your general knowledge of wildfire safety and the SAFE (Smart Analytics for Fire Emergencies) project."}`],
       ["human", message]
     ]);
 
+    console.log(`[Chat] Gemini response: "${(response.content as string).substring(0, 50)}..."`);
     res.json({ response: response.content });
   } catch (error: any) {
-    console.error("Chat error:", error);
+    console.error("[Chat] Error:", error.message);
     res.status(500).json({ error: "I'm currently experiencing high traffic. Please try again in a moment." });
   }
 });

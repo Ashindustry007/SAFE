@@ -17,11 +17,10 @@ const FAQPage: React.FC = () => {
   useEffect(() => {
     const fetchFAQs = async () => {
       try {
-        const response = await axios.get('http://localhost:3001/api/faq');
+        const response = await axios.get('http://localhost:3002/api/faq');
         setFaqs(response.data);
       } catch (error) {
         console.error("Error fetching FAQs:", error);
-        // Fallback static FAQs
         setFaqs([
           { question: "Hi", answer: "Hello! I am the SAFE Intelligence Assistant. You can ask me about wildfire simulations, the Rothermel model, or fire risk analytics." },
           { question: "What is SAFE?", answer: "SAFE (Smart Analytics for Fire Emergencies) is a high-fidelity wildfire intelligence and simulation platform using Rothermel's surface fire spread model." },
@@ -43,93 +42,60 @@ const FAQPage: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-[#fcfcfd] text-slate-800 font-sans">
-      <div className="max-w-4xl mx-auto px-6 py-20">
-        <header className="mb-16 text-center">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-600 text-[11px] font-bold uppercase tracking-wider mb-6">
+    <div className="faq-container" style={{backgroundColor: '#fff', padding: '4rem 2rem'}}>
+      <div style={{maxWidth: '800px', margin: '0 auto'}}>
+        <header style={{textAlign: 'center', marginBottom: '4rem'}}>
+          <div style={{display: 'inline-block', padding: '0.25rem 0.75rem', backgroundColor: '#eef2ff', color: '#4f46e5', borderRadius: '999px', fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', marginBottom: '1.5rem'}}>
             Knowledge Base
           </div>
-          <h1 className="text-4xl font-black text-slate-900 mb-4 tracking-tight">Intelligence Repository</h1>
-          <p className="text-slate-500 text-lg max-w-2xl mx-auto">
-            Comprehensive documentation for the SAFE wildfire platform.
-          </p>
+          <h1 style={{fontSize: '2.5rem', fontWeight: 900, color: '#0f172a', marginBottom: '1rem'}}>Intelligence Repository</h1>
+          <p style={{color: '#64748b', fontSize: '1.125rem'}}>Comprehensive technical documentation for SAFE.</p>
         </header>
 
-        {/* Simple Search */}
-        <div className="relative mb-12">
-          <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+        <div style={{position: 'relative', marginBottom: '3rem'}}>
+          <Search style={{position: 'absolute', left: '1.5rem', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8'}} size={20} />
           <input
             type="text"
-            placeholder="Search intelligence index..."
+            placeholder="Search the repository..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-white border border-slate-200 rounded-2xl py-5 pl-14 pr-6 focus:outline-none focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-500/50 transition-all text-slate-700 shadow-sm"
+            style={{width: '100%', padding: '1.25rem 1.25rem 1.25rem 4rem', borderRadius: '16px', border: '2px solid #f1f5f9', outline: 'none', fontSize: '1rem', transition: 'border-color 0.2s'}}
+            onFocus={(e) => e.target.style.borderColor = '#4f46e5'}
+            onBlur={(e) => e.target.style.borderColor = '#f1f5f9'}
           />
         </div>
 
-        {/* FAQ List */}
         {isLoading ? (
-          <div className="flex justify-center py-20">
-            <div className="flex flex-col items-center gap-4">
-              <div className="w-10 h-10 rounded-full border-3 border-indigo-100 border-t-indigo-600 animate-spin" />
-              <p className="text-slate-400 text-sm font-medium">Synchronizing Data...</p>
-            </div>
+          <div style={{textAlign: 'center', padding: '4rem 0'}}>
+            <p style={{color: '#64748b'}}>Synchronizing intelligence...</p>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div style={{display: 'flex', flexDirection: 'column', gap: '1rem'}}>
             {filteredFaqs.length > 0 ? (
               filteredFaqs.map((faq, index) => (
-                <div
-                  key={index}
-                  className={`bg-white border rounded-2xl transition-all duration-200 ${
-                    openIndex === index ? 'border-indigo-200 shadow-md' : 'border-slate-100 hover:border-slate-200'
-                  }`}
-                >
+                <div key={index} style={{border: '1px solid #f1f5f9', borderRadius: '16px', overflow: 'hidden', backgroundColor: '#f8fafc'}}>
                   <button
                     onClick={() => setOpenIndex(openIndex === index ? null : index)}
-                    className="w-full flex items-center justify-between p-6 text-left"
+                    style={{width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.5rem', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left'}}
                   >
-                    <span className={`font-bold text-[15px] ${openIndex === index ? 'text-indigo-600' : 'text-slate-700'}`}>
-                      {faq.question}
-                    </span>
-                    <ChevronDown size={18} className={`transition-transform duration-300 ${openIndex === index ? 'rotate-180 text-indigo-600' : 'text-slate-400'}`} />
+                    <span style={{fontWeight: 700, color: '#1e293b'}}>{faq.question}</span>
+                    <ChevronDown size={18} style={{transform: openIndex === index ? 'rotate(180deg)' : 'none', transition: 'transform 0.3s', color: '#94a3b8'}} />
                   </button>
-                  <AnimatePresence>
-                    {openIndex === index && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        className="overflow-hidden"
-                      >
-                        <div className="p-6 pt-0 text-slate-500 text-[14px] leading-relaxed border-t border-slate-50 mt-2">
-                          {faq.answer}
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                  {openIndex === index && (
+                    <div style={{padding: '1.5rem', paddingTop: 0, color: '#475569', fontSize: '0.925rem', lineHeight: 1.6, borderTop: '1px solid #f1f5f9'}}>
+                      {faq.answer}
+                    </div>
+                  )}
                 </div>
               ))
             ) : (
-              <div className="text-center py-20 bg-slate-50 rounded-[2rem] border border-dashed border-slate-200">
-                <Search size={48} className="mx-auto mb-4 text-slate-200" />
-                <p className="text-slate-400 font-bold text-lg">No intelligence found</p>
-                <button onClick={() => setSearchTerm('')} className="mt-4 text-indigo-600 font-bold text-sm hover:underline">Reset Query</button>
+              <div style={{textAlign: 'center', padding: '4rem 0', backgroundColor: '#f8fafc', borderRadius: '24px', border: '2px dashed #e2e8f0'}}>
+                <Search size={48} style={{color: '#e2e8f0', marginBottom: '1rem'}} />
+                <p style={{color: '#94a3b8', fontWeight: 600}}>No intelligence found matching your query.</p>
               </div>
             )}
           </div>
         )}
-
-        {/* Footer */}
-        <div className="mt-24 p-12 bg-white rounded-[2rem] border border-slate-100 text-center shadow-sm">
-          <h4 className="text-xl font-bold text-slate-800 mb-2">Deep Insight Required?</h4>
-          <p className="text-slate-500 mb-8 max-w-md mx-auto text-sm leading-relaxed">
-            Our neural assistant is trained on the full technical stack of the SAFE project. Initiate a session for real-time clarification.
-          </p>
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-50 border border-slate-100 text-slate-400 text-[11px] font-bold uppercase tracking-wider">
-            Neural Link Standby
-          </div>
-        </div>
       </div>
     </div>
   );

@@ -10,7 +10,7 @@ interface Message {
 
 const Chatbot: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([
-    { role: 'bot', content: 'Hello! I am the SAFE Intelligence Assistant. How can I help you today?' }
+    { role: 'bot', content: 'Welcome to the SAFE Intelligence Center. I am your specialized wildfire assistant. How can I assist you with fire safety or analytics today?' }
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -22,6 +22,16 @@ const Chatbot: React.FC = () => {
     { title: "Data Sources", desc: "What real-time data is integrated?" },
     { title: "Simulation Setup", desc: "How do I run a custom fire scenario?" }
   ];
+
+  const localKnowledge: Record<string, string> = {
+    "what is safe": "SAFE (Smart Analytics for Fire Emergencies) is a high-fidelity wildfire intelligence platform that uses the Rothermel model and real-time environmental data to predict fire behavior and risk.",
+    "how does the fire spread model work?": "The fire spread model (Rothermel) calculates the rate of spread and intensity by analyzing fuel types, moisture levels, wind speed, and topography.",
+    "what factors determine wildfire risk?": "Wildfire risk is determined by several critical factors: vegetation dryness (fuel load), current temperature, humidity levels, and wind vectors.",
+    "what real-time data is integrated?": "SAFE integrates live data from weather stations (wind, temp, humidity), satellite vegetation maps, and historical fire records.",
+    "how do i run a custom fire scenario?": "You can initiate a custom simulation in the 'Simulation' tab by setting the ignition point, wind parameters, and fuel moisture levels.",
+    "hi": "Hello! I am the SAFE Intelligence Assistant. You can ask me about wildfire simulations, fire risk factors, or our data sources.",
+    "hello": "Hello! I am the SAFE Intelligence Assistant. You can ask me about wildfire simulations, fire risk factors, or our data sources."
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -39,82 +49,89 @@ const Chatbot: React.FC = () => {
     setMessages(prev => [...prev, { role: 'user', content: textToSend }]);
     setIsLoading(true);
 
+    // 1. Check Local Fallback first for instant response
+    const normalizedInput = textToSend.toLowerCase().trim();
+    for (const [key, val] of Object.entries(localKnowledge)) {
+      if (normalizedInput.includes(key)) {
+        setTimeout(() => {
+          setMessages(prev => [...prev, { role: 'bot', content: val }]);
+          setIsLoading(false);
+        }, 500);
+        return;
+      }
+    }
+
+    // 2. Query Server
     try {
-      const response = await axios.post('http://localhost:3001/api/chat', { message: textToSend });
-      setMessages(prev => [...prev, { role: 'bot', content: response.data.response }]);
+      const response = await axios.post('http://localhost:3002/api/chat', { message: textToSend });
+      if (response.data?.response) {
+        setMessages(prev => [...prev, { role: 'bot', content: response.data.response }]);
+      } else {
+        throw new Error("Invalid response structure");
+      }
     } catch (error: any) {
       console.error("Chat error:", error);
-      setMessages(prev => [...prev, { role: 'bot', content: "The intelligence server is currently experiencing high load. Please try again in a moment." }]);
+      setMessages(prev => [...prev, { role: 'bot', content: "The intelligence server is currently synchronizing with regional data. Please use our suggested queries or try again in a moment." }]);
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="flex h-screen bg-white text-slate-900 font-sans">
-      {/* ChatGPT Style Sidebar */}
-      <aside className="w-72 bg-[#f9f9f9] border-r border-slate-200 flex flex-col p-4">
-        <div className="flex items-center gap-3 px-2 py-4 mb-6">
-          <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold">S</div>
-          <h1 className="font-bold text-slate-800">SAFE Intelligence</h1>
+    <div className="chat-view-container">
+      <aside className="chat-sidebar">
+        <div className="chat-sidebar-logo">
+          <div className="logo-icon">S</div>
+          <h1 style={{fontSize: '1.4rem', fontWeight: 900, color: '#0f172a'}}>SAFE AI</h1>
         </div>
-
-        <button className="flex items-center gap-3 w-full p-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 transition-all text-sm font-medium mb-8">
+        
+        <button className="new-session-btn" onClick={() => setMessages([{ role: 'bot', content: 'Session reset. Intelligence core active. How can I help?' }])}>
           <MessageSquare size={18} />
           New Intelligence Session
         </button>
 
-        <div className="flex-1">
-          <p className="px-3 text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-4">Suggested Topics</p>
-          <div className="space-y-1">
-            {suggestions.map((item, i) => (
-              <button
-                key={i}
-                onClick={() => handleSend(item.desc)}
-                className="w-full text-left p-3 rounded-xl hover:bg-slate-200/50 transition-all group"
-              >
-                <p className="text-[13px] font-semibold text-slate-700 group-hover:text-indigo-600">{item.title}</p>
-                <p className="text-[11px] text-slate-400 line-clamp-1">{item.desc}</p>
-              </button>
-            ))}
-          </div>
+        <div className="suggestions-list">
+          <p style={{fontSize: '0.7rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '1rem'}}>Intelligence Queries</p>
+          {suggestions.map((item, i) => (
+            <button
+              key={i}
+              onClick={() => handleSend(item.desc)}
+              className="suggestion-card"
+            >
+              <h4>{item.title}</h4>
+              <p>{item.desc}</p>
+            </button>
+          ))}
         </div>
 
-        <div className="p-2 text-[11px] text-slate-400 text-center border-t border-slate-200 pt-4">
-          Experimental AI Deployment
+        <div style={{paddingTop: '1.5rem', borderTop: '1px solid #f1f5f9', textAlign: 'center'}}>
+          <span style={{fontSize: '0.65rem', fontWeight: 700, color: '#cbd5e1', letterSpacing: '0.05em'}}>SAFE NEURAL CORE v2.0</span>
         </div>
       </aside>
 
-      {/* Main Chat Interface */}
-      <main className="flex-1 flex flex-col relative overflow-hidden">
-        {/* Messages */}
-        <div className="flex-1 overflow-y-auto custom-scrollbar">
-          <div className="max-w-3xl mx-auto py-20 px-6 space-y-10">
+      <main className="chat-main-area">
+        <div className="chat-history">
+          <div className="chat-history-inner">
             {messages.map((msg, i) => (
-              <div key={i} className="flex gap-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${msg.role === 'bot' ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-100 text-slate-600'
-                  }`}>
-                  {msg.role === 'bot' ? <Bot size={20} /> : <User size={20} />}
+              <div key={i} className="message-block">
+                <div className={`avatar-circle ${msg.role === 'bot' ? 'bot-avatar' : 'user-avatar'}`}>
+                  {msg.role === 'bot' ? <Bot size={22} /> : <User size={22} />}
                 </div>
-                <div className="flex-1 pt-1">
-                  <p className="font-bold text-[13px] mb-2 text-slate-400 uppercase tracking-wider">
-                    {msg.role === 'bot' ? 'SAFE Assistant' : 'You'}
-                  </p>
-                  <div className="text-[15px] leading-relaxed text-slate-700 whitespace-pre-wrap">
-                    {msg.content}
-                  </div>
+                <div className="message-content">
+                  <p className="sender-name">{msg.role === 'bot' ? 'Assistant Intelligence' : 'User Terminal'}</p>
+                  <div className="text-body">{msg.content}</div>
                 </div>
               </div>
             ))}
             {isLoading && (
-              <div className="flex gap-6">
-                <div className="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center shrink-0">
-                  <Bot size={20} />
+              <div className="message-block">
+                <div className="avatar-circle bot-avatar">
+                  <Bot size={22} />
                 </div>
-                <div className="flex gap-1 items-center h-8">
-                  <div className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce"></div>
-                  <div className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce delay-100"></div>
-                  <div className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce delay-200"></div>
+                <div style={{display: 'flex', alignItems: 'center', gap: '4px', height: '40px'}}>
+                  <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-bounce"></div>
+                  <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                  <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-bounce" style={{animationDelay: '0.2s'}}></div>
                 </div>
               </div>
             )}
@@ -122,29 +139,31 @@ const Chatbot: React.FC = () => {
           </div>
         </div>
 
-        {/* Centered Input Bar */}
-        <div className="p-10 bg-gradient-to-t from-white via-white to-transparent">
-          <div className="max-w-3xl mx-auto relative group">
-            <div className="relative flex items-center bg-white border-2 border-slate-100 rounded-3xl p-2 shadow-sm focus-within:border-indigo-500/30 focus-within:shadow-indigo-500/5 transition-all">
+        <div className="input-container">
+          <div className="input-wrapper">
+            <div className="input-field-group">
               <input
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                placeholder="Message SAFE Assistant..."
-                className="flex-1 bg-transparent px-5 py-4 text-slate-700 text-[15px] focus:outline-none placeholder:text-slate-300"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleSend();
+                  }
+                }}
+                placeholder="Query SAFE Intelligence..."
+                className="chat-input"
               />
               <button
                 onClick={() => handleSend()}
                 disabled={isLoading}
-                className="bg-indigo-600 hover:bg-indigo-700 disabled:opacity-20 text-white p-3.5 rounded-2xl transition-all shadow-lg active:scale-95"
+                className="send-action-btn"
               >
                 <Send size={20} />
               </button>
             </div>
-            <p className="text-center mt-4 text-[11px] text-slate-300 font-medium">
-              SAFE AI can make mistakes. Verify important information.
-            </p>
+            <p className="disclaimer">Powered by SAFE Neural Network Architecture. Verify important data.</p>
           </div>
         </div>
       </main>
