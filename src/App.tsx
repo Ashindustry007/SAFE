@@ -9,15 +9,17 @@ import {
   Thermometer,
   CloudRain,
   Navigation,
-  Zap
+  Zap,
+  CircleHelp
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { fetchWildfireIntel } from './services/wildfireApi';
 import type { WildfireData } from './services/wildfireApi';
 import { SimulationView3D as SimulationView } from './components/SimulationView3D';
+import { FAQProtocols } from './components/FAQProtocols';
 import './App.css';
 
-type ViewMode = 'MAP' | 'SIMULATION';
+type ViewMode = 'MAP' | 'SIMULATION' | 'FAQ';
 
 const App: React.FC = () => {
   const [viewMode, setViewMode] = useState<ViewMode>('MAP');
@@ -106,6 +108,23 @@ const App: React.FC = () => {
             }}
           >
             <Zap size={22} />
+          </button>
+          <button 
+            onClick={() => setViewMode('FAQ')}
+            style={{ 
+              background: 'none', 
+              border: 'none', 
+              color: viewMode === 'FAQ' ? 'var(--accent-amber)' : 'inherit', 
+              cursor: 'pointer', 
+              transition: 'all 0.2s',
+              padding: '12px',
+              borderRadius: '8px',
+              backgroundColor: viewMode === 'FAQ' ? 'rgba(245, 158, 11, 0.1)' : 'transparent'
+            }}
+            aria-label="FAQ protocols"
+            title="FAQ protocols"
+          >
+            <CircleHelp size={22} />
           </button>
         </nav>
       </aside>
@@ -228,6 +247,18 @@ const App: React.FC = () => {
         >
           <SimulationView onBack={() => setViewMode('MAP')} />
         </div>
+
+        {/* FAQ & Protocols View */}
+        <div 
+          style={{ 
+            display: viewMode === 'FAQ' ? 'block' : 'none', 
+            width: '100%', 
+            height: '100%', 
+            overflow: 'hidden'
+          }}
+        >
+          <FAQProtocols />
+        </div>
       </main>
     </div>
   );
@@ -266,4 +297,3 @@ const lightColorfulMapStyle = [
 ];
 
 export default App;
-
