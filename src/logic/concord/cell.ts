@@ -1,6 +1,17 @@
+/**
+ * SAFE Concord Engine - Cell Logic
+ * 
+ * Defines the state and behavioral logic for individual grid cells in the 
+ * wildfire simulation. Manages ignition times, spread rates, and 
+ * environmental interactions (drought, vegetation, suppression).
+ */
+
 import { Zone, moistureLookups } from "./zone";
 import { Vegetation, DroughtLevel } from "./types";
 
+/**
+ * Fire lifecycle states
+ */
 export const FireState = {
   Unburnt: 0,
   Burning: 1,
@@ -8,7 +19,10 @@ export const FireState = {
 } as const;
 export type FireState = typeof FireState[keyof typeof FireState];
 
-// See: https://www.pivotaltracker.com/story/show/170344417
+/**
+ * Burn Intensity Categorization
+ * Maps fire intensity to risk levels based on research standards.
+ */
 export const BurnIndex = {
   Low: 0,
   Medium: 1,
@@ -16,6 +30,9 @@ export const BurnIndex = {
 } as const;
 export type BurnIndex = typeof BurnIndex[keyof typeof BurnIndex];
 
+/**
+ * Configuration options for initializing a Cell.
+ */
 export interface CellOptions {
   x: number;
   y: number;
@@ -34,8 +51,8 @@ const FIRE_LINE_DEPTH = 2000;
 const MAX_BURN_TIME = 500;
 
 export class Cell {
-  public x!: number; // grid X coord
-  public y!: number; // grid Y coord
+  public x!: number; // Grid X coordinate
+  public y!: number; // Grid Y coordinate
   public zone!: Zone;
   public zoneIdx!: number;
   public baseElevation = 0;
@@ -50,6 +67,10 @@ export class Cell {
   public isFireLineUnderConstruction = false;
   public helitackDropCount = 0;
 
+  /**
+   * Constructs a new simulation cell.
+   * @param props - Initialization properties for the cell.
+   */
   constructor(props: CellOptions) {
     if (props.x !== undefined) this.x = props.x;
     if (props.y !== undefined) this.y = props.y;
@@ -68,6 +89,10 @@ export class Cell {
     return this.zone.vegetation;
   }
 
+  /**
+   * Adjusted Elevation
+   * Returns base elevation or suppressed elevation if a fire line is present.
+   */
   public get elevation() {
     if (this.isFireLine) {
       return this.baseElevation - FIRE_LINE_DEPTH;
@@ -75,10 +100,18 @@ export class Cell {
     return this.baseElevation;
   }
 
+  /**
+   * Non-burnable Check
+   * Returns true if the cell contains water or is a protected island.
+   */
   public get isNonburnable() {
     return this.isRiver || this.isUnburntIsland;
   }
 
+  /**
+   * Moisture Content Logic
+   * Calculates current fuel moisture based on drought levels and vegetation type.
+   */
   public get moistureContent() {
     if (this.isNonburnable) {
       return Infinity;
@@ -86,6 +119,10 @@ export class Cell {
     return moistureLookups[this.droughtLevel][this.vegetation];
   }
 
+  /**
+   * Effective Drought Level
+   * Accounts for Helitack water drops reducing the regional drought severity.
+   */
   public get droughtLevel() {
     if (this.helitackDropCount > 0) {
       const newDroughtLevel = this.zone.droughtLevel - this.helitackDropCount;
@@ -102,8 +139,12 @@ export class Cell {
     return this.burnIndex === BurnIndex.Low && this.vegetation === Vegetation.Forest;
   }
 
+  /**
+   * Burn Index Calculation
+   * Categorizes fire intensity (Low, Medium, High) based on spread rate 
+   * and specific fuel model thresholds.
+   */
   public get burnIndex() {
-    // Values based on: https://www.pivotaltracker.com/story/show/170344417/comments/209774367
     if (this.vegetation === Vegetation.Grass) {
       if (this.spreadRate < 45) {
         return BurnIndex.Low;
@@ -125,7 +166,7 @@ export class Cell {
       }
       return BurnIndex.Medium;
     }
-    // this.vegetation === Vegetation.ForestWithSuppression
+    // ForestWithSuppression thresholds
     if (this.spreadRate < 12) {
       return BurnIndex.Low;
     }
@@ -135,11 +176,18 @@ export class Cell {
     return BurnIndex.High;
   }
 
+  /**
+   * Burnable Check for Burn Index
+   * Determines if a cell can ignite considering barriers (Fire Lines).
+   */
   public isBurnableForBI(burnIndex: BurnIndex) {
     // Fire lines will burn when burn index is high.
     return !this.isNonburnable && (!this.isFireLine || burnIndex === BurnIndex.High);
   }
 
+  /**
+   * Resets the cell to its initial unburnt state.
+   */
   public reset() {
     this.ignitionTime = Infinity;
     this.spreadRate = 0;

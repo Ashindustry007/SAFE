@@ -18,7 +18,7 @@ $$R = \frac{I_R \cdot \phi_w \cdot \phi_s}{\rho_b \cdot \epsilon \cdot Q_{ig}}$$
 
 ## 🌿 Physical Fuel Models (`FuelConstants`)
 
-SAFE utilizes research-grade constants for different vegetation profiles:
+The Concord Engine utilizes research-grade constants for different vegetation profiles:
 
 | Property | Grassland | Shrubland | Forest |
 |----------|-----------|-----------|--------|
@@ -37,9 +37,9 @@ const moistureDamping = 1 - (2.59 * r) + (5.11 * r^2) - (3.52 * r^3); // where r
 
 ### 2. Vector-Based Spread
 SAFE implements **Vector Resultant Spread**, combining environmental forces:
-- **Wind Vector**: Oriented based on global weather data.
+- **Wind Vector**: Oriented based on global weather data and topographic alignment.
 - **Upslope Vector**: Derived from the local elevation gradient.
-- **Effective Wind Speed**: A recalculated value representing the combined "push" of wind and slope on the fire front.
+- **Effective Wind Speed**: An abstract value representing the combined "push" of wind and slope on the fire front.
 
 ### 3. Burn Index (BI) & Suppression
 The model dynamically adjusts behavior based on active suppression:
@@ -47,10 +47,11 @@ The model dynamically adjusts behavior based on active suppression:
 - **Fire Lines**: Create zero-fuel barriers that stop low-to-medium intensity spread.
 - **Burn Index**: Categorizes intensity (Low/Medium/High) to inform evacuation protocols.
 
-## 💻 Implementation Stack
-- **Engine Core**: `src/logic/wildfireEngineAdapted.ts`
-- **Simulation Loop**: Time-stepped cellular automata.
+## 💻 Concord Implementation Stack
+- **Engine Core**: `src/logic/concord/engine/get-fire-spread-rate.ts`
+- **Logic Controller**: `src/logic/concord/engine/fire-engine.ts`
+- **Grid State**: `src/logic/concord/cell.ts`
 - **Visuals**: High-performance 3D rendering in `Terrain3D.tsx`.
 
 ---
-*SAFE Simulation Technical Documentation - Rothermel Implementation v2.1*
+*SAFE Simulation Technical Documentation - Concord Engine (Rothermel v3.0)*

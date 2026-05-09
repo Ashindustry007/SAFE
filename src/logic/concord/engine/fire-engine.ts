@@ -1,11 +1,23 @@
+/**
+ * SAFE Concord Engine - Fire Engine Core
+ * 
+ * The primary simulation controller for the Concord architecture. 
+ * Manages the time-stepping logic, fire propagation across the grid, 
+ * and environmental state transitions.
+ */
+
 import { Vector2 } from "three";
 import { BurnIndex, Cell, FireState } from "../cell";
 import { getFireSpreadRate } from "./get-fire-spread-rate";
 import type { IWindProps } from "../types";
 import { dist, withinDist, getGridIndexForLocation, forEachPointBetween, directNeighbours, } from "../utils/grid-utils";
 
-const modelDay = 1440; // minutes
+const modelDay = 1440; // Total minutes in a model day
 
+/**
+ * Probability of a low-intensity fire extinguishing naturally over time.
+ * Key represents the day of the simulation.
+ */
 const endOfLowIntensityFireProbability: {[key: number]: number} = {
   0: 0.0,
   1: 0.6,
@@ -15,6 +27,11 @@ const endOfLowIntensityFireProbability: {[key: number]: number} = {
   5: 1.0
 };
 
+/**
+ * nonburnableCellBetween
+ * Uses Bresenham's algorithm to check if any non-burnable cells (rivers, fire lines) 
+ * exist between two points on the grid.
+ */
 export const nonburnableCellBetween = (
   cells: Cell[], width: number, x0: number, y0: number, x1: number, y1: number, burnIndex: BurnIndex
 ) => {
@@ -29,9 +46,10 @@ export const nonburnableCellBetween = (
 };
 
 /**
+ * getGridCellNeighbors
  * Returns an array of indices of all cells neighboring `i`.
- * Each cell within `neighborsDist` is considered to be a neighbour if there's no river or fire line between
- * this cell and cell `i`.
+ * Each cell within `neighborsDist` is considered to be a neighbour if there's no 
+ * river or fire line between this cell and cell `i`.
  */
 export const getGridCellNeighbors = (
   cells: Cell[], i: number, width: number, height: number, neighborsDist: number, burnIndex: BurnIndex
@@ -41,10 +59,11 @@ export const getGridCellNeighbors = (
   const processed: {[key: number]: boolean}  = {};
   const x0 = i % width;
   const y0 = Math.floor(i / width);
-  // Keep this flag for performance reasons. If there's no nonburnable ceels in current grid area, it doesn't
-  // make sense to run Bresenham's algorithm for every cell (nonburnableCellBetween).
+  
+  // Performance optimization: only run line-of-sight check if nonburnable cells exist in the area.
   let anyNonburnableCells = false;
-  // Start BFS.
+  
+  // Breadth-First Search (BFS) to find reachable neighbors
   queue.push(i);
   processed[i] = true;
   while (queue.length > 0) {
@@ -79,9 +98,11 @@ export interface IFireEngineConfig {
   fireSurvivalProbability: number;
 }
 
-// Lightweight helper that is responsible only for math calculations. It's not bound to MobX or any UI state
-// (it's role of the Simulation model). Config properties are explicitly listed, so it's clear
-// which config options are responsible for simulation progress.
+/**
+ * FireEngine Class
+ * Pure math/logic handler for the wildfire simulation. 
+ * Independent of UI state or MobX observables.
+ */
 export class FireEngine {
   public cells: Cell[];
   public wind: IWindProps;
@@ -101,6 +122,9 @@ export class FireEngine {
     this._seed = val;
   }
 
+  /**
+   * Deterministic Pseudo-random number generator.
+   */
   private random() {
     const x = Math.sin(this._seed++) * 10000;
     return x - Math.floor(x);
@@ -116,23 +140,29 @@ export class FireEngine {
     this.neighborsDist = config.neighborsDist;
     this.fireSurvivalProbability = config.fireSurvivalProbability;
 
-    // Use sparks to start the simulation.
+    // Initialize simulation with ignition sparks.
     sparks.forEach(spark => {
       const sparkCell = this.cellAt(spark.x, spark.y);
       sparkCell.ignitionTime = 0;
       if (sparkCell.isUnburntIsland) {
-        // If spark is placed inside unburnt island, remove this island as otherwise the fire won't pick up.
+        // If spark is placed inside unburnt island, dissolve the island to allow spread.
         this.removeUnburntIsland(sparkCell);
       }
     });
   }
 
+  /**
+   * Translates world coordinates (feet) to grid cell indices.
+   */
   public cellAt(x: number, y: number) {
     const gridX = Math.floor(x / this.cellSize);
     const gridY = Math.floor(y / this.cellSize);
     return this.cells[getGridIndexForLocation(gridX, gridY, this.gridWidth)];
   }
 
+  /**
+   * BFS-based removal of contiguous "Unburnt Island" protected areas.
+   */
   public removeUnburntIsland(startingCell: Cell) {
     const queue: Cell[] = [];
     startingCell.isUnburntIsland = false;
@@ -151,8 +181,15 @@ export class FireEngine {
     }
   }
 
+  /**
+   * Primary Simulation Step Function
+   * Advances the fire simulation state by checking ignition thresholds 
+   * and spreading combustion to reachable neighbors.
+   * 
+   * @param time - Current simulation time in minutes.
+   */
   public updateFire(time: number) {
-    // Each time a day changes check if the low intensity fire shouldn't go out on itself.
+    // Daily natural extinction probability check
     const newDay = Math.floor(time / modelDay);
     if (newDay !== this.day) {
       this.day = newDay;
@@ -162,59 +199,63 @@ export class FireEngine {
     }
 
     const numCells = this.cells.length;
-    // Run through all cells. Check the unburnt neighbors of currently-burning cells. If the current time
-    // is greater than the ignition time of the cell and the delta time for the neighbor, update
-    // the neighbor's ignition time.
-    // At the same time, we update the unburnt/burning/burnt states of the cells.
     const newIgnitionData: number[] = [];
     const newFireStateData: FireState[] = [];
-    // Start with assumption that fire stopped.
+    
+    // Assume fire stopped unless proven otherwise
     this.fireDidStop = true;
 
     for (let i = 0; i < numCells; i++) {
       const cell = this.cells[i];
       if (cell.isBurningOrWillBurn) {
-        this.fireDidStop = false; // fire still going on
+        this.fireDidStop = false; 
       }
       const ignitionTime = cell.ignitionTime;
+      
+      // Handle Burning -> Burnt transition
       if (cell.fireState === FireState.Burning && time - ignitionTime > cell.burnTime) {
         newFireStateData[i] = FireState.Burnt;
         if (cell.canSurviveFire && this.random() < this.fireSurvivalProbability) {
           cell.isFireSurvivor = true;
         }
-      } else if (cell.fireState === FireState.Unburnt && time > ignitionTime ) {
-        // Sets any unburnt cells to burning if we are passed their ignition time.
-        // Although during a simulation all cells will have their state sent to BURNING through the process
-        // above, this not only allows us to pre-set ignition times for testing, but will also allow us to
-        // run forward or backward through a simulation.
+      } 
+      // Handle Unburnt -> Burning transition (Ignition)
+      else if (cell.fireState === FireState.Unburnt && time > ignitionTime ) {
         newFireStateData[i] = FireState.Burning;
+        
+        // Track burned statistics by zone
         if (!this.burnedCellsInZone[cell.zoneIdx]) {
           this.burnedCellsInZone[cell.zoneIdx] = 1;
         } else {
           this.burnedCellsInZone[cell.zoneIdx] += 1;
         }
-        // Fire should spread if endOfLowIntensityFire flag is false or burn index is high enough.
+
+        // Logic for fire propagation to neighbors
         const fireShouldSpread = !this.endOfLowIntensityFire || cell.burnIndex !== BurnIndex.Low;
         if (fireShouldSpread) {
-          // Fire lines and other fire control methods will work only if burn index is low or medium.
-          // If it's high, fire cannot be controlled.
           const neighbors = getGridCellNeighbors(this.cells, i, this.gridWidth, this.gridHeight, this.neighborsDist, cell.burnIndex);
           neighbors.forEach(n => {
             const neighCell = this.cells[n];
             const distInFt = dist(cell.x, cell.y, neighCell.x, neighCell.y) * this.cellSize;
+            
+            // Calculate Rothermel-based spread rate
             const spreadRate = getFireSpreadRate(cell, neighCell, this.wind, this.cellSize);
             const spreadRateIncDistance = spreadRate / distInFt;
             const ignitionDelta = 1 / spreadRateIncDistance;
+            
             if (neighCell.fireState === FireState.Unburnt) {
+              // Update ignition time if this path is faster than existing ignition sources
               newIgnitionData[n] = Math.min(
                 ignitionTime + ignitionDelta, newIgnitionData[n] || neighCell.ignitionTime
               );
-              // Make cell burn time proportional to fire spread rate.
+              
+              // Synchronize burn time with spread velocity
               const newBurnTime = (newIgnitionData[n] - ignitionTime) + this.minCellBurnTime;
               if (newBurnTime < neighCell.burnTime) {
                 neighCell.burnTime = newBurnTime;
               }
-              // Save max spread rate.
+              
+              // Record peak spread rate for Burn Index calculations
               if (spreadRate > neighCell.spreadRate) {
                 neighCell.spreadRate = spreadRate;
               }
@@ -224,6 +265,7 @@ export class FireEngine {
       }
     }
 
+    // Atomic update of all cell states
     for (let i = 0; i < numCells; i++) {
       if (newFireStateData[i] !== undefined) {
         this.cells[i].fireState = newFireStateData[i];

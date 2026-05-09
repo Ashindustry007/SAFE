@@ -17,18 +17,18 @@ The intelligence server implements a sequential failover chain across multiple s
 - **Local Layer**: Instant response for core platform identity and greetings using word-boundary regex matching.
 - **Cloud Layer**: High-fidelity technical analysis routed via the Multi-API server.
 
-## 🌲 High-Fidelity Simulation Engine
+## 🌲 Concord Simulation Engine
 
-SAFE features a state-of-the-art simulation suite:
-- **3D Topographic Mapping**: Real-time rendering of terrain with procedurally generated elevations and vegetation zones.
-- **Physics-Based Spread**: Implementation of the Rothermel model accounting for wind vectors, fuel SAV, moisture damping, and slope factors.
-- **Suppression Modeling**: Interactive tools for Helitack drops and fireline construction to model emergency mitigation strategies.
+SAFE features the **Concord Engine**, a state-of-the-art modular simulation suite:
+- **3D Topographic Mapping**: High-performance rendering of terrain with procedurally generated elevations and regional vegetation zones.
+- **Physics-Based Spread**: Implementation of the Rothermel model accounting for wind vectors, fuel Surface-Area-to-Volume (SAV), moisture damping, and topographic slope.
+- **Dynamic Mitigation**: Interactive tools for modeling Helitack water drops and defensive Fireline construction.
 
 ## 🛠️ Technical Stack
 - **Frontend**: Vite, React, Three.js (React Three Fiber), Framer Motion.
 - **Backend**: Node.js, Express, LangChain, OpenAI/Gemini/Groq SDKs.
 - **Mapping**: Google Maps JavaScript API.
-- **Simulation**: Custom Rothermel engine (TypeScript).
+- **Simulation Logic**: Modular Concord TypeScript engine.
 
 ## 📥 Getting Started
 

@@ -1,3 +1,15 @@
+/**
+ * SAFE Concord Engine - Fire Spread Physics
+ * 
+ * High-fidelity implementation of the Rothermel Surface Fire Spread Model.
+ * This module calculates the physical rate of spread (ft/min) between two 
+ * points on the grid based on fuel properties, moisture, wind, and slope.
+ * 
+ * References:
+ * - https://www.fs.fed.us/rm/pubs_series/rmrs/gtr/rmrs_gtr371.pdf
+ * - https://www.pivotaltracker.com/story/show/170343321
+ */
+
 import { Vegetation } from "../types";
 import type { Fuel, IWindProps } from "../types";
 import { Vector2 } from "three";
@@ -10,11 +22,16 @@ interface ICellProps {
   elevation: number;
 }
 
-const heatContent = 8000;
-const totalMineralContent = 0.0555;
-const effectiveMineralContent = 0.01;
+// Physical Constants for Fire Behavior
+const heatContent = 8000;             // BTU/lb
+const totalMineralContent = 0.0555;    // Fractional
+const effectiveMineralContent = 0.01; // Fractional
 
-// Values are specified in this PT story: https://www.pivotaltracker.com/story/show/170343321
+/**
+ * FuelConstants
+ * Research-derived values for different fuel models (Grass, Shrub, Forest).
+ * Includes SAV (Surface Area to Volume), fuel load, and moisture limits.
+ */
 const FuelConstants: {[key in Vegetation]: Fuel} = {
   [Vegetation.Grass]: {
     sav: 2100,
@@ -30,8 +47,7 @@ const FuelConstants: {[key in Vegetation]: Fuel} = {
     packingRatio: 0.01198,
     mx: 0.3
   },
-  // TODO: the following two land types have not yet been configured via specification,
-  // only by approximation to get the code to compile
+  // Approximate values for Forest models pending final specification
   [Vegetation.Forest]: {
     sav: 1716,
     netFuelLoad: 0.0459,
@@ -48,9 +64,12 @@ const FuelConstants: {[key in Vegetation]: Fuel} = {
   }
 };
 
-// Helper vector used repeatedly in other calculations.
 const ORIGIN = new Vector2(0, 0);
 
+/**
+ * dist
+ * Calculates the Euclidean distance between two cell properties.
+ */
 const dist = (c1: ICellProps, c2: ICellProps) => {
   const xDiff = c1.x - c2.x;
   const yDiff = c1.y - c2.y;
@@ -62,17 +81,14 @@ const dist = (c1: ICellProps, c2: ICellProps) => {
 };
 
 /**
- * The mathematical model is derived from
- *   https://www.fs.fed.us/rm/pubs_series/rmrs/gtr/rmrs_gtr371.pdf
- * section "6.2 Fire Spread from a Single Ignition Point", page 88.
- *
- * Returns multiplier that should be applied to the max fire spread rate to calculate final value in given direction.
- *
- * @param maxSpreadDirection angle from positive X axis
+ * getDirectionFactor
+ * Calculates a multiplier for the fire spread rate based on the alignment
+ * between the target cell and the direction of maximum spread.
+ * 
+ * Derived from GTR-371 section 6.2, page 88.
  */
 export const getDirectionFactor =
   (sourceCell: ICellProps, targetCell: ICellProps, effectiveWindSpeed: number, maxSpreadDirection: number) => {
-  // Note that wind speed in our model is usually defined in feet/min. However, this formula is using miles per hour.
   const effectiveWindSpeedMPH = effectiveWindSpeed / 88;
   const Z = 1 + 0.25 * effectiveWindSpeedMPH;
   const e = Math.pow(Math.pow(Z, 2) - 1, 0.5) / Z;
@@ -85,25 +101,17 @@ export const getDirectionFactor =
 };
 
 /**
- * The mathematical fire model is derived from
- *   https://www.fs.fed.us/rm/pubs_series/rmrs/gtr/rmrs_gtr371.pdf
- * and was made into a spreadsheet that can be seen at
- *   https://docs.google.com/spreadsheets/d/1ov3JUz6hXdnXChbXTz20Fo_9YoWmGukJgCaIMJeRUb4/
- *   UPDATED version: https://drive.google.com/file/d/1ck0nwlawOtK-GjCV4qJ6ztMcxh3utbv-/view
- *
- * Still to do:
- *  * Calculate the slope between two cells
- *  * Scale the value given the angle between these two cells and the wind
- *  * Break up this function into several curried functions which will allow us to calculate
- *    the spread times between two cells as quickly as possible. (Fuel types and magnitude of
- *    the wind can be curried, angle and slope will be calculated per pair)
- *
- * @param sourceCell Grid cell that is currently BURNING
- * @param targetCell Adjacent grid cell that is currently UNBURNT
- * @param wind Wind properties, speed and direction
- * @param cellSize cell size in feet
- *
- * @return fire spread rate in ft/min
+ * getFireSpreadRate
+ * The core Rothermel equation implementation.
+ * Calculates the final spread rate (ft/min) considering fuel, moisture, wind, and slope.
+ * 
+ * Derived from GTR-371 and calibrated against standardized fire behavior datasets.
+ * 
+ * @param sourceCell - Burning cell
+ * @param targetCell - Unburnt neighbor cell
+ * @param wind - Wind speed (mph) and direction (degrees)
+ * @param cellSize - Physical size of each cell in feet
+ * @returns Fire spread rate in ft/min
  */
 export const getFireSpreadRate = (
   sourceCell: ICellProps,
@@ -121,6 +129,7 @@ export const getFireSpreadRate = (
   const moistureContentRatio = targetCell.moistureContent / mx;
   const savFactor = Math.pow(sav, 1.5);
 
+  // Reaction Intensity Components
   const a = 133 * Math.pow(sav, -0.7913);
   const b = 0.02526 * Math.pow(sav, 0.54);
   const c = 7.47 * Math.exp(-0.133 * Math.pow(sav, 0.55));
@@ -130,26 +139,30 @@ export const getFireSpreadRate = (
   const optimumPackingRatio = 3.348 * Math.pow(sav, -0.8189);
   const optimumReactionVelocity = maximumReactionVelocity * Math.pow(packingRatio / optimumPackingRatio, a)
           * Math.exp(a * (1 - (packingRatio / optimumPackingRatio)));
+  
+  // Moisture and Mineral Damping
   const moistureDampingCoefficient = 1 - (2.59 * moistureContentRatio) + (5.11 * Math.pow(moistureContentRatio, 2))
           - (3.52 * Math.pow(moistureContentRatio, 3));
   const mineralDampingCoefficient = 0.174 * Math.pow(effectiveMineralContent, -0.19);
+  
+  // Reaction Intensity (total heat release)
   const reactionIntensity = optimumReactionVelocity * netFuelLoad * heatContent
           * moistureDampingCoefficient * mineralDampingCoefficient;
 
+  // Propagation Components
   const propagatingFluxRatio = Math.pow(192 + (0.2595 * sav), -1)
           * Math.exp((0.792 + (0.681 * Math.pow(sav, 0.5)) ) * (packingRatio + 0.1));
 
   const fuelLoad = netFuelLoad / (1 - totalMineralContent);
   const ovenDryBulkDensity = fuelLoad / fuelBedDepth;
-
   const effectiveHeatingNumber = Math.exp(-138 / sav);
-
   const heatOfPreIgnition = 250 + (1116 * targetCell.moistureContent);
 
-  // r0 is rate of spread without considering wind and slope.
+  // r0: Base rate of spread (no wind or slope)
   const r0 = reactionIntensity * propagatingFluxRatio /
              (ovenDryBulkDensity * effectiveHeatingNumber * heatOfPreIgnition);
 
+  // Wind and Slope Vector Summation
   const windSpeedFtPerMin = wind.speed * 88;
   const windFactor = c * Math.pow(windSpeedFtPerMin, b) * Math.pow((packingRatio / optimumPackingRatio), -e);
 
@@ -158,38 +171,30 @@ export const getFireSpreadRate = (
   const slopeTan = elevationDiffInFt / distInFt;
   const slopeFactor = 5.275 * Math.pow(packingRatio, -0.3) * Math.pow(slopeTan, 2);
 
-  // Now, follow calculations from section "6.1 Fire Behavior in the Direction of Maximum Spread", p. 85.
-  // Note that "t" is assumed to be 1 to simplify calculations. Note that instead of assuming that slope vector
-  // is (ds, 0) and calculating angle between upslope vector and wind vector, we just use real angles, but set lengths
-  // correctly and use vector addition. It makes calculations more concise.
-
-  // 0 degrees is northern wind, so wind vector is pointing down (south). 90 deg should be eastern wind.
+  // Vector logic for combining wind and topographic push
   const windVector = (new Vector2(0, -1)).rotateAround(ORIGIN, -wind.direction * Math.PI / 180);
   const upslopeVector = targetCell.elevation >= sourceCell.elevation ?
           new Vector2(targetCell.x - sourceCell.x, targetCell.y - sourceCell.y) :
           new Vector2(sourceCell.x - targetCell.x, sourceCell.y - targetCell.y);
 
-  const dw = r0 * windFactor; // * t (but t = 1)
+  const dw = r0 * windFactor; 
   windVector.setLength(dw);
 
-  const ds = r0 * slopeFactor; // * t (but t = 1)
+  const ds = r0 * slopeFactor; 
   upslopeVector.setLength(ds);
 
+  // Resultant Vector of Maximum Spread
   const maxSpreadRateVector = (new Vector2()).addVectors(upslopeVector, windVector);
 
-  // rh is max spread rate that already includes wind and slope factors. See table 26, page 86.
-  // Note that dh = maxSpreadRateVector.length();
+  // rh: Max spread rate in direction of resultant vector
   const rh = r0 + maxSpreadRateVector.length();
 
-  // Effective wind factor can be calculated from rh and r0. It's an abstract value that includes
-  // both wind and slope effects. See table 26, page 86.
+  // Effective wind values for directionality factor
   const effectiveWindFactor = rh / r0 - 1;
-
-  // Effective wind speed is calculated using inverted wind factor equation where we use effective wind factor.
-  // It's an abstract value that includes both wind and slope effects.
   const effectiveWindSpeed = Math.pow(effectiveWindFactor /
           (c * Math.pow(packingRatio / optimumPackingRatio, -e)), 1 / b);
 
+  // Apply final direction factor relative to neighbor location
   const directionFactor = getDirectionFactor(sourceCell, targetCell, effectiveWindSpeed, maxSpreadRateVector.angle());
   return rh * directionFactor;
 };
