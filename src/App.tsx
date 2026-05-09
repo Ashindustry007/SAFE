@@ -10,15 +10,15 @@ import {
   CloudRain,
   Navigation,
   Zap,
-  HelpCircle,
-  MessageSquare
+  CircleHelp,
+  MessageSquare,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { fetchWildfireIntel } from './services/wildfireApi';
 import type { WildfireData } from './services/wildfireApi';
 import { SimulationView3D as SimulationView } from './components/SimulationView3D';
 import Chatbot from './components/Chatbot';
-import FAQPage from './components/FAQPage';
+import { FAQProtocols } from './components/FAQProtocols';
 import './App.css';
 
 type ViewMode = 'MAP' | 'SIMULATION' | 'FAQ' | 'CHAT';
@@ -123,8 +123,10 @@ const App: React.FC = () => {
               borderRadius: '8px',
               backgroundColor: viewMode === 'FAQ' ? 'rgba(245, 158, 11, 0.1)' : 'transparent'
             }}
+            aria-label="FAQ protocols"
+            title="FAQ protocols"
           >
-            <HelpCircle size={22} />
+            <CircleHelp size={22} />
           </button>
           <button 
             onClick={() => setViewMode('CHAT')}
@@ -262,17 +264,19 @@ const App: React.FC = () => {
         >
           <SimulationView onBack={() => setViewMode('MAP')} />
         </div>
-        {/* FAQ View */}
+
+        {/* FAQ & Protocols View */}
         <div 
           style={{ 
             display: viewMode === 'FAQ' ? 'block' : 'none', 
             width: '100%', 
-            height: '100%',
-            overflowY: 'auto'
+            height: '100%', 
+            overflow: 'hidden'
           }}
         >
-          <FAQPage />
+          <FAQProtocols />
         </div>
+
         {/* Chat View */}
         <div 
           style={{ 
@@ -321,4 +325,3 @@ const lightColorfulMapStyle = [
 ];
 
 export default App;
-
