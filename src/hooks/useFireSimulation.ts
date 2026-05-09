@@ -90,6 +90,8 @@ const getCanvasOverlayClass = () => {
     private latOffset: number;
     private lngOffset: number;
 
+    private grid: Map<string, FireCell> | null = null;
+
     constructor(startLat: number, startLng: number, latOffset: number, lngOffset: number) {
       super();
       this.startLat = startLat;
@@ -99,10 +101,9 @@ const getCanvasOverlayClass = () => {
       
       this.canvas = document.createElement('canvas');
       this.canvas.style.position = 'absolute';
-      // The CSS filter applies a blur to blend pixels and contrast to sharpen the blurred edge, making an organic fluid shape
       this.canvas.style.filter = 'blur(8px) contrast(1.5)';
       this.canvas.style.opacity = '0.8';
-      this.canvas.style.pointerEvents = 'none'; // let clicks pass through
+      this.canvas.style.pointerEvents = 'none';
       this.context = this.canvas.getContext('2d');
     }
 
@@ -114,7 +115,58 @@ const getCanvasOverlayClass = () => {
     }
 
     draw() {
-      // Positioning is handled entirely in updateGrid to ensure sync with frame
+      const projection = this.getProjection();
+      if (!this.context || !projection || !this.grid || this.grid.size === 0) return;
+
+      let minX = Infinity, maxX = -Infinity;
+      let minY = Infinity, maxY = -Infinity;
+
+      for (const cell of this.grid.values()) {
+        if (cell.x < minX) minX = cell.x;
+        if (cell.x > maxX) maxX = cell.x;
+        if (cell.y < minY) minY = cell.y;
+        if (cell.y > maxY) maxY = cell.y;
+      }
+
+      const swLat = this.startLat - (maxY + 0.5) * this.latOffset;
+      const swLng = this.startLng + (minX - 0.5) * this.lngOffset;
+      const neLat = this.startLat - (minY - 0.5) * this.latOffset;
+      const neLng = this.startLng + (maxX + 0.5) * this.lngOffset;
+
+      const sw = projection.fromLatLngToDivPixel(new google.maps.LatLng(swLat, swLng));
+      const ne = projection.fromLatLngToDivPixel(new google.maps.LatLng(neLat, neLng));
+
+      if (!sw || !ne) return;
+
+      const w = Math.ceil(ne.x - sw.x);
+      const h = Math.ceil(sw.y - ne.y);
+      
+      this.canvas.style.left = sw.x + 'px';
+      this.canvas.style.top = ne.y + 'px';
+      this.canvas.style.width = w + 'px';
+      this.canvas.style.height = h + 'px';
+      
+      if (this.canvas.width !== w || this.canvas.height !== h) {
+        this.canvas.width = w;
+        this.canvas.height = h;
+      }
+
+      this.context.clearRect(0, 0, w, h);
+      
+      const gridW = maxX - minX + 1;
+      const gridH = maxY - minY + 1;
+      const cellW = w / gridW;
+      const cellH = h / gridH;
+
+      for (const cell of this.grid.values()) {
+        const color = getColorForState(cell);
+        if (color !== 'transparent') {
+          this.context.fillStyle = color;
+          const drawX = cell.x - minX;
+          const drawY = cell.y - minY;
+          this.context.fillRect(drawX * cellW, drawY * cellH, cellW + 1, cellH + 1);
+        }
+      }
     }
 
     onRemove() {
@@ -124,61 +176,8 @@ const getCanvasOverlayClass = () => {
     }
 
     updateGrid(grid: Map<string, FireCell>) {
-      const projection = this.getProjection();
-      if (!this.context || !projection || grid.size === 0) return;
-
-      // 1. Find min/max bounds of all cells to position canvas correctly
-      let minX = Infinity, maxX = -Infinity;
-      let minY = Infinity, maxY = -Infinity;
-
-      for (const cell of grid.values()) {
-        if (cell.x < minX) minX = cell.x;
-        if (cell.x > maxX) maxX = cell.x;
-        if (cell.y < minY) minY = cell.y;
-        if (cell.y > maxY) maxY = cell.y;
-      }
-
-      const swLat = this.startLat - maxY * this.latOffset - this.latOffset / 2;
-      const swLng = this.startLng + minX * this.lngOffset - this.lngOffset / 2;
-      const neLat = this.startLat - minY * this.latOffset + this.latOffset / 2;
-      const neLng = this.startLng + maxX * this.lngOffset + this.lngOffset / 2;
-
-      const sw = projection.fromLatLngToDivPixel(new google.maps.LatLng(swLat, swLng));
-      const ne = projection.fromLatLngToDivPixel(new google.maps.LatLng(neLat, neLng));
-
-      if (!sw || !ne) return;
-
-      this.canvas.style.left = sw.x + 'px';
-      this.canvas.style.top = ne.y + 'px';
-      const w = ne.x - sw.x;
-      const h = sw.y - ne.y;
-      this.canvas.style.width = w + 'px';
-      this.canvas.style.height = h + 'px';
-      
-      // Update internal canvas resolution
-      if (this.canvas.width !== w || this.canvas.height !== h) {
-        this.canvas.width = w;
-        this.canvas.height = h;
-      }
-
-      // Clear previous frame
-      this.context.clearRect(0, 0, w, h);
-      
-      const gridW = maxX - minX + 1;
-      const gridH = maxY - minY + 1;
-      const cellW = w / gridW;
-      const cellH = h / gridH;
-
-      for (const cell of grid.values()) {
-        const color = getColorForState(cell);
-        if (color !== 'transparent') {
-          this.context.fillStyle = color;
-          // Draw rect slightly larger (+1px) to prevent sub-pixel gaps between cells before blurring
-          const drawX = cell.x - minX;
-          const drawY = cell.y - minY;
-          this.context.fillRect(drawX * cellW, drawY * cellH, cellW + 1, cellH + 1);
-        }
-      }
+      this.grid = new Map(grid); // Clone to prevent mutation issues during draw
+      this.draw();
     }
   };
   return CanvasOverlayClass;
@@ -362,7 +361,10 @@ export function useFireSimulation() {
       
       if (isFetchingChunks) return; // Pause fire spread until terrain data arrives
 
-      simulationRef.current.tick();
+      // Accelerate: Run 5 simulation ticks per frame
+      for (let i = 0; i < 5; i++) {
+        simulationRef.current.tick();
+      }
       
       overlayRef.current.updateGrid(simulationRef.current.grid);
 
