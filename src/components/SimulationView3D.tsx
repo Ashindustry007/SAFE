@@ -344,7 +344,6 @@ export const SimulationView3D: React.FC<Simulation3DProps> = ({ onBack }) => {
         <View track={viewARef as any}>
           <PerspectiveCamera ref={camARef} makeDefault position={[0, 0.7, 0.9]} fov={55} />
           <SimulationContent cells={cells} activeTool={activeTool} clickMarkers={clickMarkers} time={time} onCellInteraction={(x: number, y: number) => {
-              /* ... interaction logic ... */
               if (isLoadingTerrain) return;
               const idx = y * GRID_WIDTH + x;
               const nextCells = [...cells];
