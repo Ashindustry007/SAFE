@@ -20,7 +20,7 @@ import {
   Navigation,
   Zap,
   HelpCircle,
-  MessageSquare
+  MessageSquare,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { fetchWildfireIntel } from './services/wildfireApi';
@@ -28,7 +28,7 @@ import type { WildfireData } from './services/wildfireApi';
 import { SimulationView3D as SimulationView } from './components/SimulationView3D';
 import { useFireSimulation } from './hooks/useFireSimulation';
 import Chatbot from './components/Chatbot';
-import FAQPage from './components/FAQPage';
+import { FAQProtocols } from './components/FAQProtocols';
 import './App.css';
 
 /**
@@ -352,17 +352,19 @@ const App: React.FC = () => {
         >
           <SimulationView />
         </div>
-        {/* FAQ View */}
+
+        {/* FAQ & Protocols View */}
         <div 
           style={{ 
             display: viewMode === 'FAQ' ? 'block' : 'none', 
             width: '100%', 
-            height: '100%',
-            overflowY: 'auto'
+            height: '100%', 
+            overflow: 'hidden'
           }}
         >
-          <FAQPage />
+          <FAQProtocols />
         </div>
+
         {/* Chat View */}
         <div 
           style={{ 
