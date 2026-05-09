@@ -29,9 +29,11 @@ import { buildTerrainGrid, PROCEDURAL_TERRAIN_ID } from '../logic/wildfire3D';
 import { getDefaultFireEngineConfig } from '../logic/concord/engine-config';
 import { isConcordPresetId, CONCORD_PRESET_IDS } from '../logic/concord/presets';
 
-const GRID_WIDTH = 140;
-const GRID_HEIGHT = 90;
-const CELL_SIZE_FT = 100;
+// Higher resolution grid (closer to Concord feel).
+// Note: Terrain3D uses a subdivided BoxGeometry; very high values can hurt FPS.
+const GRID_WIDTH = 240;
+const GRID_HEIGHT = 150;
+const CELL_SIZE_FT = 75;
 
 const ENGINE_CFG = getDefaultFireEngineConfig(GRID_WIDTH, GRID_HEIGHT, CELL_SIZE_FT);
 
@@ -67,6 +69,7 @@ export const SimulationView3D: React.FC<Simulation3DProps> = ({ onBack }) => {
   const [time, setTime] = useState(0);
   const [activeTool, setActiveTool] = useState<Tool>('NONE');
   const [fireLineStart, setFireLineStart] = useState<{ x: number; y: number } | null>(null);
+  const [clickMarkers, setClickMarkers] = useState<Array<{ x: number; y: number; z: number; tool: Tool; t: number }>>([]);
 
   const [isSetupOpen, setIsSetupOpen] = useState(true);
   const [setupStep, setSetupStep] = useState(1);
@@ -96,6 +99,7 @@ export const SimulationView3D: React.FC<Simulation3DProps> = ({ onBack }) => {
     setTime(0);
     setIsPlaying(false);
     setFireLineStart(null);
+    setClickMarkers([]);
   }, [wind]);
 
   useEffect(() => {
@@ -177,6 +181,14 @@ export const SimulationView3D: React.FC<Simulation3DProps> = ({ onBack }) => {
               const idx = y * GRID_WIDTH + x;
               const nextCells = [...cells];
               const cell = nextCells[idx];
+              const z = (cell?.baseElevation ?? 0) / 40;
+
+              const addMarker = (tool: Tool) => {
+                setClickMarkers((prev) => {
+                  const next = [...prev, { x, y, z, tool, t: time }];
+                  return next.length > 12 ? next.slice(next.length - 12) : next;
+                });
+              };
 
               if (activeTool === 'SPARK') {
                 if (!cell.isRiver && !cell.isNonburnable && cell.fireState === FireState.Unburnt) {
@@ -186,12 +198,14 @@ export const SimulationView3D: React.FC<Simulation3DProps> = ({ onBack }) => {
                   if (engineRef.current) {
                     engineRef.current.removeUnburntIsland(cell);
                   }
+                  addMarker('SPARK');
                 }
               } else if (activeTool === 'FIRELINE') {
                 if (!fireLineStart) {
                   setFireLineStart({ x, y });
                   cell.isFireLine = true;
                   cell.ignitionTime = Infinity;
+                  addMarker('FIRELINE');
                 } else {
                   let x0 = fireLineStart.x;
                   let y0 = fireLineStart.y;
@@ -221,6 +235,7 @@ export const SimulationView3D: React.FC<Simulation3DProps> = ({ onBack }) => {
                     }
                   }
                   setFireLineStart({ x, y });
+                  addMarker('FIRELINE');
                 }
               } else if (activeTool === 'HELITACK') {
                 const radius = 2;
@@ -243,10 +258,29 @@ export const SimulationView3D: React.FC<Simulation3DProps> = ({ onBack }) => {
                     }
                   }
                 }
+                addMarker('HELITACK');
               }
               setCells(nextCells);
             }}
           />
+
+          {/* Click markers (last ~12). Helps users see where they interacted. */}
+          {clickMarkers.map((m, i) => {
+            const color =
+              m.tool === 'SPARK' ? '#f59e0b' :
+              m.tool === 'FIRELINE' ? '#8b5a2b' :
+              m.tool === 'HELITACK' ? '#38bdf8' : '#ffffff';
+            // Terrain3D coordinate frame: x centered, y is height axis, z is gridY mapped with (height/2 - y)
+            return (
+              <mesh
+                key={`${m.x}-${m.y}-${m.t}-${i}`}
+                position={[m.x - GRID_WIDTH / 2, m.z + 1.2, GRID_HEIGHT / 2 - m.y]}
+              >
+                <sphereGeometry args={[0.45, 10, 10]} />
+                <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.6} />
+              </mesh>
+            );
+          })}
 
           {TOWNS.map((town) => {
             const cellIdx = town.gridY * GRID_WIDTH + town.gridX;
