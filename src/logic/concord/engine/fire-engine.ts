@@ -95,6 +95,16 @@ export class FireEngine {
   public fireDidStop = false;
   public day = 0;
   public burnedCellsInZone: {[key: number]: number} = {};
+  private _seed = 123.456;
+
+  public setSeed(val: number) {
+    this._seed = val;
+  }
+
+  private random() {
+    const x = Math.sin(this._seed++) * 10000;
+    return x - Math.floor(x);
+  }
 
   constructor(cells: Cell[], wind: IWindProps, sparks: Vector2[], config: IFireEngineConfig) {
     this.cells = cells;
@@ -146,7 +156,7 @@ export class FireEngine {
     const newDay = Math.floor(time / modelDay);
     if (newDay !== this.day) {
       this.day = newDay;
-      if (Math.random() <= endOfLowIntensityFireProbability[newDay]) {
+      if (this.random() <= endOfLowIntensityFireProbability[newDay]) {
         this.endOfLowIntensityFire = true;
       }
     }
@@ -169,7 +179,7 @@ export class FireEngine {
       const ignitionTime = cell.ignitionTime;
       if (cell.fireState === FireState.Burning && time - ignitionTime > cell.burnTime) {
         newFireStateData[i] = FireState.Burnt;
-        if (cell.canSurviveFire && Math.random() < this.fireSurvivalProbability) {
+        if (cell.canSurviveFire && this.random() < this.fireSurvivalProbability) {
           cell.isFireSurvivor = true;
         }
       } else if (cell.fireState === FireState.Unburnt && time > ignitionTime ) {

@@ -35,10 +35,10 @@ import './App.css';
  * ViewMode Navigation Type
  * Defines the primary routing states for the main content area.
  */
-type ViewMode = 'MAP' | 'SIMULATION' | 'FAQ' | 'CHAT';
+type ViewMode = 'LANDING' | 'MAP' | 'SIMULATION' | 'FAQ' | 'CHAT';
 
 const App: React.FC = () => {
-  const [viewMode, setViewMode] = useState<ViewMode>('MAP');
+  const [viewMode, setViewMode] = useState<ViewMode>('LANDING');
   const [intel, setIntel] = useState<WildfireData | null>(null);
   const [isUpdatingIntel, setIsUpdatingIntel] = useState(false);
   const mapRef = useRef<HTMLDivElement>(null);
@@ -155,76 +155,51 @@ const App: React.FC = () => {
 
   return (
     <div className="app-container">
-      {/* Sidebar Navigation - PERSISTENT */}
-      <aside className="sidebar">
-        <div style={{ padding: '8px', backgroundColor: 'rgba(245, 158, 11, 0.2)', borderRadius: '12px', color: 'var(--accent-amber)' }}>
-          <Flame size={24} />
-        </div>
-        <nav style={{ display: 'flex', flexDirection: 'column', gap: '24px', color: 'var(--text-secondary)' }}>
-          <button 
-            onClick={() => setViewMode('MAP')}
-            style={{ 
-              background: 'none', 
-              border: 'none', 
-              color: viewMode === 'MAP' ? 'var(--accent-amber)' : 'inherit', 
-              cursor: 'pointer', 
-              transition: 'all 0.2s',
-              padding: '12px',
-              borderRadius: '8px',
-              backgroundColor: viewMode === 'MAP' ? 'rgba(245, 158, 11, 0.1)' : 'transparent'
-            }}
-          >
-            <MapIcon size={22} />
-          </button>
-          <button 
-            onClick={() => setViewMode('SIMULATION')}
-            style={{ 
-              background: 'none', 
-              border: 'none', 
-              color: viewMode === 'SIMULATION' ? 'var(--accent-amber)' : 'inherit', 
-              cursor: 'pointer', 
-              transition: 'all 0.2s',
-              padding: '12px',
-              borderRadius: '8px',
-              backgroundColor: viewMode === 'SIMULATION' ? 'rgba(245, 158, 11, 0.1)' : 'transparent'
-            }}
-          >
-            <Zap size={22} />
-          </button>
-          <button 
-            onClick={() => setViewMode('FAQ')}
-            style={{ 
-              background: 'none', 
-              border: 'none', 
-              color: viewMode === 'FAQ' ? 'var(--accent-amber)' : 'inherit', 
-              cursor: 'pointer', 
-              transition: 'all 0.2s',
-              padding: '12px',
-              borderRadius: '8px',
-              backgroundColor: viewMode === 'FAQ' ? 'rgba(245, 158, 11, 0.1)' : 'transparent'
-            }}
-          >
-            <HelpCircle size={22} />
-          </button>
-          <button 
-            onClick={() => setViewMode('CHAT')}
-            style={{ 
-              background: 'none', 
-              border: 'none', 
-              color: viewMode === 'CHAT' ? 'var(--accent-amber)' : 'inherit', 
-              cursor: 'pointer', 
-              transition: 'all 0.2s',
-              padding: '12px',
-              borderRadius: '8px',
-              backgroundColor: viewMode === 'CHAT' ? 'rgba(245, 158, 11, 0.1)' : 'transparent'
-            }}
-          >
-            <MessageSquare size={22} />
-          </button>
-        </nav>
-      </aside>
+      {/* Top Navigation Bar - Hidden on Landing Page */}
+      {viewMode !== 'LANDING' && (
+        <header className="top-nav">
+          <div className="nav-brand" onClick={() => setViewMode('LANDING')}>
+            <div className="brand-icon">
+              <Flame size={20} />
+            </div>
+            <span className="brand-name">SAFE</span>
+          </div>
+          
+          <nav className="nav-links">
+            <NavButton 
+              active={viewMode === 'MAP'} 
+              onClick={() => setViewMode('MAP')}
+              icon={<MapIcon size={18} />}
+              label="Intelligence"
+            />
+            <NavButton 
+              active={viewMode === 'SIMULATION'} 
+              onClick={() => setViewMode('SIMULATION')}
+              icon={<Zap size={18} />}
+              label="Simulation"
+            />
+            <NavButton 
+              active={viewMode === 'FAQ'} 
+              onClick={() => setViewMode('FAQ')}
+              icon={<HelpCircle size={18} />}
+              label="Resources"
+            />
+            <NavButton 
+              active={viewMode === 'CHAT'} 
+              onClick={() => setViewMode('CHAT')}
+              icon={<MessageSquare size={18} />}
+              label="Assistant"
+            />
+          </nav>
+        </header>
+      )}
 
       <main className="main-content">
+        {/* Landing Page */}
+        {viewMode === 'LANDING' && (
+          <LandingPage onNavigate={setViewMode} />
+        )}
+
         {/* Map & Intelligence Dashboard */}
         <div 
           style={{ 
@@ -375,7 +350,7 @@ const App: React.FC = () => {
             position: 'relative' 
           }}
         >
-          <SimulationView onBack={() => setViewMode('MAP')} />
+          <SimulationView />
         </div>
         {/* FAQ View */}
         <div 
@@ -402,6 +377,90 @@ const App: React.FC = () => {
     </div>
   );
 };
+
+/**
+ * NavButton Component
+ * Premium navigation button for the top bar.
+ */
+const NavButton = ({ active, onClick, icon, label }: any) => (
+  <button 
+    onClick={onClick}
+    className={`nav-btn ${active ? 'active' : ''}`}
+  >
+    <span className="nav-btn-icon">{icon}</span>
+    <span className="nav-btn-label">{label}</span>
+  </button>
+);
+
+/**
+ * Landing Page Component
+ * Minimal, aesthetic entry point for the platform.
+ */
+const LandingPage = ({ onNavigate }: { onNavigate: (mode: ViewMode) => void }) => (
+  <div className="landing-container">
+    <div className="landing-bg">
+      <div className="glow-1"></div>
+      <div className="glow-2"></div>
+    </div>
+    
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.8 }}
+      className="landing-content"
+    >
+      <div className="landing-logo-box">
+        <Flame size={48} className="text-amber" />
+      </div>
+      
+      <h1 className="landing-title">SAFE</h1>
+      <p className="landing-subtitle">Simulated Analysis of Fire Ecology</p>
+      
+      <div className="landing-divider"></div>
+      
+      <div className="landing-grid">
+        <LandingCard 
+          title="Intelligence"
+          desc="Real-time environmental risk assessment"
+          icon={<MapIcon size={24} />}
+          onClick={() => onNavigate('MAP')}
+        />
+        <LandingCard 
+          title="Simulation"
+          desc="Predictive 3D wildfire spread modeling"
+          icon={<Zap size={24} />}
+          onClick={() => onNavigate('SIMULATION')}
+        />
+        <LandingCard 
+          title="Resources"
+          desc="Ecological data & expert guidelines"
+          icon={<HelpCircle size={24} />}
+          onClick={() => onNavigate('FAQ')}
+        />
+        <LandingCard 
+          title="Assistant"
+          desc="AI-powered emergency response support"
+          icon={<MessageSquare size={24} />}
+          onClick={() => onNavigate('CHAT')}
+        />
+      </div>
+    </motion.div>
+  </div>
+);
+
+const LandingCard = ({ title, desc, icon, onClick }: any) => (
+  <motion.div 
+    whileHover={{ scale: 1.02, backgroundColor: 'rgba(255, 255, 255, 0.05)' }}
+    whileTap={{ scale: 0.98 }}
+    onClick={onClick}
+    className="landing-card"
+  >
+    <div className="landing-card-icon">{icon}</div>
+    <h3>{title}</h3>
+    <p>{desc}</p>
+  </motion.div>
+);
+
 
 /**
  * MetricCard Component
