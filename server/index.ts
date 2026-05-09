@@ -32,8 +32,9 @@ const embeddings = new OpenAIEmbeddings({
 });
 
 const model = new ChatOpenAI({
-  modelName: "gpt-4o",
-  apiKey: process.env.OPENAI_API_KEY,
+  modelName: "meta-llama/Meta-Llama-3-8B-Instruct",
+  apiKey: process.env.RUNPOD_API_KEY,
+  configuration: { baseURL: "https://api.runpod.ai/v1" },
 });
 
 let vectorStore: MemoryVectorStore;
@@ -62,8 +63,8 @@ async function initializeKnowledgeBase() {
   }
 
   const textSplitter = new RecursiveCharacterTextSplitter({
-    chunkSize: 500,
-    chunkOverlap: 100,
+    chunkSize: 1500,
+    chunkOverlap: 200,
   });
 
   try {
@@ -134,8 +135,12 @@ app.post('/api/chat', async (req, res) => {
       sources: sources 
     });
   } catch (error: any) {
-    console.error("[Triton] Error:", error.message);
-    const fallback = "The SAFE Intelligence Core (Triton) is experiencing high load. Project Summary: SAFE uses the Rothermel Model to predict fire spread based on real-time environmental data.";
+    console.error("[OpenAI] Error:", error.message);
+    const fallback = `The SAFE Intelligence Core is currently in high-load failsafe mode. 
+    
+    Project Summary: SAFE (Smart Analytics for Fire Emergencies) is a predictive platform for wildfire management. It utilizes the Rothermel Surface Fire Spread Model to calculate fire intensity and rate of spread based on fuel, weather, and topography. Our system integrates real-time environmental data (Wind, Temp, Humidity) with satellite vegetation maps to provide regional risk assessments and high-fidelity 3D simulations.
+    
+    You can continue to ask about the Rothermel model, Risk Analysis, or our Data Sources using the suggestions in the sidebar.`;
     res.json({ response: fallback });
   }
 });

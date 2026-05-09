@@ -30,9 +30,14 @@ const Chatbot: React.FC = () => {
     "what factors determine wildfire risk?": "Wildfire risk is determined by several critical factors: vegetation dryness (fuel load), current temperature, humidity levels, and wind vectors.",
     "what real-time data is integrated?": "SAFE integrates live data from weather stations (wind, temp, humidity), satellite vegetation maps, and historical fire records.",
     "how do i run a custom fire scenario?": "You can initiate a custom simulation in the 'Simulation' tab by setting the ignition point, wind parameters, and fuel moisture levels.",
+    "rothermel model": "The Rothermel Surface Fire Spread Model is a mathematical formula used to predict the rate of spread and intensity of forest fires based on fuel and environmental conditions.",
+    "risk analysis": "SAFE risk analysis combines real-time weather (wind/temp) with vegetation density maps to create a dynamic 'Fire Risk Index' for the region.",
+    "data sources": "Our intelligence core integrates NASA satellite imagery, local IoT weather stations, and historical wildfire datasets from the US Forest Service.",
+    "simulation setup": "To start a simulation, navigate to the 'Simulation' tab, click on the map to set an ignition point, and adjust the wind vector controls to see the predicted spread.",
     "what are you": "I am the SAFE Intelligence Assistant, a specialized AI designed to help you navigate wildfire analytics, environmental data, and fire spread simulations.",
-    "who are you": "I am the SAFE Intelligence Assistant, a specialized AI designed to help you navigate wildfire analytics, environmental data, and fire spread simulations.",
-    "what do you do": "I provide insights into wildfire behavior, risk assessment, and technical documentation for the SAFE platform.",
+    "cause": "The #1 cause of wildfires is human activity (unattended campfires, debris burning, equipment sparks), accounting for nearly 85% of fires. Natural causes like lightning account for the rest.",
+    "prevent": "Wildfire prevention involves clearing 'defensible space' around structures, obeying local burn bans, and properly extinguishing all outdoor fires and smoking materials.",
+    "intensity": "Fire intensity (heat release per unit length of fire line) is primarily determined by fuel load, fuel moisture, and wind speed—all core components of our Rothermel model simulations.",
     "hi": "Hello! I am the SAFE Intelligence Assistant. You can ask me about wildfire simulations, fire risk factors, or our data sources.",
     "hello": "Hello! I am the SAFE Intelligence Assistant. You can ask me about wildfire simulations, fire risk factors, or our data sources."
   };
@@ -58,10 +63,13 @@ const Chatbot: React.FC = () => {
     const keywords: Record<string, string> = {
       "safe": "SAFE (Smart Analytics for Fire Emergencies) is a high-fidelity wildfire intelligence platform that uses the Rothermel model and real-time environmental data to predict fire behavior and risk.",
       "rothermel": "The Rothermel model is a mathematical formula used to predict the rate of spread and intensity of forest fires based on fuel moisture, wind, and terrain.",
+      "model": "The Rothermel model is a mathematical formula used to predict the rate of spread and intensity of forest fires based on fuel moisture, wind, and terrain.",
       "risk": "Wildfire risk is determined by several critical factors: vegetation dryness (fuel load), current temperature, humidity levels, and wind vectors.",
       "data": "SAFE integrates live data from weather stations (wind, temp, humidity), satellite vegetation maps, and historical fire records.",
-      "scenario": "You can initiate a custom simulation in the 'Simulation' tab by setting the ignition point, wind parameters, and fuel moisture levels.",
       "simulation": "You can initiate a custom simulation in the 'Simulation' tab by setting the ignition point, wind parameters, and fuel moisture levels.",
+      "cause": "The #1 cause of wildfires is human activity (unattended campfires, debris burning, equipment sparks), accounting for nearly 85% of fires.",
+      "fire": "Wildfire behavior is complex. SAFE uses the Rothermel model to predict how fire moves through different vegetation types and terrains.",
+      "spread": "Fire spread is determined by wind vectors, slope of the terrain, and fuel moisture levels.",
       "you": "I am the SAFE Intelligence Assistant, a specialized AI designed to help you navigate wildfire analytics, environmental data, and fire spread simulations.",
       "hi": "Hello! I am the SAFE Intelligence Assistant. You can ask me about wildfire simulations, fire risk factors, or our data sources.",
       "hello": "Hello! I am the SAFE Intelligence Assistant. You can ask me about wildfire simulations, fire risk factors, or our data sources."
