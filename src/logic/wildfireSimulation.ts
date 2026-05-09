@@ -1,23 +1,45 @@
+/**
+ * SAFE Wildfire Simulation Engine
+ * 
+ * Core mathematical engine for simulating wildfire spread on a 2D grid.
+ * Implements a cellular automata approach influenced by the Rothermel model,
+ * accounting for wind vectors, fuel density, and environmental drought levels.
+ */
+
+/**
+ * CellState Definition
+ * Represents the lifecycle of a fuel cell: FUEL -> BURNING -> BURNT
+ */
 export const CellState = {
-  EMPTY: 0,
-  FUEL: 1,
-  BURNING: 2,
-  BURNT: 3,
+  EMPTY: 0,   // No vegetation
+  FUEL: 1,    // Ready to burn
+  BURNING: 2, // Currently active fire
+  BURNT: 3,   // Extinguished/Consumed
 } as const;
 
 export type CellState = (typeof CellState)[keyof typeof CellState];
 
+/**
+ * Simulation Parameters
+ * State variables that influence the rate and direction of spread.
+ */
 export interface SimulationParams {
-  windSpeed: number;      // 0 to 100
+  windSpeed: number;      // 0 to 100 (influence strength)
   windDirection: number;  // 0 to 360 degrees (0 is North, 90 is East)
-  droughtIndex: number;   // 0 to 1 (normalized)
-  vegDensity: number;     // 0 to 1 (normalized)
+  droughtIndex: number;   // 0 to 1 (environmental moisture level)
+  vegDensity: number;     // 0 to 1 (available fuel load)
 }
 
 export type Grid = CellState[][];
 
 /**
- * Initializes a grid with fuel based on vegetation density.
+ * initializeGrid
+ * Creates a new simulation grid populated with fuel based on density parameters.
+ * 
+ * @param width  - Number of horizontal cells
+ * @param height - Number of vertical cells
+ * @param density - Probability (0-1) that a cell contains fuel
+ * @returns A randomized 2D grid of CellStates
  */
 export const initializeGrid = (width: number, height: number, density: number): Grid => {
   const grid: Grid = [];
@@ -32,7 +54,13 @@ export const initializeGrid = (width: number, height: number, density: number): 
 };
 
 /**
- * Ignites a target cell. Pure function.
+ * igniteCell
+ * Manually starts a fire at a specific coordinate.
+ * 
+ * @param grid - Current simulation grid
+ * @param x - Target X coordinate
+ * @param y - Target Y coordinate
+ * @returns A new grid state with the target cell ignited
  */
 export const igniteCell = (grid: Grid, x: number, y: number): Grid => {
   if (y < 0 || y >= grid.length || x < 0 || x >= grid[0].length) return grid;
@@ -45,15 +73,21 @@ export const igniteCell = (grid: Grid, x: number, y: number): Grid => {
 };
 
 /**
- * Advances the simulation by one step. Pure function.
+ * stepSimulation
+ * Advances the fire simulation by one discrete time step.
+ * Uses a cellular automata approach where burning cells attempt to ignite neighbors.
+ * 
+ * @param grid - Current state of the fire grid
+ * @param params - Environmental parameters (wind, moisture, etc.)
+ * @returns The next state of the simulation grid
  */
 export const stepSimulation = (grid: Grid, params: SimulationParams): Grid => {
   const height = grid.length;
   const width = grid[0].length;
   const newGrid = grid.map(row => [...row]);
 
-  // Pre-calculate wind vector
-  const windRad = (params.windDirection - 90) * (Math.PI / 180); // Adjusting so 0 is North
+  // Pre-calculate wind vector components for efficient processing
+  const windRad = (params.windDirection - 90) * (Math.PI / 180); // 0 degrees = North
   const windX = Math.cos(windRad);
   const windY = Math.sin(windRad);
 
@@ -62,10 +96,10 @@ export const stepSimulation = (grid: Grid, params: SimulationParams): Grid => {
       const currentState = grid[y][x];
 
       if (currentState === CellState.BURNING) {
-        // Current burning cell becomes burnt in the next step
+        // Active fire consumes the current cell
         newGrid[y][x] = CellState.BURNT;
 
-        // Try to spread to neighbors
+        // Attempt ignition of 8 adjacent neighbors (Moore neighborhood)
         const neighbors = [
           { dx: -1, dy: -1 }, { dx: 0, dy: -1 }, { dx: 1, dy: -1 },
           { dx: -1, dy: 0 },                    { dx: 1, dy: 0 },
@@ -91,7 +125,15 @@ export const stepSimulation = (grid: Grid, params: SimulationParams): Grid => {
 };
 
 /**
- * Calculates the probability of fire spreading from a burning cell to a neighbor.
+ * calculateSpreadProbability
+ * Internal logic for determining the likelihood of ignition based on vectors.
+ * 
+ * @param dx - Neighbor X offset
+ * @param dy - Neighbor Y offset
+ * @param windX - Pre-calculated wind vector X
+ * @param windY - Pre-calculated wind vector Y
+ * @param params - Global simulation parameters
+ * @returns Probability (0-1) of ignition
  */
 const calculateSpreadProbability = (
   dx: number, 
@@ -107,19 +149,19 @@ const calculateSpreadProbability = (
   const dirX = dx / dist;
   const dirY = dy / dist;
 
-  // Wind effect: Dot product of wind vector and spread direction
+  // Wind effect calculation: Dot product of wind vector and spread direction
   const dot = dirX * windX + dirY * windY;
-  // windFactor increases probability if wind is blowing in spread direction
-  // params.windSpeed scaled to influence probability (max 3x boost)
+  
+  // Apply wind boost (max 3x increase based on speed and alignment)
   const windEffect = 1 + (params.windSpeed / 50) * Math.max(0, dot);
 
-  // Environmental factors
+  // Apply environmental multipliers (Drought and Density increase fire intensity)
   const envEffect = (1 + params.droughtIndex) * (1 + params.vegDensity);
 
-  // Combine factors
+  // Compute final probability
   let probability = P_BASE * windEffect * envEffect;
 
-  // Diagonal spread is naturally slightly slower
+  // Geometric correction for diagonal spread distance (1/sqrt(2))
   if (dist > 1) probability *= 0.707;
 
   return Math.min(probability, 1.0);

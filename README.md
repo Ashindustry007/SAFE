@@ -1,73 +1,61 @@
-# React + TypeScript + Vite
+# SAFE (Smart Analytics for Fire Emergencies)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+SAFE is a high-fidelity wildfire intelligence platform designed for real-time fire behavior prediction, regional risk assessment, and emergency response coordination. It utilizes the **Rothermel Surface Fire Spread Model** integrated with real-time environmental data to provide actionable safety analytics.
 
-Currently, two official plugins are available:
+## 🚀 Intelligent Core Architecture
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+The platform features a **Hybrid Intelligence System** designed for maximum availability and low latency during emergencies:
 
-## React Compiler
+### 1. Multi-Provider API Failsafe (Backend)
+The intelligence server implements a sequential failover chain across multiple state-of-the-art AI providers to bypass individual quota limits:
+- **Groq (Primary)**: Sub-second technical responses using Llama 3.
+- **Google Gemini**: High-fidelity environmental reasoning.
+- **OpenAI / Mistral**: Robust technical documentation analysis and fallback.
+- **Local Fallback**: Instant technical summary if all external APIs are throttled.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### 2. Dual-Layer Frontend Intelligence
+- **Local Layer**: Instant response for core platform identity and greetings using word-boundary regex matching.
+- **Cloud Layer**: High-fidelity technical analysis routed via the Multi-API server.
 
-## Expanding the ESLint configuration
+## 🌲 High-Fidelity Simulation Engine
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+SAFE features a state-of-the-art simulation suite:
+- **3D Topographic Mapping**: Real-time rendering of terrain with procedurally generated elevations and vegetation zones.
+- **Physics-Based Spread**: Implementation of the Rothermel model accounting for wind vectors, fuel SAV, moisture damping, and slope factors.
+- **Suppression Modeling**: Interactive tools for Helitack drops and fireline construction to model emergency mitigation strategies.
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## 🛠️ Technical Stack
+- **Frontend**: Vite, React, Three.js (React Three Fiber), Framer Motion.
+- **Backend**: Node.js, Express, LangChain, OpenAI/Gemini/Groq SDKs.
+- **Mapping**: Google Maps JavaScript API.
+- **Simulation**: Custom Rothermel engine (TypeScript).
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## 📥 Getting Started
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### 1. Configure Environment
+Create a `.env` file in the root directory:
+```env
+# AI Providers
+GEMINI_API_KEY=...
+OPENAI_API_KEY=...
+GROQ_API_KEY=...
+MISTRAL_API_KEY=...
+
+# Mapping
+VITE_GOOGLE_MAPS_API_KEY=...
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### 2. Run Development Environment
+```bash
+npm install
+npm run dev
 ```
+
+The system will launch the **Vite client** (5173) and the **Intelligence server** (3002) concurrently.
+
+---
+### 📚 Project Documentation
+- [System Architecture](ARCHITECTURE.md)
+- [Simulation Model Details](SIMULATION_MODEL.md)
+
+*Developed for the "Reboot the Earth" Hackathon.*

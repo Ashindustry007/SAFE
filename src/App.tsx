@@ -1,4 +1,12 @@
 /// <reference types="@types/google.maps" />
+/**
+ * SAFE Application Root
+ * 
+ * The main entry point for the SAFE wildfire intelligence platform.
+ * Manages global view states (Map, Simulation, FAQ, Chat) and coordinates
+ * the fetching of regional wildfire intelligence data.
+ */
+
 import React, { useEffect, useState, useRef } from 'react';
 import { setOptions, importLibrary } from '@googlemaps/js-api-loader';
 import { 
@@ -10,16 +18,24 @@ import {
   Thermometer,
   CloudRain,
   Navigation,
-  Zap
+  Zap,
+  HelpCircle,
+  MessageSquare
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { fetchWildfireIntel } from './services/wildfireApi';
 import type { WildfireData } from './services/wildfireApi';
 import { SimulationView3D as SimulationView } from './components/SimulationView3D';
 import { useFireSimulation } from './hooks/useFireSimulation';
+import Chatbot from './components/Chatbot';
+import FAQPage from './components/FAQPage';
 import './App.css';
 
-type ViewMode = 'MAP' | 'SIMULATION';
+/**
+ * ViewMode Navigation Type
+ * Defines the primary routing states for the main content area.
+ */
+type ViewMode = 'MAP' | 'SIMULATION' | 'FAQ' | 'CHAT';
 
 const App: React.FC = () => {
   const [viewMode, setViewMode] = useState<ViewMode>('MAP');
@@ -32,7 +48,41 @@ const App: React.FC = () => {
   const { isSimulating, startSimulation, clearSimulation, errorMsg } = useFireSimulation();
 
   // Removed static initial fetch logic; now handled by map 'idle' event
+  /**
+   * Data Loading Effect
+   * Fetches regional wildfire intelligence on mount.
+   * Implements a 1-hour localStorage cache to minimize API calls.
+   */
+  useEffect(() => {
+    const loadInitialData = async () => {
+      const CACHE_KEY = 'wildfire_intel_cache';
+      const CACHE_TIME_KEY = 'wildfire_intel_timestamp';
+      const ONE_HOUR = 60 * 60 * 1000;
 
+      const cachedData = localStorage.getItem(CACHE_KEY);
+      const cachedTime = localStorage.getItem(CACHE_TIME_KEY);
+      const now = Date.now();
+
+      if (cachedData && cachedTime && (now - parseInt(cachedTime)) < ONE_HOUR) {
+        console.log('Using cached wildfire intelligence data');
+        setIntel(JSON.parse(cachedData));
+        return;
+      }
+
+      console.log('Fetching fresh wildfire intelligence data (hourly refresh)');
+      const data = await fetchWildfireIntel({ north: 40, south: 30, east: -110, west: -120 });
+      setIntel(data);
+
+      localStorage.setItem(CACHE_KEY, JSON.stringify(data));
+      localStorage.setItem(CACHE_TIME_KEY, now.toString());
+    };
+    loadInitialData();
+  }, []);
+
+  /**
+   * Google Maps Initialization
+   * Dynamically loads the Google Maps JavaScript API and renders the dashboard map.
+   */
   useEffect(() => {
     if (mapRef.current && apiKey) {
       setOptions({
@@ -140,6 +190,36 @@ const App: React.FC = () => {
             }}
           >
             <Zap size={22} />
+          </button>
+          <button 
+            onClick={() => setViewMode('FAQ')}
+            style={{ 
+              background: 'none', 
+              border: 'none', 
+              color: viewMode === 'FAQ' ? 'var(--accent-amber)' : 'inherit', 
+              cursor: 'pointer', 
+              transition: 'all 0.2s',
+              padding: '12px',
+              borderRadius: '8px',
+              backgroundColor: viewMode === 'FAQ' ? 'rgba(245, 158, 11, 0.1)' : 'transparent'
+            }}
+          >
+            <HelpCircle size={22} />
+          </button>
+          <button 
+            onClick={() => setViewMode('CHAT')}
+            style={{ 
+              background: 'none', 
+              border: 'none', 
+              color: viewMode === 'CHAT' ? 'var(--accent-amber)' : 'inherit', 
+              cursor: 'pointer', 
+              transition: 'all 0.2s',
+              padding: '12px',
+              borderRadius: '8px',
+              backgroundColor: viewMode === 'CHAT' ? 'rgba(245, 158, 11, 0.1)' : 'transparent'
+            }}
+          >
+            <MessageSquare size={22} />
           </button>
         </nav>
       </aside>
@@ -297,11 +377,36 @@ const App: React.FC = () => {
         >
           <SimulationView onBack={() => setViewMode('MAP')} />
         </div>
+        {/* FAQ View */}
+        <div 
+          style={{ 
+            display: viewMode === 'FAQ' ? 'block' : 'none', 
+            width: '100%', 
+            height: '100%',
+            overflowY: 'auto'
+          }}
+        >
+          <FAQPage />
+        </div>
+        {/* Chat View */}
+        <div 
+          style={{ 
+            display: viewMode === 'CHAT' ? 'block' : 'none', 
+            width: '100%', 
+            height: '100%'
+          }}
+        >
+          <Chatbot />
+        </div>
       </main>
     </div>
   );
 };
 
+/**
+ * MetricCard Component
+ * Displays a single environmental data point with an icon and trend label.
+ */
 const MetricCard = ({ icon, label, value, trend }: any) => (
   <div className="glass-panel metric-card" style={{ backgroundColor: '#f8fafc', borderColor: '#e2e8f0' }}>
     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
@@ -317,6 +422,10 @@ const MetricCard = ({ icon, label, value, trend }: any) => (
   </div>
 );
 
+/**
+ * Google Maps Stylization
+ * Curated color palette for high-readability wildfire environmental mapping.
+ */
 const lightColorfulMapStyle = [
   { elementType: "geometry", stylers: [{ color: "#ebe3cd" }] },
   { elementType: "labels.text.fill", stylers: [{ color: "#523735" }] },
@@ -335,4 +444,3 @@ const lightColorfulMapStyle = [
 ];
 
 export default App;
-
