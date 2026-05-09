@@ -62,21 +62,15 @@ const Chatbot: React.FC = () => {
     const normalizedInput = textToSend.toLowerCase().trim();
     const keywords: Record<string, string> = {
       "safe": "SAFE (Smart Analytics for Fire Emergencies) is a high-fidelity wildfire intelligence platform that uses the Rothermel model and real-time environmental data to predict fire behavior and risk.",
-      "rothermel": "The Rothermel model is a mathematical formula used to predict the rate of spread and intensity of forest fires based on fuel moisture, wind, and terrain.",
-      "model": "The Rothermel model is a mathematical formula used to predict the rate of spread and intensity of forest fires based on fuel moisture, wind, and terrain.",
-      "risk": "Wildfire risk is determined by several critical factors: vegetation dryness (fuel load), current temperature, humidity levels, and wind vectors.",
-      "data": "SAFE integrates live data from weather stations (wind, temp, humidity), satellite vegetation maps, and historical fire records.",
-      "simulation": "You can initiate a custom simulation in the 'Simulation' tab by setting the ignition point, wind parameters, and fuel moisture levels.",
-      "cause": "The #1 cause of wildfires is human activity (unattended campfires, debris burning, equipment sparks), accounting for nearly 85% of fires.",
-      "fire": "Wildfire behavior is complex. SAFE uses the Rothermel model to predict how fire moves through different vegetation types and terrains.",
-      "spread": "Fire spread is determined by wind vectors, slope of the terrain, and fuel moisture levels.",
       "you": "I am the SAFE Intelligence Assistant, a specialized AI designed to help you navigate wildfire analytics, environmental data, and fire spread simulations.",
-      "hi": "Hello! I am the SAFE Intelligence Assistant. You can ask me about wildfire simulations, fire risk factors, or our data sources.",
-      "hello": "Hello! I am the SAFE Intelligence Assistant. You can ask me about wildfire simulations, fire risk factors, or our data sources."
+      "hi": "Hello! I am the SAFE Intelligence Assistant. How can I help you today?",
+      "hello": "Hello! I am the SAFE Intelligence Assistant. How can I help you today?"
     };
 
     for (const [key, val] of Object.entries(keywords)) {
-      if (normalizedInput.includes(key)) {
+      // Use word boundaries to prevent matching "hi" inside "high"
+      const regex = new RegExp(`\\b${key}\\b`, 'i');
+      if (regex.test(normalizedInput)) {
         setTimeout(() => {
           setMessages(prev => [...prev, { role: 'bot', content: val }]);
           setIsLoading(false);
