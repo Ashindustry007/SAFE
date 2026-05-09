@@ -416,92 +416,92 @@
     "hash": "3ce791ace04669517f3a2f6094dbe573"
   },
   "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\server\\index.ts": {
-    "mtime": 1778307304.5323005,
-    "hash": "0381489204a90fb9b0457acc5b1f5e28"
+    "mtime": 1778311793.1723878,
+    "hash": "f5106fa71f6de04904ef4f3db89bbdb5"
   },
   "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\src\\App.tsx": {
-    "mtime": 1778307304.5323005,
-    "hash": "a39dbdfe1786ad851a356f4b3548a8e5"
+    "mtime": 1778310925.3609855,
+    "hash": "46db996d165650003c7d4daf474cbfea"
   },
   "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\src\\main.tsx": {
     "mtime": 1778275787.3731287,
     "hash": "787e5a07efeb2bf6209d5937195f2f68"
   },
   "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\src\\components\\Chatbot.tsx": {
-    "mtime": 1778307304.5367222,
-    "hash": "7382182cb3d1eff3f0c992fb22fd2819"
+    "mtime": 1778310925.3619857,
+    "hash": "893d0759e1815480029a587380880682"
   },
   "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\src\\components\\FAQPage.tsx": {
-    "mtime": 1778307304.5372417,
-    "hash": "0496d42dba127d9f4755ba43d7a91648"
+    "mtime": 1778310925.3629844,
+    "hash": "1165588a3e6a91f5200edc42f326b2b3"
   },
   "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\src\\components\\Simulation.tsx": {
-    "mtime": 1778276780.8955963,
-    "hash": "1eaf19565931dd805f353df87896fc1a"
+    "mtime": 1778310925.3629844,
+    "hash": "71e49f03fefe70e854bc55b58b4472e3"
   },
   "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\src\\components\\SimulationView3D.tsx": {
-    "mtime": 1778307295.6745532,
-    "hash": "3e41770c05e1f49c792e892c0d641d18"
+    "mtime": 1778311030.8994694,
+    "hash": "748da1cd33cae7b3c1686b9528993cab"
   },
   "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\src\\components\\Terrain3D.tsx": {
-    "mtime": 1778307295.677063,
-    "hash": "21499f9202d22d787233a72fe548bee8"
+    "mtime": 1778311061.8537672,
+    "hash": "4f71594f5c7710df043cc6f9664c7435"
   },
   "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\src\\logic\\wildfire3D.ts": {
-    "mtime": 1778307295.6830163,
-    "hash": "559814eec28a6e69a9ea0cb75f170170"
+    "mtime": 1778311092.0105443,
+    "hash": "cd4c3d9e9bab3c427a686e6f5f9d87f5"
   },
   "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\src\\logic\\wildfireSimulation.test.ts": {
     "mtime": 1778276770.388049,
     "hash": "ff1f2b85e683f5e35170eaf6a225390e"
   },
   "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\src\\logic\\wildfireSimulation.ts": {
-    "mtime": 1778276765.9411044,
-    "hash": "5865c05b0d40fa14d46b1028084ae5de"
+    "mtime": 1778310925.3696344,
+    "hash": "01764138127adee5da9507cbd4fc97fd"
   },
   "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\src\\logic\\concord\\cell.ts": {
-    "mtime": 1778307295.677063,
+    "mtime": 1778310931.755005,
     "hash": "424d085a3217a41262e341743ca297a0"
   },
   "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\src\\logic\\concord\\types.ts": {
-    "mtime": 1778307295.677063,
+    "mtime": 1778310931.759277,
     "hash": "78565b140b7cfb6e7e76f43c1598c242"
   },
   "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\src\\logic\\concord\\zone.ts": {
-    "mtime": 1778307295.6825101,
+    "mtime": 1778310931.759277,
     "hash": "f15fa928cb4a401b66ebb2885e7741dc"
   },
   "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\src\\logic\\concord\\engine\\fire-engine.ts": {
-    "mtime": 1778307295.677063,
+    "mtime": 1778310931.758575,
     "hash": "ca64ff2f45117a0e598ec433db6cf70c"
   },
   "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\src\\logic\\concord\\engine\\get-fire-spread-rate.ts": {
-    "mtime": 1778307295.677063,
+    "mtime": 1778310931.759277,
     "hash": "0b2c798c146ee38d4a3e9a8d8bbe3c33"
   },
   "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\src\\logic\\concord\\utils\\grid-utils.ts": {
-    "mtime": 1778307295.6820714,
+    "mtime": 1778310931.759277,
     "hash": "9251ad26fb94b782ed5c24cace2f3b00"
   },
   "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\src\\services\\wildfireApi.ts": {
-    "mtime": 1778307286.143306,
-    "hash": "dc9f3ef34115231b33fb4e7813f14e25"
+    "mtime": 1778310925.3725228,
+    "hash": "733e9edb081400f4cbdf06ca9e2cd96f"
   },
   "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\ARCHITECTURE.md": {
-    "mtime": 1778307304.5264683,
-    "hash": "a6af8842d91b7277d1a19d2400743581"
+    "mtime": 1778310925.3574374,
+    "hash": "791d66f20ff9d0dc1649cc332804443d"
   },
   "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\index.html": {
     "mtime": 1778276023.6318653,
     "hash": "8759a3b930f08113b59d4942bc991822"
   },
   "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\README.md": {
-    "mtime": 1778307304.5275693,
-    "hash": "391db034cdeef0257ac0e6db01bba187"
+    "mtime": 1778310925.3584352,
+    "hash": "8a130972c69115949db480a0a68e66fe"
   },
   "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\SIMULATION_MODEL.md": {
-    "mtime": 1778307304.5286398,
-    "hash": "620898f3e6e6179352b4ae464eff4f22"
+    "mtime": 1778310925.3589416,
+    "hash": "4880d44628a27b5a12f91801a718ddcb"
   },
   "C:\\Users\\ashis\\OneDrive\\Desktop\\Vault\\Hackathons\\SDSC - Reboot The Earth\\RTE\\scratch\\wildfire-model-ref\\CHANGELOG.md": {
     "mtime": 1778303175.0050328,
