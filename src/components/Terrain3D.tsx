@@ -46,7 +46,7 @@ const burnIndexColor = (burnIndex: BurnIndex): [number, number, number, number] 
 };
 
 const vertexIdx = (cell: Cell, gridWidth: number, gridHeight: number) =>
-  (gridHeight - 1 - cell.y) * gridWidth + cell.x;
+  cell.y * gridWidth + cell.x;
 
 interface Terrain3DProps {
   cells: Cell[];

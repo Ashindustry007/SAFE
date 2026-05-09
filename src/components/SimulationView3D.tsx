@@ -29,6 +29,8 @@ import { FireEngine } from '../logic/concord/engine/fire-engine';
 import { getDefaultFireEngineConfig } from '../logic/concord/engine-config';
 import { DEFAULT_THREE_ZONE_CONFIG, defaultWindFromConfig } from '../logic/concord/default-config';
 import { buildCellsFromAssets } from '../logic/concord/build-asset-terrain';
+import { PROCEDURAL_TERRAIN_ID, generate3DGrid } from '../logic/wildfire3D';
+import { CONCORD_PRESET_IDS, getConcordPreset, buildCellsFromConcordPreset } from '../logic/concord/presets';
 
 // Higher resolution grid (closer to Concord feel).
 // Note: Terrain3D uses a subdivided BoxGeometry; very high values can hurt FPS.
@@ -82,6 +84,7 @@ export const SimulationView3D: React.FC<Simulation3DProps> = ({ onBack }) => {
   const [activeTool, setActiveTool] = useState<Tool>('NONE');
   const [fireLineStart, setFireLineStart] = useState<{ x: number; y: number } | null>(null);
   const [clickMarkers, setClickMarkers] = useState<Array<{ x: number; y: number; z: number; tool: Tool; t: number }>>([]);
+  const [terrainId, setTerrainId] = useState<string>(PROCEDURAL_TERRAIN_ID);
 
   const [isSetupOpen, setIsSetupOpen] = useState(true);
   const [setupStep, setSetupStep] = useState(1);
@@ -163,6 +166,35 @@ export const SimulationView3D: React.FC<Simulation3DProps> = ({ onBack }) => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
   }, [isPlaying]);
+
+  const applyTerrainAndResetEngine = async (id: string) => {
+    setTerrainId(id);
+    setIsLoadingTerrain(true);
+    setTerrainLoadError(null);
+    try {
+      let grid: Cell[];
+      if (id === PROCEDURAL_TERRAIN_ID) {
+        grid = generate3DGrid(GRID_WIDTH, GRID_HEIGHT);
+      } else {
+        const preset = getConcordPreset(id);
+        if (preset) {
+          grid = buildCellsFromConcordPreset(preset, GRID_WIDTH, GRID_HEIGHT);
+        } else {
+          grid = await buildCellsFromAssets(CFG);
+        }
+      }
+      engineRef.current = createEngine(grid, wind);
+      setCells(grid);
+      setTime(0);
+      setIsPlaying(false);
+      setFireLineStart(null);
+      setClickMarkers([]);
+      setIsLoadingTerrain(false);
+    } catch (e: any) {
+      setTerrainLoadError(e?.message ?? String(e));
+      setIsLoadingTerrain(false);
+    }
+  };
 
   const handleCreate = () => {
     setIsSetupOpen(false);
@@ -349,7 +381,7 @@ err=${terrainLoadError ?? "none"}`}
                 position={[
                   (m.x / (GRID_WIDTH - 1) - 0.5) * 1,
                   m.z + 0.01,
-                  ((GRID_HEIGHT - 1 - m.y) / (GRID_HEIGHT - 1) - 0.5) * (MODEL_HEIGHT_FT / MODEL_WIDTH_FT),
+                  (m.y / (GRID_HEIGHT - 1) - 0.5) * (MODEL_HEIGHT_FT / MODEL_WIDTH_FT),
                 ]}
               >
                 <mesh position={[0, 0.03, 0]}>
@@ -376,9 +408,9 @@ err=${terrainLoadError ?? "none"}`}
               <Html
                 key={town.name}
                 position={[
-                  cell.x - GRID_WIDTH / 2,
-                  cell.baseElevation / 40 + 2,
-                  GRID_HEIGHT / 2 - cell.y,
+                  (cell.x / (GRID_WIDTH - 1) - 0.5) * 1,
+                  (cell.elevation ?? cell.baseElevation) * (1 / MODEL_WIDTH_FT) + 0.05,
+                  (cell.y / (GRID_HEIGHT - 1) - 0.5) * (MODEL_HEIGHT_FT / MODEL_WIDTH_FT),
                 ]}
                 center
               >
