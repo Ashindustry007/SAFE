@@ -1,3 +1,4 @@
+/// <reference types="@types/google.maps" />
 import React, { useEffect, useState, useRef } from 'react';
 import { setOptions, importLibrary } from '@googlemaps/js-api-loader';
 import { 
@@ -15,6 +16,7 @@ import { motion } from 'framer-motion';
 import { fetchWildfireIntel } from './services/wildfireApi';
 import type { WildfireData } from './services/wildfireApi';
 import { SimulationView3D as SimulationView } from './components/SimulationView3D';
+import { useFireSimulation } from './hooks/useFireSimulation';
 import './App.css';
 
 type ViewMode = 'MAP' | 'SIMULATION';
@@ -22,34 +24,14 @@ type ViewMode = 'MAP' | 'SIMULATION';
 const App: React.FC = () => {
   const [viewMode, setViewMode] = useState<ViewMode>('MAP');
   const [intel, setIntel] = useState<WildfireData | null>(null);
+  const [isUpdatingIntel, setIsUpdatingIntel] = useState(false);
   const mapRef = useRef<HTMLDivElement>(null);
+  const googleMapRef = useRef<any>(null);
   const [apiKey, setApiKey] = useState(import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '');
+  const [isIgniteMode, setIsIgniteMode] = useState(false);
+  const { isSimulating, startSimulation, clearSimulation, errorMsg } = useFireSimulation();
 
-  useEffect(() => {
-    const loadInitialData = async () => {
-      const CACHE_KEY = 'wildfire_intel_cache';
-      const CACHE_TIME_KEY = 'wildfire_intel_timestamp';
-      const ONE_HOUR = 60 * 60 * 1000;
-
-      const cachedData = localStorage.getItem(CACHE_KEY);
-      const cachedTime = localStorage.getItem(CACHE_TIME_KEY);
-      const now = Date.now();
-
-      if (cachedData && cachedTime && (now - parseInt(cachedTime)) < ONE_HOUR) {
-        console.log('Using cached wildfire intelligence data');
-        setIntel(JSON.parse(cachedData));
-        return;
-      }
-
-      console.log('Fetching fresh wildfire intelligence data (hourly refresh)');
-      const data = await fetchWildfireIntel({ north: 40, south: 30, east: -110, west: -120 });
-      setIntel(data);
-
-      localStorage.setItem(CACHE_KEY, JSON.stringify(data));
-      localStorage.setItem(CACHE_TIME_KEY, now.toString());
-    };
-    loadInitialData();
-  }, []);
+  // Removed static initial fetch logic; now handled by map 'idle' event
 
   useEffect(() => {
     if (mapRef.current && apiKey) {
@@ -59,15 +41,67 @@ const App: React.FC = () => {
       });
 
       importLibrary('maps').then(({ Map }: any) => {
-        new Map(mapRef.current!, {
+        const map = new Map(mapRef.current!, {
           center: { lat: 37.7749, lng: -122.4194 },
           zoom: 8,
           styles: lightColorfulMapStyle,
           disableDefaultUI: false,
         });
+        googleMapRef.current = map;
+
+        // Fetch data when map stops moving
+        map.addListener('idle', async () => {
+          const bounds = map.getBounds();
+          if (bounds) {
+            setIsUpdatingIntel(true);
+            const north = bounds.getNorthEast().lat();
+            const east = bounds.getNorthEast().lng();
+            const south = bounds.getSouthWest().lat();
+            const west = bounds.getSouthWest().lng();
+            
+            console.log('Fetching intel for new map bounds');
+            const data = await fetchWildfireIntel({ north, south, east, west });
+            setIntel(data);
+            setIsUpdatingIntel(false);
+          }
+        });
       });
     }
   }, [apiKey]);
+
+  useEffect(() => {
+    if (!googleMapRef.current) return;
+    const map = googleMapRef.current;
+    
+    // Clear previous listener
+    google.maps.event.clearListeners(map, 'click');
+
+    if (isIgniteMode) {
+      // Change cursor to crosshair
+      map.setOptions({ draggableCursor: 'crosshair' });
+
+      map.addListener('click', (e: any) => {
+        if (intel) {
+          // Zoom in to see the simulation properly
+          map.setZoom(14);
+          map.panTo(e.latLng);
+          
+          startSimulation(map, e.latLng, {
+            windSpeed: intel.windSpeed,
+            windDirection: intel.windDirection,
+            droughtIndex: intel.droughtIndex,
+            vegetationType: intel.vegetationType
+          });
+          setIsIgniteMode(false); // Turn off after ignite
+          map.setOptions({ draggableCursor: '' });
+        } else {
+          console.warn("Intel data not loaded yet.");
+        }
+      });
+    } else {
+      map.setOptions({ draggableCursor: '' });
+    }
+  }, [isIgniteMode, intel, startSimulation]);
 
   return (
     <div className="app-container">
@@ -147,18 +181,53 @@ const App: React.FC = () => {
 
           {/* Intelligence Panel (Right) */}
           <section className="intel-panel custom-scrollbar" style={{ flex: 2, backgroundColor: '#ffffff', color: '#1e293b', overflowY: 'auto' }}>
-            <header style={{ padding: '32px', borderBottom: '1px solid #e2e8f0' }}>
-              <h1 style={{ fontSize: '30px', fontWeight: 'bold', marginBottom: '8px', color: '#0f172a' }}>Environmental <span className="text-amber">Intelligence</span></h1>
-              <p style={{ color: '#64748b' }}>Regional risk analysis based on real-time sensory data.</p>
+            <header style={{ padding: '32px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <h1 style={{ fontSize: '30px', fontWeight: 'bold', marginBottom: '8px', color: '#0f172a' }}>Environmental <span className="text-amber">Intelligence</span></h1>
+                <p style={{ color: '#64748b' }}>
+                  {isUpdatingIntel ? 'Scanning current region...' : 'Regional risk analysis based on real-time sensory data.'}
+                </p>
+              </div>
+              
+              <button 
+                onClick={() => {
+                  if (isSimulating) {
+                    clearSimulation();
+                    setIsIgniteMode(false);
+                  } else {
+                    if (viewMode !== 'MAP') setViewMode('MAP');
+                    setIsIgniteMode(!isIgniteMode);
+                  }
+                }}
+                className={isIgniteMode ? "btn-primary" : ""}
+                style={{ 
+                  display: 'flex', alignItems: 'center', gap: '8px',
+                  padding: '12px 24px', borderRadius: '8px', fontWeight: 'bold',
+                  cursor: 'pointer', transition: 'all 0.2s',
+                  backgroundColor: isSimulating ? '#e2e8f0' : (isIgniteMode ? '#ef4444' : '#fff7ed'),
+                  color: isSimulating ? '#64748b' : (isIgniteMode ? '#ffffff' : '#ea580c'),
+                  border: isSimulating ? '1px solid #cbd5e1' : (isIgniteMode ? 'none' : '1px solid #ffedd5'),
+                }}
+              >
+                <Flame size={20} />
+                {isSimulating ? "Clear Simulation" : (isIgniteMode ? "Click Map to Ignite" : "Simulate Fire")}
+              </button>
             </header>
 
-            <div style={{ padding: '32px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            <div style={{ padding: '32px', display: 'flex', flexDirection: 'column', gap: '24px', opacity: isUpdatingIntel ? 0.5 : 1, transition: 'opacity 0.3s' }}>
+              {errorMsg && (
+                <div style={{ padding: '16px', backgroundColor: '#fee2e2', color: '#991b1b', borderRadius: '8px', border: '1px solid #fecaca' }}>
+                  <strong>Error:</strong> {errorMsg}
+                </div>
+              )}
               {/* Risk Score */}
               <div style={{ backgroundColor: '#fff7ed', padding: '24px', borderRadius: '16px', borderLeft: '4px solid var(--accent-amber)', border: '1px solid #ffedd5' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
                   <div>
                     <h3 style={{ color: '#9a3412', fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Fire Risk Probability</h3>
-                    <div style={{ fontSize: '36px', fontWeight: 'bold', marginTop: '4px', color: '#ea580c' }}>74<span style={{ fontSize: '20px' }}>%</span></div>
+                    <div style={{ fontSize: '36px', fontWeight: 'bold', marginTop: '4px', color: '#ea580c' }}>
+                      {intel ? Math.min(100, Math.round((intel.droughtIndex * 0.4) + (intel.windSpeed * 0.4) + (intel.temperature * 0.2))) : '...'}<span style={{ fontSize: '20px' }}>%</span>
+                    </div>
                   </div>
                   <div style={{ backgroundColor: '#ffedd5', padding: '8px', borderRadius: '8px', color: '#ea580c' }}>
                     <Flame size={24} />
@@ -167,7 +236,7 @@ const App: React.FC = () => {
                 <div style={{ width: '100%', backgroundColor: '#fed7aa', height: '8px', borderRadius: '4px', overflow: 'hidden' }}>
                   <motion.div 
                     initial={{ width: 0 }}
-                    animate={{ width: '74%' }}
+                    animate={{ width: intel ? Math.min(100, Math.round((intel.droughtIndex * 0.4) + (intel.windSpeed * 0.4) + (intel.temperature * 0.2))) + '%' : '0%' }}
                     transition={{ duration: 1.5, ease: "easeOut" }}
                     style={{ backgroundColor: '#ea580c', height: '100%' }} 
                   />
@@ -180,13 +249,13 @@ const App: React.FC = () => {
                   icon={<Thermometer className="text-red" size={20} />}
                   label="Temperature"
                   value={intel?.temperature ? `${intel.temperature}°C` : '...'}
-                  trend="Extreme Heat"
+                  trend={intel && intel.temperature > 30 ? "Extreme Heat" : "Normal"}
                 />
                 <MetricCard 
                   icon={<CloudRain className="text-blue" size={20} />}
                   label="Humidity"
                   value={intel?.humidity ? `${intel.humidity}%` : '...'}
-                  trend="Very Dry"
+                  trend={intel && intel.humidity < 30 ? "Very Dry" : "Normal"}
                 />
                 <MetricCard 
                   icon={<Wind className="text-blue" size={20} />}
@@ -198,7 +267,7 @@ const App: React.FC = () => {
                   icon={<Trees className="text-emerald" size={20} />}
                   label="Vegetation"
                   value={intel?.vegetationType ?? '...'}
-                  trend="High Dryness"
+                  trend={intel?.vegetationType === 'Forest' ? "High Risk Fuel" : "Medium Risk"}
                 />
                 <MetricCard 
                   icon={<Navigation className="text-blue" size={20} />}
@@ -210,7 +279,7 @@ const App: React.FC = () => {
                   icon={<Droplets className="text-amber" size={20} />}
                   label="Drought Index"
                   value={intel?.droughtIndex ? `${intel.droughtIndex}/100` : '...'}
-                  trend="Severe"
+                  trend={intel && intel.droughtIndex > 70 ? "Severe" : "Moderate"}
                 />
               </div>
             </div>
