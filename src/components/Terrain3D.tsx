@@ -1,3 +1,12 @@
+/**
+ * SAFE 3D Terrain Renderer
+ * 
+ * High-performance WebGL terrain mesh component.
+ * Converts 2D grid data and elevation profiles into a dynamic 3D surface.
+ * Utilizes BufferAttributes for efficient vertex-level color and position updates,
+ * allowing real-time visualization of fire spread on complex topography.
+ */
+
 import React, { useMemo, useRef, useEffect } from 'react';
 import * as THREE from 'three';
 import { FireState } from '../logic/wildfireTypes';
@@ -13,15 +22,21 @@ interface Terrain3DProps {
 export const Terrain3D: React.FC<Terrain3DProps> = ({ cells, width, height, onCellClick }) => {
   const geometryRef = useRef<THREE.PlaneGeometry>(null);
 
+  /**
+   * Initial Mesh Generation
+   * Pre-calculates the position and color arrays for the initial scene render.
+   * Elevation is scaled to create a natural vertical profile.
+   */
   const { positions, colors } = useMemo(() => {
     const posArr = new Float32Array(width * height * 3);
     const colArr = new Float32Array(width * height * 3);
 
     cells.forEach((cell, i) => {
       const idx = i * 3;
+      // Map grid coordinates to 3D space centers
       posArr[idx] = cell.x - width / 2;
       posArr[idx + 1] = height / 2 - cell.y;
-      posArr[idx + 2] = cell.baseElevation / 100; // Scale elevation
+      posArr[idx + 2] = cell.baseElevation / 100; // Elevation scaling factor
 
       const color = getCellColor(cell);
       colArr[idx] = color.r;
@@ -32,6 +47,11 @@ export const Terrain3D: React.FC<Terrain3DProps> = ({ cells, width, height, onCe
     return { positions: posArr, colors: colArr };
   }, [width, height, cells.length]);
 
+  /**
+   * Reactive Update Effect
+   * Efficiently updates only the vertex colors when the simulation state changes.
+   * This bypasses full mesh re-renders for maximum FPS during fire propagation.
+   */
   useEffect(() => {
     if (!geometryRef.current) return;
     const colorAttr = geometryRef.current.getAttribute('color') as THREE.BufferAttribute;
@@ -43,25 +63,29 @@ export const Terrain3D: React.FC<Terrain3DProps> = ({ cells, width, height, onCe
     colorAttr.needsUpdate = true;
   }, [cells]);
 
+  /**
+   * getCellColor
+   * Map cell attributes (FireState, Zone, Features) to specific RGB values.
+   */
   function getCellColor(cell: Cell) {
     if (cell.fireState === FireState.Burning) {
-      return new THREE.Color('#ff9800'); // Glowing Orange
+      return new THREE.Color('#ff9800'); // Active Combustion (Orange)
     }
     if (cell.fireState === FireState.Burnt) {
-      return new THREE.Color('#000000'); // Solid Black
+      return new THREE.Color('#000000'); // Charred Remains (Black)
     }
     if (cell.isRiver) {
-      return new THREE.Color('#1976d2'); // Blue River
+      return new THREE.Color('#1976d2'); // Hydrology (Blue)
     }
     if (cell.isFireLine) {
-      return new THREE.Color('#795548'); // Brown Fire Line
+      return new THREE.Color('#795548'); // Defensive Barrier (Brown)
     }
     
-    // Exact Zone Colors
+    // Regional Vegetation Coloring
     switch (cell.zoneIdx) {
-      case 0: return new THREE.Color('#2e7d32'); // Mountains
-      case 1: return new THREE.Color('#4caf50'); // Foothills
-      case 2: return new THREE.Color('#8bc34a'); // Plains
+      case 0: return new THREE.Color('#2e7d32'); // Mountains (Dark Green)
+      case 1: return new THREE.Color('#4caf50'); // Foothills (Medium Green)
+      case 2: return new THREE.Color('#8bc34a'); // Plains (Light Green)
       default: return new THREE.Color('#4caf50');
     }
   }
@@ -70,6 +94,7 @@ export const Terrain3D: React.FC<Terrain3DProps> = ({ cells, width, height, onCe
     <mesh 
       rotation={[-Math.PI / 3, 0, 0]} 
       onClick={(e) => {
+        // Handle raycasted clicks to determine grid coordinates
         e.stopPropagation();
         const point = e.point;
         const gx = Math.round(point.x + width / 2);

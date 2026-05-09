@@ -1,5 +1,15 @@
-// Mock service for fetching wildfire-related environmental data
+/**
+ * SAFE Environmental Intelligence Service
+ * 
+ * Provides an abstraction layer for fetching real-time sensory data
+ * including wind vectors, humidity, temperature, and vegetation dryness.
+ * Currently uses a mock implementation with hourly caching logic in the App layer.
+ */
 
+/**
+ * BoundingBox
+ * Geographic coordinates for regional intelligence queries.
+ */
 export interface BoundingBox {
   north: number;
   south: number;
@@ -7,6 +17,10 @@ export interface BoundingBox {
   west: number;
 }
 
+/**
+ * WildfireData
+ * Unified model for sensory intelligence required by the Rothermel engine.
+ */
 export interface WildfireData {
   droughtIndex: number;
   vegetationType: string;
@@ -17,11 +31,17 @@ export interface WildfireData {
   roadStatus: 'Open' | 'Closed' | 'Caution';
 }
 
-// Mock service for fetching wildfire-related environmental data
+/**
+ * fetchWildfireIntel
+ * Aggregates multiple environmental data points for a specific region.
+ * 
+ * @param _bbox - Target geographic bounding box
+ * @returns Comprehensive wildfire intelligence object
+ */
 export const fetchWildfireIntel = async (_bbox: BoundingBox): Promise<WildfireData> => {
-  // In a real app, we would call NASA POWER or OpenWeather APIs here
-  // For now, we simulate a delay and return mock data
-  await new Promise(resolve => setTimeout(resolve, 1000));
+  // SIMULATION: In a production environment, this would integrate with
+  // NASA POWER (Climatology) and OpenWeather (Current Conditions) APIs.
+  await new Promise(resolve => setTimeout(resolve, 800)); // Network latency simulation
   
   return {
     droughtIndex: Math.floor(Math.random() * 100),
@@ -33,6 +53,11 @@ export const fetchWildfireIntel = async (_bbox: BoundingBox): Promise<WildfireDa
     roadStatus: ['Open', 'Closed', 'Caution'][Math.floor(Math.random() * 3)] as 'Open' | 'Closed' | 'Caution',
   };
 };
+
+/**
+ * Specialized Data Fetchers
+ * Modular helpers for targeted intelligence retrieval.
+ */
 
 export const fetchDroughtIndex = async (bbox: BoundingBox) => {
   return (await fetchWildfireIntel(bbox)).droughtIndex;

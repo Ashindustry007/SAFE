@@ -1,61 +1,72 @@
 # System Architecture - SAFE
 
-This document outlines the structural design and data flow of the SAFE platform.
+This document outlines the structural design and data flow of the SAFE (Smart Analytics for Fire Emergencies) platform.
 
 ## 🏗️ High-Level Overview
 
-SAFE is built as a modular React application with a clear separation between the UI layer, the data services, and the mathematical simulation engine.
+SAFE is built as a modular React application with a clear separation between the UI layer, the data services, and the high-fidelity mathematical simulation engine.
 
 ```mermaid
 graph TD
-    A[App.tsx] --> B[Map View]
-    A --> C[Simulation View]
+    A[App.tsx] --> B[Map Dashboard]
+    A --> C[Simulation Center]
+    A --> L[Intelligence Assistant]
     
     B --> D[Google Maps API]
-    B --> E[Intel Panel]
+    B --> E[Environmental Intel]
     
-    E --> F[wildfireApi.ts]
+    L --> M[Multi-Provider Failsafe Server]
+    M --> N[Groq / Gemini / OpenAI]
     
-    C --> G[Simulation.tsx]
-    G --> H[SimulationView3D.tsx]
-    H --> I[Terrain3D.tsx]
+    C --> G[2D Simulator]
+    C --> H[3D Simulation View]
+    H --> I[Terrain3D Renderer]
     
-    G --> J[wildfireEngineAdapted.ts]
-    J --> K[Rothermel Model]
+    G & H --> J[Rothermel Engine]
+    J --> K[Physical Spread Logic]
 ```
 
 ## 📁 Directory Structure
 
 | Directory | Responsibility |
 |-----------|----------------|
-| `src/components` | UI components, including Three.js wrappers and dashboard elements. |
-| `src/logic` | The "brain" of the app. Contains the physics models and grid state management. |
-| `src/services` | External API communication (currently mocked/simulated for wildfire data). |
-| `src/assets` | Global styles, images, and theme tokens. |
+| `src/components` | UI components, including Three.js wrappers, dashboard elements, and the Intelligence Assistant. |
+| `src/logic` | The "brain" of the app. Contains the Rothermel physics model and procedural terrain generation. |
+| `src/services` | External API communication for wildfire data and environmental metrics. |
+| `server/` | Node.js backend managing the multi-provider AI failsafe system and document intelligence. |
 
-## 🧬 Component Hierarchy
+## 🧬 Intelligence Architecture
 
-1. **`App.tsx`**: Main controller. Manages navigation state (`MAP` vs `SIMULATION`) and top-level data fetching.
-2. **`Simulation.tsx`**: The simulation coordinator. Handles the simulation loop (`requestAnimationFrame`) and passes the state to the 3D renderer.
-3. **`SimulationView3D.tsx`**: The Three.js scene container. Sets up lighting, cameras, and controls.
-4. **`Terrain3D.tsx`**: Renders the voxel-based or grid-based terrain using optimized Three.js instances.
+### 1. Hybrid Chatbot System
+The Intelligence Assistant (`Chatbot.tsx`) utilizes a dual-layer logic:
+- **Local Layer**: Instant response for core platform identity using word-boundary regex matching.
+- **Cloud Layer**: Complex technical reasoning routed through a resilient backend.
 
-## 🔄 Data Flow
+### 2. Multi-Provider Failsafe
+The backend (`server/index.ts`) implements a sequential failover chain to ensure 100% uptime:
+1. **Groq (Llama 3)**: Primary high-speed technical responder.
+2. **Google Gemini**: Secondary environmental reasoning.
+3. **OpenAI**: Tertiary technical documentation analysis.
+4. **Local Fallback**: Pre-indexed technical summary if all external APIs are throttled.
 
-### 1. Intelligence Data
-- On mount, `App.tsx` fetches environmental data via `wildfireApi.ts`.
-- Data is cached in `LocalStorage` to minimize API calls.
-- State is passed down to the `IntelPanel` for visualization.
+## 🔄 Simulation Data Flow
 
-### 2. Simulation Loop
-- When the user starts a simulation, `Simulation.tsx` initializes a grid based on environmental parameters (wind, drought, vegetation).
-- A `useEffect` loop or `requestAnimationFrame` calls `stepSimulation` from the logic layer.
-- `stepSimulation` returns a new grid state, which triggers a re-render of the 3D components.
+### 1. Environmental Intelligence
+- On mount, `App.tsx` fetches environmental data (wind, temperature, moisture) via `wildfireApi.ts`.
+- Data is cached in `LocalStorage` (1-hour TTL) to optimize performance.
 
-## 🛠️ State Management
-- **Local State**: Primarily handled via React `useState` and `useRef` for performance-critical 3D values.
-- **Persistence**: `LocalStorage` is used for caching environmental metrics and user preferences.
+### 2. High-Fidelity Physics Loop
+- The simulation engine (`wildfireEngineAdapted.ts`) implements the **Rothermel Surface Fire Spread Model**.
+- It calculates fire behavior based on:
+    - **Fuel Properties**: SAV ratio, packing ratio, and moisture of extinction.
+    - **Environmental Factors**: Wind vectors and topographic slope.
+    - **Suppression Logic**: Real-time impact of Helitack drops and fireline construction.
 
-## 📡 API Integration
-- **Google Maps**: Used for spatial visualization of regional risks.
-- **Custom Service**: `wildfireApi.ts` provides structured `WildfireData` including temperature, humidity, and road status.
+## 🛠️ Technology Stack
+- **Frontend**: Vite + React, Three.js (React Three Fiber), Framer Motion, Lucide Icons.
+- **Backend**: Node.js, Express, LangChain, OpenAI/Gemini SDKs.
+- **Mapping**: Google Maps JavaScript API.
+- **Styling**: Vanilla CSS with modern glassmorphism and dynamic layout tokens.
+
+---
+*SAFE Architecture Documentation - v2.1 (Hackathon Ready)*

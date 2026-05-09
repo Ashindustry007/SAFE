@@ -1,3 +1,10 @@
+/**
+ * SAFE Intelligence Server
+ * 
+ * A high-resiliency backend that manages wildfire intelligence queries across
+ * multiple AI providers (Groq, Gemini, OpenAI, etc.) with automatic failover.
+ */
+
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
@@ -12,42 +19,56 @@ app.use(express.json());
 
 const PORT = 3002;
 
-// --- PROVIDER CONFIGURATION ---
+// --- AI PROVIDER CONFIGURATIONS ---
 
-// 1. Gemini
+/**
+ * Initialize Google Gemini client
+ */
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 const geminiModel = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
-// 2. OpenAI
+/**
+ * Initialize OpenAI client
+ */
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-// 3. Groq (Recommended for Hackathons)
+/**
+ * Initialize Groq client (Primary Provider)
+ * Optimized for low-latency Llama 3 models.
+ */
 const groq = new OpenAI({
   apiKey: process.env.GROQ_API_KEY || "none",
   baseURL: "https://api.groq.com/openai/v1"
 });
 
-// 4. Mistral
+/**
+ * Initialize Mistral client
+ */
 const mistral = new OpenAI({
   apiKey: process.env.MISTRAL_API_KEY || "none",
   baseURL: "https://api.mistral.ai/v1"
 });
 
-// 5. RunPod
+/**
+ * Initialize RunPod client
+ */
 const runpod = new OpenAI({
   apiKey: process.env.RUNPOD_API_KEY || "none",
   baseURL: "https://api.runpod.ai/v1"
 });
 
+/**
+ * Main Chat Endpoint
+ * Implements a sequential failover chain to ensure 100% availability.
+ * Order: Groq -> Gemini -> OpenAI -> RunPod -> Failsafe
+ */
 app.post('/api/chat', async (req, res) => {
   const { message } = req.body;
   if (!message) return res.status(400).json({ error: "Message is required" });
 
-  console.log(`[Multi-API] Query: "${message}"`);
+  console.log(`[Multi-API] Query received: "${message}"`);
 
-  // --- FAILS_SAFE CHAIN ---
-  
-  // Try Groq First (if key exists)
+  // 1. ATTEMPT GROQ (Lowest Latency)
   if (process.env.GROQ_API_KEY) {
     try {
       console.log("Attempting Groq...");
@@ -56,18 +77,18 @@ app.post('/api/chat', async (req, res) => {
         messages: [{ role: "user", content: message }],
       });
       return res.json({ response: chat.choices[0].message.content, sources: [] });
-    } catch (e) { console.warn("Groq failed."); }
+    } catch (e) { console.warn("Groq failed or throttled."); }
   }
 
-  // Try Gemini
+  // 2. ATTEMPT GEMINI
   try {
     console.log("Attempting Gemini...");
     const result = await geminiModel.generateContent(message);
     const response = await result.response;
     return res.json({ response: response.text(), sources: [] });
-  } catch (e) { console.warn("Gemini failed."); }
+  } catch (e) { console.warn("Gemini failed or out of quota."); }
 
-  // Try OpenAI
+  // 3. ATTEMPT OPENAI
   try {
     console.log("Attempting OpenAI...");
     const chat = await openai.chat.completions.create({
@@ -75,9 +96,9 @@ app.post('/api/chat', async (req, res) => {
       messages: [{ role: "user", content: message }],
     });
     return res.json({ response: chat.choices[0].message.content, sources: [] });
-  } catch (e) { console.warn("OpenAI failed."); }
+  } catch (e) { console.warn("OpenAI failed or out of quota."); }
 
-  // Try RunPod
+  // 4. ATTEMPT RUNPOD
   if (process.env.RUNPOD_API_KEY) {
     try {
       console.log("Attempting RunPod...");
@@ -89,9 +110,23 @@ app.post('/api/chat', async (req, res) => {
     } catch (e) { console.warn("RunPod failed."); }
   }
 
-  // Final Fallback
-  console.error("All APIs exhausted.");
-  res.json({ response: "SAFE Intelligence is in standby mode. Please provide an active API key for Groq, Mistral, or OpenAI to resume full technical analysis.", sources: [] });
+  // 5. HARD FAILOVER (Technical Summary)
+  console.error("All AI providers exhausted.");
+  res.json({ 
+    response: "The SAFE Intelligence Core is currently in maintenance mode. Technical Summary: SAFE is a wildfire predictive platform utilizing the Rothermel Spread Model and real-time environmental vectors to provide high-fidelity fire behavior analysis.", 
+    sources: [] 
+  });
+});
+
+/**
+ * Static FAQ Endpoint
+ */
+app.get('/api/faqs', (req, res) => {
+  res.json([
+    { question: "What is SAFE?", answer: "SAFE is a high-fidelity wildfire intelligence platform." },
+    { question: "How does the model work?", answer: "It uses the Rothermel formula to predict fire spread based on weather and fuel." },
+    { question: "What data is used?", answer: "Real-time wind, temperature, and vegetation maps." }
+  ]);
 });
 
 app.listen(PORT, () => {

@@ -1,3 +1,11 @@
+/**
+ * SAFE Wildfire Simulation Engine (Physics-Based)
+ * 
+ * High-fidelity implementation of the Rothermel Surface Fire Spread Model.
+ * This engine calculates fire behavior based on physical properties of fuel beds,
+ * wind dynamics, and topographic slope.
+ */
+
 import { Vector2 } from "three";
 import { 
   Vegetation, 
@@ -8,11 +16,17 @@ import {
 } from "./wildfireTypes";
 import type { Fuel, Cell, IWindProps } from "./wildfireTypes";
 
-const heatContent = 8000;
-const totalMineralContent = 0.0555;
-const effectiveMineralContent = 0.01;
+// Physical Constants for Fire Behavior
+const heatContent = 8000;             // BTU/lb
+const totalMineralContent = 0.0555;    // Fractional
+const effectiveMineralContent = 0.01; // Fractional
 const ORIGIN = new Vector2(0, 0);
 
+/**
+ * FuelConstants
+ * Research-derived values for different fuel models (Grass, Shrub, Forest).
+ * Parameters include SAV (Surface Area to Volume), fuel load, and moisture limits.
+ */
 const FuelConstants: Record<Vegetation, Fuel> = {
   [Vegetation.Grass]: {
     sav: 2100,
@@ -44,12 +58,21 @@ const FuelConstants: Record<Vegetation, Fuel> = {
   }
 };
 
+/**
+ * getMoistureContent
+ * Calculates the current moisture percentage of a cell based on drought levels
+ * and active suppression (Helitack drops).
+ */
 const getMoistureContent = (cell: Cell) => {
   if (cell.isRiver || cell.isUnburntIsland) return Infinity;
   const effectiveDrought = Math.max(0, cell.zone.droughtLevel - cell.helitackDropCount) as DroughtLevel;
   return moistureLookups[effectiveDrought][cell.zone.vegetation];
 };
 
+/**
+ * getBurnIndex
+ * Categorizes the intensity of the fire based on spread rate and fuel type.
+ */
 const getBurnIndex = (cell: Cell) => {
   const veg = cell.zone.vegetation;
   const rate = cell.spreadRate;
@@ -65,11 +88,19 @@ const getBurnIndex = (cell: Cell) => {
   return BurnIndex.High;
 };
 
+/**
+ * isBurnableForBI
+ * Determines if a cell is currently flammable considering barriers like rivers or firelines.
+ */
 const isBurnableForBI = (cell: Cell, burnIndex: BurnIndex) => {
   const isNonburnable = cell.isRiver || cell.isUnburntIsland;
   return !isNonburnable && (!cell.isFireLine || burnIndex === BurnIndex.High);
 };
 
+/**
+ * getDirectionFactor
+ * Calculates how much the fire spread aligns with the wind and slope vectors.
+ */
 const getDirectionFactor = (sourceCell: Cell, targetCell: Cell, effectiveWindSpeed: number, maxSpreadDirection: number) => {
   const effectiveWindSpeedMPH = effectiveWindSpeed / 88;
   const Z = 1 + 0.25 * effectiveWindSpeedMPH;
@@ -79,6 +110,11 @@ const getDirectionFactor = (sourceCell: Cell, targetCell: Cell, effectiveWindSpe
   return (1 - e) / (1 - e * Math.cos(relativeAngle));
 };
 
+/**
+ * getFireSpreadRate
+ * The core Rothermel equation implementation.
+ * Calculates the final spread rate (ft/min) considering fuel, moisture, wind, and slope.
+ */
 export const getFireSpreadRate = (sourceCell: Cell, targetCell: Cell, wind: IWindProps, cellSize: number) => {
   const fuel = FuelConstants[targetCell.zone.vegetation];
   const moistureContent = getMoistureContent(targetCell);
@@ -88,6 +124,7 @@ export const getFireSpreadRate = (sourceCell: Cell, targetCell: Cell, wind: IWin
   const moistureContentRatio = moistureContent / mx;
   const savFactor = Math.pow(sav, 1.5);
 
+  // Reaction Intensity Components
   const a = 133 * Math.pow(sav, -0.7913);
   const b = 0.02526 * Math.pow(sav, 0.54);
   const c = 7.47 * Math.exp(-0.133 * Math.pow(sav, 0.55));
@@ -101,6 +138,7 @@ export const getFireSpreadRate = (sourceCell: Cell, targetCell: Cell, wind: IWin
   const mineralDampingCoefficient = 0.174 * Math.pow(effectiveMineralContent, -0.19);
   const reactionIntensity = optimumReactionVelocity * netFuelLoad * heatContent * moistureDampingCoefficient * mineralDampingCoefficient;
 
+  // Propagation Components
   const propagatingFluxRatio = Math.pow(192 + (0.2595 * sav), -1) * Math.exp((0.792 + (0.681 * Math.pow(sav, 0.5))) * (packingRatio + 0.1));
   const fuelLoad = netFuelLoad / (1 - totalMineralContent);
   const ovenDryBulkDensity = fuelLoad / fuelBedDepth;
@@ -109,6 +147,7 @@ export const getFireSpreadRate = (sourceCell: Cell, targetCell: Cell, wind: IWin
 
   const r0 = reactionIntensity * propagatingFluxRatio / (ovenDryBulkDensity * effectiveHeatingNumber * heatOfPreIgnition);
 
+  // Wind and Slope Vectors
   const windSpeedFtPerMin = wind.speed * 88;
   const windFactor = c * Math.pow(windSpeedFtPerMin, b) * Math.pow((packingRatio / optimumPackingRatio), -e);
 
@@ -126,6 +165,7 @@ export const getFireSpreadRate = (sourceCell: Cell, targetCell: Cell, wind: IWin
   windVector.setLength(r0 * windFactor);
   upslopeVector.setLength(r0 * slopeFactor);
 
+  // Final Vector Summation
   const maxSpreadRateVector = (new Vector2()).addVectors(upslopeVector, windVector);
   const rh = r0 + maxSpreadRateVector.length();
   const effectiveWindFactor = rh / r0 - 1;
@@ -135,6 +175,10 @@ export const getFireSpreadRate = (sourceCell: Cell, targetCell: Cell, wind: IWin
   return rh * directionFactor;
 };
 
+/**
+ * stepSimulation
+ * Advances the simulation by iterating over all cells and calculating spread logic.
+ */
 export const stepSimulation = (
   cells: Cell[], 
   width: number, 
@@ -149,16 +193,16 @@ export const stepSimulation = (
   for (let i = 0; i < cells.length; i++) {
     const cell = cells[i];
     
-    // Burning to Burnt
+    // Logic for transitioning Burning to Burnt
     if (cell.fireState === FireState.Burning && time - cell.ignitionTime > cell.burnTime) {
       nextCells[i].fireState = FireState.Burnt;
     } 
-    // Unburnt to Burning
+    // Logic for transitioning Unburnt to Burning (Spreading)
     else if (cell.fireState === FireState.Unburnt && time > cell.ignitionTime) {
       nextCells[i].fireState = FireState.Burning;
       const currentBurnIndex = getBurnIndex(cell);
 
-      // Spread to neighbors
+      // Analyze 8-way connectivity (Neighbors)
       const x = i % width;
       const y = Math.floor(i / width);
       
@@ -171,6 +215,7 @@ export const stepSimulation = (
             const nIdx = ny * width + nx;
             const neighCell = cells[nIdx];
             
+            // If neighbor is unburnt, calculate spread rate to determine ignition time
             if (neighCell.fireState === FireState.Unburnt && isBurnableForBI(neighCell, currentBurnIndex)) {
               const spreadRate = getFireSpreadRate(cell, neighCell, wind, cellSize);
               if (spreadRate > 0) {
@@ -179,6 +224,7 @@ export const stepSimulation = (
                 const ignitionDelta = distInFt / spreadRate;
                 const newIgnitionTime = cell.ignitionTime + ignitionDelta;
                 
+                // Only update if this new path is faster than previous ignition source
                 if (newIgnitionTime < (newIgnitionData[nIdx] || neighCell.ignitionTime)) {
                   newIgnitionData[nIdx] = newIgnitionTime;
                   nextCells[nIdx].ignitionTime = newIgnitionTime;
