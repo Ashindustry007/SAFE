@@ -9,10 +9,10 @@ export interface ZoneOptions {
 
 // values for each level of vegetation: Grass, Shrub, Forest, ForestWithSuppression
 export const moistureLookups: {[key in DroughtLevel]: number[]} = {
-  [DroughtLevel.NoDrought]: [0.1275, 0.255, 0.17, 0.2125],
-  [DroughtLevel.MildDrought]: [0.09, 0.18, 0.12, 0.15],
-  [DroughtLevel.MediumDrought]: [0.0525, 0.105, 0.07, 0.0875],
-  [DroughtLevel.SevereDrought]: [0.015, 0.03, 0.02, 0.025],
+  [DroughtLevel.NoDrought]: [0.20, 0.40, 0.30, 0.35],
+  [DroughtLevel.MildDrought]: [0.12, 0.24, 0.18, 0.21],
+  [DroughtLevel.MediumDrought]: [0.06, 0.12, 0.09, 0.105],
+  [DroughtLevel.SevereDrought]: [0.005, 0.01, 0.007, 0.008],
 };
 
 
