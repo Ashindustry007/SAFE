@@ -12,6 +12,9 @@ export interface WildfireData {
   vegetationType: string;
   windSpeed: number;
   windDirection: number;
+  temperature: number;
+  humidity: number;
+  roadStatus: 'Open' | 'Closed' | 'Caution';
 }
 
 // Mock service for fetching wildfire-related environmental data
@@ -25,6 +28,9 @@ export const fetchWildfireIntel = async (_bbox: BoundingBox): Promise<WildfireDa
     vegetationType: ['Forest', 'Grassland', 'Shrubland', 'Savanna'][Math.floor(Math.random() * 4)],
     windSpeed: Math.floor(Math.random() * 50),
     windDirection: Math.floor(Math.random() * 360),
+    temperature: Math.floor(Math.random() * 40) + 10,
+    humidity: Math.floor(Math.random() * 100),
+    roadStatus: ['Open', 'Closed', 'Caution'][Math.floor(Math.random() * 3)] as 'Open' | 'Closed' | 'Caution',
   };
 };
 
