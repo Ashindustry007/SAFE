@@ -1,4 +1,4 @@
-export type CellState = 'unburned' | 'burning' | 'burntOut' | 'survived';
+export type CellState = 'unburned' | 'burning' | 'burntOut' | 'survived' | 'water';
 
 export interface FireCell {
   x: number;

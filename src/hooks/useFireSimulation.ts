@@ -1,15 +1,123 @@
 /// <reference types="@types/google.maps" />
 import { useRef, useState, useCallback } from 'react';
 import { FireSimulation, DEFAULT_PARAMS } from '../utils/fireSimulation';
-import type { FireCell, SimulationIntel, CellState } from '../utils/fireSimulation';
+import type { FireCell, SimulationIntel } from '../utils/fireSimulation';
 
 const CELL_SIZE_M = DEFAULT_PARAMS.cellSizeFt * 0.3048; // ~152.4 meters
+
+const getColorForState = (cell: FireCell) => {
+  switch(cell.state) {
+    case 'unburned': return 'transparent';
+    case 'water': return 'transparent';
+    case 'burning': {
+      // Map burn lifecycle to the 3 burn index colors from the 2D engine
+      const ratio = cell.burnTimeElapsed / DEFAULT_PARAMS.minCellBurnTime;
+      if (ratio < 0.33) return '#ffb200'; // Low intensity (Yellow-Orange)
+      if (ratio < 0.66) return '#ff8000'; // Medium intensity (Orange)
+      return '#ff0000'; // High intensity (Red)
+    }
+    case 'burntOut': return '#333333'; // Burnt Color (Dark Grey)
+    case 'survived': return '#228B22'; // Forest green
+    default: return 'transparent';
+  }
+};
+
+let CanvasOverlayClass: any = null;
+
+function getCanvasOverlayClass() {
+  if (CanvasOverlayClass) return CanvasOverlayClass;
+
+  CanvasOverlayClass = class CanvasOverlay extends google.maps.OverlayView {
+    private bounds: google.maps.LatLngBounds;
+    private canvas: HTMLCanvasElement;
+    private context: CanvasRenderingContext2D | null;
+    private gridWidth: number;
+    private gridHeight: number;
+
+    constructor(bounds: google.maps.LatLngBounds, gridWidth: number, gridHeight: number) {
+      super();
+      this.bounds = bounds;
+      this.gridWidth = gridWidth;
+      this.gridHeight = gridHeight;
+      this.canvas = document.createElement('canvas');
+      this.canvas.style.position = 'absolute';
+      // The CSS filter applies a blur to blend pixels and contrast to sharpen the blurred edge, making a blob shape
+      this.canvas.style.filter = 'blur(8px) contrast(1.5)';
+      this.canvas.style.opacity = '0.8';
+      this.canvas.style.pointerEvents = 'none'; // let clicks pass through
+      this.context = this.canvas.getContext('2d');
+    }
+
+    onAdd() {
+      const panes = this.getPanes();
+      if (panes) {
+        panes.overlayLayer.appendChild(this.canvas);
+      }
+    }
+
+    draw() {
+      const projection = this.getProjection();
+      if (!projection) return;
+
+      const sw = projection.fromLatLngToDivPixel(this.bounds.getSouthWest());
+      const ne = projection.fromLatLngToDivPixel(this.bounds.getNorthEast());
+
+      if (sw && ne) {
+        this.canvas.style.left = sw.x + 'px';
+        this.canvas.style.top = ne.y + 'px';
+        const w = ne.x - sw.x;
+        const h = sw.y - ne.y;
+        this.canvas.style.width = w + 'px';
+        this.canvas.style.height = h + 'px';
+        
+        // Update internal canvas resolution
+        if (this.canvas.width !== w || this.canvas.height !== h) {
+          this.canvas.width = w;
+          this.canvas.height = h;
+        }
+      }
+    }
+
+    onRemove() {
+      if (this.canvas.parentNode) {
+        this.canvas.parentNode.removeChild(this.canvas);
+      }
+    }
+
+    updateGrid(grid: FireCell[][]) {
+      if (!this.context) return;
+      const w = this.canvas.width;
+      const h = this.canvas.height;
+      
+      // Clear previous frame
+      this.context.clearRect(0, 0, w, h);
+      
+      const cellW = w / this.gridWidth;
+      const cellH = h / this.gridHeight;
+
+      for (let y = 0; y < this.gridHeight; y++) {
+        for (let x = 0; x < this.gridWidth; x++) {
+          const cell = grid[y][x];
+          const color = getColorForState(cell);
+          
+          if (color !== 'transparent') {
+            this.context.fillStyle = color;
+            // Draw rect slightly larger (+1px) to prevent sub-pixel gaps between cells before blurring
+            this.context.fillRect(x * cellW, y * cellH, cellW + 1, cellH + 1);
+          }
+        }
+      }
+    }
+  };
+
+  return CanvasOverlayClass;
+}
 
 export function useFireSimulation() {
   const [isSimulating, setIsSimulating] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const simulationRef = useRef<FireSimulation | null>(null);
-  const rectanglesRef = useRef<google.maps.Rectangle[][]>([]);
+  const overlayRef = useRef<any>(null);
   const intervalRef = useRef<number | null>(null);
 
   const clearSimulation = useCallback(() => {
@@ -17,24 +125,13 @@ export function useFireSimulation() {
       clearInterval(intervalRef.current);
       intervalRef.current = null;
     }
-    // Remove rectangles from map
-    rectanglesRef.current.forEach(row => {
-      row.forEach(rect => rect.setMap(null));
-    });
-    rectanglesRef.current = [];
+    if (overlayRef.current) {
+      overlayRef.current.setMap(null);
+      overlayRef.current = null;
+    }
     simulationRef.current = null;
     setIsSimulating(false);
   }, []);
-
-  const getColorForState = (state: CellState, isSimulationEnded: boolean = false) => {
-    switch(state) {
-      case 'unburned': return isSimulationEnded ? '#22c55e' : 'transparent'; // Green when ended
-      case 'burning': return '#ef4444'; // Red
-      case 'burntOut': return '#b91c1c'; // Dark Red (stays red)
-      case 'survived': return '#228B22'; // Forest green
-      default: return 'transparent';
-    }
-  };
 
   const startSimulation = useCallback(async (map: any, centerLatLng: any, intel: SimulationIntel) => {
     clearSimulation();
@@ -94,12 +191,19 @@ export function useFireSimulation() {
           const elevM = results ? results[i].elevation : 0;
           const elevFt = elevM * 3.28084;
           
+          let initialState: any = 'unburned';
+          if (x === Math.floor(w / 2) && y === Math.floor(h / 2)) {
+            initialState = 'burning';
+          } else if (results && elevM <= 0) {
+            initialState = 'water';
+          }
+
           row.push({
             x, y,
             lat: gridCells[i].lat,
             lng: gridCells[i].lng,
             elevation: Math.max(0, elevFt),
-            state: (x === Math.floor(w / 2) && y === Math.floor(h / 2)) ? 'burning' : 'unburned',
+            state: initialState,
             burnTimeElapsed: 0,
           });
           i++;
@@ -109,38 +213,27 @@ export function useFireSimulation() {
 
       simulationRef.current = new FireSimulation(initialGrid, intel);
 
-      // Create Rectangles
-      const rects: google.maps.Rectangle[][] = [];
-      for (let y = 0; y < h; y++) {
-        const rectRow: google.maps.Rectangle[] = [];
-        for (let x = 0; x < w; x++) {
-          const cell = initialGrid[y][x];
-          
-          // Cell bounds
-          const bounds = {
-            north: cell.lat + latOffset / 2,
-            south: cell.lat - latOffset / 2,
-            east: cell.lng + lngOffset / 2,
-            west: cell.lng - lngOffset / 2,
-          };
+      // Calculate the bounding box of the entire grid
+      // SW is bottom-left (y = h-1, x = 0)
+      // NE is top-right (y = 0, x = w-1)
+      const swLat = startLat - (h - 1) * latOffset - latOffset / 2;
+      const swLng = startLng - lngOffset / 2;
+      const neLat = startLat + latOffset / 2;
+      const neLng = startLng + (w - 1) * lngOffset + lngOffset / 2;
 
-          const rect = new google.maps.Rectangle({
-            bounds,
-            map,
-            fillColor: getColorForState(cell.state),
-            fillOpacity: cell.state === 'unburned' ? 0 : 0.6,
-            strokeWeight: 0,
-            clickable: false,
-          });
-          rectRow.push(rect);
-        }
-        rects.push(rectRow);
-      }
-      rectanglesRef.current = rects;
+      const sw = new google.maps.LatLng(swLat, swLng);
+      const ne = new google.maps.LatLng(neLat, neLng);
+      const bounds = new google.maps.LatLngBounds(sw, ne);
+
+      // Create and mount canvas overlay
+      const OverlayClass = getCanvasOverlayClass();
+      const overlay = new OverlayClass(bounds, w, h);
+      overlay.setMap(map);
+      overlayRef.current = overlay;
 
       // Start tick loop
       intervalRef.current = window.setInterval(() => {
-        if (!simulationRef.current) return;
+        if (!simulationRef.current || !overlayRef.current) return;
         
         simulationRef.current.tick();
         const updatedGrid = simulationRef.current.grid;
@@ -152,22 +245,11 @@ export function useFireSimulation() {
           }
         }
         
-        const isSimulationEnded = activeFires === 0;
-
-        for (let y = 0; y < h; y++) {
-          for (let x = 0; x < w; x++) {
-            const cell = updatedGrid[y][x];
-            const rect = rectanglesRef.current[y][x];
-            
-            const newColor = getColorForState(cell.state, isSimulationEnded);
-            const newOpacity = (cell.state === 'unburned' && !isSimulationEnded) ? 0 : 0.6;
-            
-            rect.setOptions({ fillColor: newColor, fillOpacity: newOpacity });
-          }
-        }
+        // Render current grid state
+        overlayRef.current.updateGrid(updatedGrid);
 
         // Stop simulation if no more fires
-        if (isSimulationEnded) {
+        if (activeFires === 0) {
           if (intervalRef.current) clearInterval(intervalRef.current);
           setIsSimulating(false);
         }
