@@ -338,7 +338,7 @@ export const SimulationView3D: React.FC<Simulation3DProps> = () => {
         )}
       </div>
 
-      <Canvas style={{ position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none' }} eventSource={containerRef}>
+      <Canvas style={{ position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'auto' }} eventSource={containerRef}>
         <View track={viewARef as any}>
           <PerspectiveCamera ref={camARef} makeDefault position={[0, 0.7, 0.9]} fov={55} />
           <SimulationContent cells={cells} activeTool={activeTool} clickMarkers={clickMarkers} time={time} onCellInteraction={(x: number, y: number) => {

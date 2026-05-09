@@ -240,38 +240,45 @@ export const FAQProtocols: React.FC = () => {
   };
 
   return (
-    <section style={{ height: '100%', width: '100%', backgroundColor: '#f8fafc', color: '#0f172a', overflow: 'hidden' }}>
+    <section style={{ 
+      height: '100%', 
+      width: '100%', 
+      backgroundColor: '#0a0a0c', 
+      backgroundImage: 'radial-gradient(circle at 50% -20%, rgba(245, 158, 11, 0.05) 0%, transparent 50%)',
+      color: '#f8fafc', 
+      overflow: 'hidden' 
+    }}>
       <div style={{ height: '100%', display: 'grid', gridTemplateColumns: '330px minmax(0, 1fr)' }}>
-        <aside style={{ borderRight: '1px solid #e2e8f0', backgroundColor: '#ffffff', display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
-          <header style={{ padding: '28px 24px 20px', borderBottom: '1px solid #e2e8f0' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#b45309', marginBottom: '10px' }}>
+        <aside style={{ borderRight: '1px solid rgba(255,255,255,0.1)', backgroundColor: 'rgba(15, 23, 42, 0.2)', backdropFilter: 'blur(20px)', display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
+          <header style={{ padding: '28px 24px 20px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#f59e0b', marginBottom: '10px' }}>
               <Phone size={18} />
-              <span style={{ fontSize: '12px', fontWeight: 700, textTransform: 'uppercase' }}>Emergency Contacts</span>
+              <span style={{ fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Emergency Contacts</span>
             </div>
-            <h2 style={{ fontSize: '22px', lineHeight: 1.15, margin: 0 }}>Wildfire Response</h2>
+            <h2 style={{ fontSize: '22px', lineHeight: 1.15, margin: 0, color: '#f8fafc', fontWeight: 800 }}>Wildfire Response</h2>
           </header>
 
           <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
             {emergencyContacts.map((contact) => (
-              <article key={contact.label} style={{ border: '1px solid #fecaca', borderRadius: '8px', padding: '14px', backgroundColor: '#fff7ed' }}>
-                <div style={{ fontSize: '12px', color: '#9a3412', fontWeight: 700, marginBottom: '5px' }}>{contact.label}</div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '18px', fontWeight: 800, color: '#0f172a', marginBottom: '8px' }}>
-                  <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '26px', height: '26px', borderRadius: '999px', border: '1px solid #ef4444', backgroundColor: '#fee2e2', fontSize: '14px' }}>📞</span>
+              <article key={contact.label} style={{ border: '1px solid rgba(245, 158, 11, 0.2)', borderRadius: '12px', padding: '14px', backgroundColor: 'rgba(245, 158, 11, 0.05)', backdropFilter: 'blur(10px)' }}>
+                <div style={{ fontSize: '10px', color: '#f59e0b', fontWeight: 700, marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{contact.label}</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '18px', fontWeight: 800, color: '#f8fafc', marginBottom: '8px' }}>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '26px', height: '26px', borderRadius: '8px', border: '1px solid rgba(245, 158, 11, 0.3)', backgroundColor: 'rgba(245, 158, 11, 0.1)', fontSize: '14px' }}>📞</span>
                   {contact.value}
                 </div>
-                <p style={{ fontSize: '11px', lineHeight: 1.45, color: '#64748b', margin: 0 }}>{contact.note}</p>
+                <p style={{ fontSize: '11px', lineHeight: 1.45, color: '#94a3b8', margin: 0 }}>{contact.note}</p>
               </article>
             ))}
             {resourceGroups.map((group) => (
-              <article key={group.title} style={{ border: '1px solid #fed7aa', borderRadius: '8px', padding: '14px', backgroundColor: '#fffbeb' }}>
-                <div style={{ fontSize: '12px', color: '#334155', fontWeight: 800, marginBottom: '6px' }}>{group.title}</div>
-                <p style={{ fontSize: '11px', lineHeight: 1.45, color: '#64748b', margin: '0 0 12px' }}>{group.note}</p>
+              <article key={group.title} style={{ border: '1px solid rgba(255,255,255,0.05)', borderRadius: '12px', padding: '14px', backgroundColor: 'rgba(255, 255, 255, 0.02)' }}>
+                <div style={{ fontSize: '12px', color: '#f8fafc', fontWeight: 800, marginBottom: '6px' }}>{group.title}</div>
+                <p style={{ fontSize: '11px', lineHeight: 1.45, color: '#94a3b8', margin: '0 0 12px' }}>{group.note}</p>
                 <div style={{ display: 'grid', gap: '10px' }}>
                   {group.items.map((item) => (
                     <div key={item.label}>
-                      <div style={{ fontSize: '12px', fontWeight: 800, color: '#0f172a', marginBottom: '3px' }}>{item.label}</div>
-                      <p style={{ fontSize: '11px', lineHeight: 1.45, color: '#64748b', margin: 0 }}>{item.detail}</p>
-                      <div style={{ fontSize: '11px', lineHeight: 1.45, color: '#92400e', fontWeight: 800, marginTop: '4px' }}>{item.contact}</div>
+                      <div style={{ fontSize: '12px', fontWeight: 800, color: '#f8fafc', marginBottom: '3px' }}>{item.label}</div>
+                      <p style={{ fontSize: '11px', lineHeight: 1.45, color: '#94a3b8', margin: 0 }}>{item.detail}</p>
+                      <div style={{ fontSize: '11px', lineHeight: 1.45, color: '#f59e0b', fontWeight: 800, marginTop: '4px' }}>{item.contact}</div>
                     </div>
                   ))}
                 </div>
@@ -279,28 +286,29 @@ export const FAQProtocols: React.FC = () => {
             ))}
           </div>
 
-          <div style={{ marginTop: 'auto', padding: '20px', borderTop: '1px solid #e2e8f0' }}>
+          <div style={{ marginTop: 'auto', padding: '20px', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
             <button
               type="button"
-              onClick={startQuiz}
+              onClick={isQuizOpen ? () => setIsQuizOpen(false) : startQuiz}
               style={{
                 width: '100%',
-                border: '1px solid #cbd5e1',
-                backgroundColor: '#0f172a',
-                color: '#ffffff',
-                borderRadius: '8px',
+                border: isQuizOpen ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(245, 158, 11, 0.3)',
+                backgroundColor: isQuizOpen ? 'rgba(255,255,255,0.02)' : 'rgba(245, 158, 11, 0.1)',
+                color: isQuizOpen ? '#f8fafc' : '#f59e0b',
+                borderRadius: '12px',
                 padding: '14px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 cursor: 'pointer',
+                transition: 'all 0.2s',
               }}
-              aria-label="Test your knowledge"
-              title="Test your knowledge"
+              aria-label={isQuizOpen ? "Back to Protocols" : "Knowledge Check"}
+              title={isQuizOpen ? "Back to Protocols" : "Knowledge Check"}
             >
               <span style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13px', fontWeight: 700 }}>
-                <BookOpenCheck size={18} />
-                Test your knowledge
+                {isQuizOpen ? <RotateCcw size={18} /> : <BookOpenCheck size={18} />}
+                {isQuizOpen ? "Back to Protocols" : "Knowledge Check"}
               </span>
               <ChevronRight size={18} />
             </button>
@@ -310,36 +318,38 @@ export const FAQProtocols: React.FC = () => {
         <main className="custom-scrollbar" style={{ overflowY: 'auto' }}>
           {!isQuizOpen ? (
             <>
-              <header style={{ padding: '40px 48px 24px', borderBottom: '1px solid #e2e8f0', backgroundColor: '#ffffff' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#dc2626', marginBottom: '12px' }}>
+              <header style={{ padding: '40px 48px 32px', borderBottom: '1px solid rgba(255,255,255,0.05)', backgroundColor: 'transparent' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#f59e0b', marginBottom: '12px' }}>
                   <Flame size={20} />
-                  <span style={{ fontSize: '12px', fontWeight: 800, textTransform: 'uppercase' }}>Protocols & FAQ</span>
+                  <span style={{ fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Safety Protocols</span>
                 </div>
-                <h1 style={{ fontSize: '34px', lineHeight: 1.1, margin: 0, maxWidth: '760px' }}>Wildfire safety protocols for fast decisions</h1>
-                <p style={{ color: '#64748b', fontSize: '15px', lineHeight: 1.6, marginTop: '12px', maxWidth: '760px' }}>
-                  Clear response guidance for preparation, evacuation, driving, smoke exposure, and post-fire recovery.
+                <h1 style={{ fontSize: '42px', fontWeight: 800, lineHeight: 1.1, margin: 0, maxWidth: '800px', color: '#f8fafc' }}>
+                  Decisive Action <span style={{ color: '#f59e0b' }}>Protocols</span>
+                </h1>
+                <p style={{ color: '#94a3b8', fontSize: '16px', lineHeight: 1.6, marginTop: '16px', maxWidth: '760px' }}>
+                  Critical guidance for preparation, evacuation, and post-fire recovery in extreme wildfire conditions.
                 </p>
               </header>
 
               <div style={{ padding: '28px 48px 48px', display: 'grid', gap: '18px' }}>
-                <section style={{ border: '1px solid #fecaca', backgroundColor: '#fef2f2', borderRadius: '8px', padding: '18px 20px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#b91c1c', marginBottom: '8px' }}>
+                <section style={{ border: '1px solid rgba(239, 68, 68, 0.3)', backgroundColor: 'rgba(239, 68, 68, 0.05)', borderRadius: '16px', padding: '20px 24px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#ef4444', marginBottom: '8px' }}>
                     <AlertTriangle size={18} />
-                    <h3 style={{ fontSize: '14px', margin: 0 }}>Immediate Danger</h3>
+                    <h3 style={{ fontSize: '14px', margin: 0, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Immediate Threat</h3>
                   </div>
-                  <p style={{ margin: 0, color: '#7f1d1d', fontSize: '13px', lineHeight: 1.55 }}>Call 911 and evacuate if flames, heavy smoke, trapped people, injuries, or official alerts indicate threat to life. Do not delay evacuation to gather extra belongings.</p>
+                  <p style={{ margin: 0, color: '#f8fafc', fontSize: '14px', lineHeight: 1.6 }}>Call 911 immediately if flames are visible, smoke is dense, or official alerts indicate immediate danger. Prioritize life safety over property preparation.</p>
                 </section>
 
-                <section style={{ display: 'grid', gap: '12px' }}>
+                <section style={{ display: 'grid', gap: '16px' }}>
                   {protocolSections.map((section) => (
-                    <article key={section.title} style={{ border: '1px solid #e2e8f0', backgroundColor: '#ffffff', borderRadius: '8px', padding: '20px 22px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#b45309', marginBottom: '12px' }}>
+                    <article key={section.title} style={{ border: '1px solid rgba(255,255,255,0.05)', backgroundColor: 'rgba(255, 255, 255, 0.02)', borderRadius: '16px', padding: '24px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: '#f59e0b', marginBottom: '16px' }}>
                         {section.icon}
-                        <h3 style={{ fontSize: '16px', lineHeight: 1.35, margin: 0, color: '#0f172a' }}>{section.title}</h3>
+                        <h3 style={{ fontSize: '18px', fontWeight: 700, margin: 0, color: '#f8fafc' }}>{section.title}</h3>
                       </div>
-                      <ul style={{ display: 'grid', gap: '8px', paddingLeft: '18px', margin: 0 }}>
+                      <ul style={{ display: 'grid', gap: '10px', paddingLeft: '18px', margin: 0 }}>
                         {section.items.map((item) => (
-                          <li key={item} style={{ fontSize: '14px', lineHeight: 1.6, color: '#475569' }}>{item}</li>
+                          <li key={item} style={{ fontSize: '14px', lineHeight: 1.6, color: '#94a3b8' }}>{item}</li>
                         ))}
                       </ul>
                     </article>
@@ -349,33 +359,42 @@ export const FAQProtocols: React.FC = () => {
             </>
           ) : (
             <>
-              <header style={{ padding: '40px 48px 24px', borderBottom: '1px solid #e2e8f0', backgroundColor: '#ffffff' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#b45309', marginBottom: '12px' }}>
+              <header style={{ padding: '40px 48px 32px', borderBottom: '1px solid rgba(255,255,255,0.05)', backgroundColor: 'transparent' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#f59e0b', marginBottom: '12px' }}>
                   <BookOpenCheck size={20} />
-                  <span style={{ fontSize: '12px', fontWeight: 800, textTransform: 'uppercase' }}>Wildfire Quiz</span>
+                  <span style={{ fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Knowledge Assessment</span>
                 </div>
-                <h1 style={{ fontSize: '34px', lineHeight: 1.1, margin: 0, maxWidth: '760px' }}>Test your knowledge</h1>
-                <p style={{ color: '#64748b', fontSize: '15px', lineHeight: 1.6, marginTop: '12px', maxWidth: '760px' }}>
-                  Answer 5 random questions. Your score appears after submission, and correct answers show after you close the popup.
+                <h1 style={{ fontSize: '42px', fontWeight: 800, lineHeight: 1.1, margin: 0, color: '#f8fafc' }}>Safety <span style={{ color: '#f59e0b' }}>Verification</span></h1>
+                <p style={{ color: '#94a3b8', fontSize: '16px', lineHeight: 1.6, marginTop: '16px', maxWidth: '760px' }}>
+                  Verify your understanding of essential survival protocols. Score 100% to ensure readiness.
                 </p>
               </header>
 
               <div style={{ padding: '28px 48px 48px', display: 'grid', gap: '16px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px' }}>
-                  <div style={{ fontSize: '13px', fontWeight: 700, color: '#475569' }}>{answeredCount}/5 answered</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <button 
+                      onClick={() => setIsQuizOpen(false)}
+                      style={{ border: '1px solid rgba(255,255,255,0.1)', backgroundColor: 'rgba(255,255,255,0.05)', color: '#f8fafc', borderRadius: '10px', padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontWeight: 700, transition: 'all 0.2s' }}
+                    >
+                      <X size={16} />
+                      Exit Assessment
+                    </button>
+                    <div style={{ fontSize: '13px', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Progress: {answeredCount}/5</div>
+                  </div>
                   <button
                     type="button"
                     onClick={resetQuiz}
-                    style={{ border: '1px solid #cbd5e1', backgroundColor: '#ffffff', color: '#334155', borderRadius: '8px', padding: '10px 14px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontWeight: 700 }}
+                    style={{ border: '1px solid rgba(255,255,255,0.1)', backgroundColor: 'rgba(255,255,255,0.02)', color: '#f8fafc', borderRadius: '10px', padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontWeight: 700, transition: 'all 0.2s' }}
                   >
                     <RotateCcw size={16} />
-                    New questions
+                    Refresh Questions
                   </button>
                 </div>
 
                 {activeQuestions.map((question, questionIndex) => (
-                  <article key={question.question} style={{ border: '1px solid #e2e8f0', backgroundColor: '#ffffff', borderRadius: '8px', padding: '20px 22px' }}>
-                    <h3 style={{ fontSize: '16px', lineHeight: 1.4, margin: '0 0 14px', color: '#0f172a' }}>{questionIndex + 1}. {question.question}</h3>
+                  <article key={question.question} style={{ border: '1px solid rgba(255,255,255,0.05)', backgroundColor: 'rgba(255, 255, 255, 0.02)', borderRadius: '16px', padding: '24px' }}>
+                    <h3 style={{ fontSize: '18px', lineHeight: 1.4, margin: '0 0 16px', color: '#f8fafc' }}>{questionIndex + 1}. {question.question}</h3>
                     <div style={{ display: 'grid', gap: '10px' }}>
                       {question.options.map((option, optionIndex) => {
                         const isSelected = answers[questionIndex] === optionIndex;
@@ -395,26 +414,23 @@ export const FAQProtocols: React.FC = () => {
                             disabled={showCorrectAnswers}
                             style={{
                               textAlign: 'left',
-                              border: shouldHighlightCorrect ? '1px solid #16a34a' : isWrongSelection ? '1px solid #dc2626' : isSelected ? '1px solid #f59e0b' : '1px solid #e2e8f0',
-                              backgroundColor: shouldHighlightCorrect ? '#f0fdf4' : isWrongSelection ? '#fef2f2' : isSelected ? '#fffbeb' : '#f8fafc',
-                              color: '#0f172a',
-                              borderRadius: '8px',
-                              padding: '12px 14px',
+                              border: shouldHighlightCorrect ? '1px solid #22c55e' : isWrongSelection ? '1px solid #ef4444' : isSelected ? '1px solid #f59e0b' : '1px solid rgba(255,255,255,0.05)',
+                              backgroundColor: shouldHighlightCorrect ? 'rgba(34, 197, 94, 0.1)' : isWrongSelection ? 'rgba(239, 68, 68, 0.1)' : isSelected ? 'rgba(245, 158, 11, 0.1)' : 'rgba(255, 255, 255, 0.02)',
+                              color: isSelected || shouldHighlightCorrect ? '#f8fafc' : '#94a3b8',
+                              borderRadius: '12px',
+                              padding: '14px 18px',
                               cursor: showCorrectAnswers ? 'default' : 'pointer',
                               fontSize: '14px',
                               lineHeight: 1.45,
+                              transition: 'all 0.2s',
                             }}
                           >
-                            {String.fromCharCode(65 + optionIndex)}) {option}
+                            <span style={{ color: isSelected || shouldHighlightCorrect ? '#f59e0b' : '#64748b', marginRight: '8px', fontWeight: 800 }}>{String.fromCharCode(65 + optionIndex)}</span>
+                            {option}
                           </button>
                         );
                       })}
                     </div>
-                    {showCorrectAnswers && (
-                      <p style={{ margin: '12px 0 0', fontSize: '13px', fontWeight: 700, color: '#15803d' }}>
-                        Correct answer: {String.fromCharCode(65 + question.answerIndex)}) {question.options[question.answerIndex]}
-                      </p>
-                    )}
                   </article>
                 ))}
 
@@ -426,15 +442,17 @@ export const FAQProtocols: React.FC = () => {
                     style={{
                       justifySelf: 'start',
                       border: 'none',
-                      backgroundColor: answeredCount < 5 ? '#cbd5e1' : '#f59e0b',
-                      color: answeredCount < 5 ? '#64748b' : '#111827',
-                      borderRadius: '8px',
-                      padding: '12px 22px',
+                      backgroundColor: answeredCount < 5 ? 'rgba(255,255,255,0.05)' : '#f59e0b',
+                      color: answeredCount < 5 ? '#64748b' : '#000000',
+                      borderRadius: '12px',
+                      padding: '14px 28px',
                       cursor: answeredCount < 5 ? 'not-allowed' : 'pointer',
                       fontWeight: 800,
+                      fontSize: '15px',
+                      transition: 'all 0.2s',
                     }}
                   >
-                    Submit quiz
+                    Submit Assessment
                   </button>
                 )}
               </div>
@@ -444,22 +462,26 @@ export const FAQProtocols: React.FC = () => {
       </div>
 
       {showScoreModal && score !== null && (
-        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(15, 23, 42, 0.58)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50, padding: '24px' }}>
-          <div role="dialog" aria-modal="true" aria-label="Quiz score" style={{ width: '100%', maxWidth: '420px', backgroundColor: '#ffffff', color: '#0f172a', borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 24px 80px rgba(15, 23, 42, 0.28)', padding: '24px', position: 'relative' }}>
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(2, 6, 23, 0.8)', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: '24px' }}>
+          <div role="dialog" aria-modal="true" aria-label="Quiz score" style={{ width: '100%', maxWidth: '420px', backgroundColor: '#0a0a0c', color: '#f8fafc', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 24px 80px rgba(0, 0, 0, 0.5)', padding: '32px', position: 'relative', textAlign: 'center' }}>
             <button
               type="button"
               onClick={closeScoreModal}
               aria-label="Close score popup"
               title="Close score popup"
-              style={{ position: 'absolute', top: '12px', right: '12px', border: 'none', backgroundColor: '#f1f5f9', color: '#334155', width: '32px', height: '32px', borderRadius: '999px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+              style={{ position: 'absolute', top: '16px', right: '16px', border: 'none', backgroundColor: 'rgba(255,255,255,0.05)', color: '#f8fafc', width: '36px', height: '36px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
             >
-              <X size={18} />
+              <X size={20} />
             </button>
-            <div style={{ fontSize: '48px', lineHeight: 1, marginBottom: '12px' }}>{score <= 2 ? ':(' : ':)'}</div>
-            <h2 style={{ fontSize: '24px', margin: '0 0 8px' }}>Your score: {score}/5</h2>
-            <p style={{ color: '#64748b', fontSize: '14px', lineHeight: 1.6, margin: 0 }}>
-              {score <= 2 ? 'Keep practicing these evacuation basics. Close this popup to review the correct answers.' : 'Nice work. Close this popup to review the correct answers.'}
+            <div style={{ fontSize: '64px', lineHeight: 1, marginBottom: '20px' }}>{score <= 2 ? '⚠️' : '🎯'}</div>
+            <h2 style={{ fontSize: '28px', fontWeight: 800, margin: '0 0 8px' }}>Assessment Result</h2>
+            <div style={{ fontSize: '48px', fontWeight: 800, color: '#f59e0b', marginBottom: '16px' }}>{score}/5</div>
+            <p style={{ color: '#94a3b8', fontSize: '15px', lineHeight: 1.6, margin: 0 }}>
+              {score <= 2 ? 'Critical knowledge gaps detected. Please review the safety protocols thoroughly.' : 'Excellent readiness. You have a strong grasp of survival protocols.'}
             </p>
+            <button onClick={closeScoreModal} style={{ marginTop: '32px', width: '100%', padding: '14px', backgroundColor: '#f59e0b', color: '#000', borderRadius: '12px', fontWeight: 800, border: 'none', cursor: 'pointer' }}>
+              Review Answers
+            </button>
           </div>
         </div>
       )}
