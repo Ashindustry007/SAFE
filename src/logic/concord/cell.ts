@@ -66,6 +66,7 @@ export class Cell {
   public isFireLine = false;
   public isFireLineUnderConstruction = false;
   public helitackDropCount = 0;
+  public suppressionTimer = 0; // Minutes remaining of "non-burnable" status after helitack drop
 
   /**
    * Constructs a new simulation cell.
@@ -102,10 +103,10 @@ export class Cell {
 
   /**
    * Non-burnable Check
-   * Returns true if the cell contains water or is a protected island.
+   * Returns true if the cell contains water, is a protected island, or is currently "wet" from suppression.
    */
   public get isNonburnable() {
-    return this.isRiver || this.isUnburntIsland;
+    return this.isRiver || this.isUnburntIsland || this.suppressionTimer > 0;
   }
 
   /**
@@ -181,8 +182,8 @@ export class Cell {
    * Determines if a cell can ignite considering barriers (Fire Lines).
    */
   public isBurnableForBI(burnIndex: BurnIndex) {
-    // Fire lines will burn when burn index is high.
-    return !this.isNonburnable && (!this.isFireLine || burnIndex === BurnIndex.High);
+    // Fire lines are now absolute barriers. They do not burn even in High intensity fires.
+    return !this.isNonburnable && !this.isFireLine;
   }
 
   /**

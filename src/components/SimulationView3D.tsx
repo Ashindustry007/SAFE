@@ -194,25 +194,32 @@ export const SimulationView3D: React.FC<Simulation3DProps> = () => {
   }, [wind]);
 
   // Concord: 1 model day (1440 min) in 8 real seconds => 180 min/sec.
-  // At 10 ticks/sec (100ms), that's 18 minutes per tick.
-  const minutesPerTick = 18;
+  // At 10 frames/sec (100ms), that's 18 minutes per frame.
+  // We use 3 sub-steps of 6 minutes each for higher precision.
+  const minutesPerStep = 6;
+  const subSteps = 3;
   useEffect(() => {
     if (isPlaying) {
       timerRef.current = window.setInterval(() => {
         setTime((t) => {
-          const nextTime = t + minutesPerTick;
+          let nextTime = t;
           const tickSeed = Math.random();
           
-          if (engineRef.current) {
-            (engineRef.current as any).setSeed(tickSeed);
-            engineRef.current.updateFire(nextTime);
-            setCells([...engineRef.current.cells]);
+          for (let i = 0; i < subSteps; i++) {
+            nextTime += minutesPerStep;
+            if (engineRef.current) {
+              (engineRef.current as any).setSeed(tickSeed + i * 0.1);
+              engineRef.current.updateFire(nextTime);
+            }
+            if (engineRefB.current) {
+              (engineRefB.current as any).setSeed(tickSeed + i * 0.1);
+              engineRefB.current.updateFire(nextTime);
+            }
           }
-          if (engineRefB.current) {
-            (engineRefB.current as any).setSeed(tickSeed);
-            engineRefB.current.updateFire(nextTime);
-            setCellsB([...engineRefB.current.cells]);
-          }
+
+          if (engineRef.current) setCells([...engineRef.current.cells]);
+          if (engineRefB.current) setCellsB([...engineRefB.current.cells]);
+          
           return nextTime;
         });
       }, 100);
@@ -409,12 +416,14 @@ export const SimulationView3D: React.FC<Simulation3DProps> = () => {
                         const targetCell = nextCells[targetIdx];
                         if (targetCell) {
                           targetCell.helitackDropCount++;
+                          targetCell.suppressionTimer = 120; // 2 hours of absolute protection
                           targetCell.ignitionTime = Infinity;
                           if (targetCell.fireState === FireState.Burning) targetCell.fireState = FireState.Unburnt;
                           // Sync to engine
                           if (engineRef.current) {
                             const ec = engineRef.current.cells[targetIdx];
                             ec.helitackDropCount++;
+                            ec.suppressionTimer = 120;
                             ec.ignitionTime = Infinity;
                             if (ec.fireState === FireState.Burning) ec.fireState = FireState.Unburnt;
                           }
