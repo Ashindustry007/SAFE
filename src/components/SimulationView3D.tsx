@@ -6,7 +6,7 @@
 
 import React, { useState, useEffect, useRef, useLayoutEffect, useCallback } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { Sky, Html, OrbitControls, PerspectiveCamera, Stars } from '@react-three/drei';
+import { Sky, Html, OrbitControls, PerspectiveCamera } from '@react-three/drei';
 import {
   Play,
   Pause,
@@ -31,9 +31,13 @@ import { isConcordPresetId, CONCORD_PRESET_IDS } from '../logic/concord/presets'
 
 // Higher resolution grid (closer to Concord feel).
 // Note: Terrain3D uses a subdivided BoxGeometry; very high values can hurt FPS.
+// Concord defaults (see wildfire-model `config.ts`):
+// modelWidth 120000ft, modelHeight 80000ft, gridWidth 240 -> cellSize 500ft, gridHeight 160.
+const MODEL_WIDTH_FT = 120000;
+const MODEL_HEIGHT_FT = 80000;
 const GRID_WIDTH = 240;
-const GRID_HEIGHT = 150;
-const CELL_SIZE_FT = 75;
+const CELL_SIZE_FT = MODEL_WIDTH_FT / GRID_WIDTH; // 500
+const GRID_HEIGHT = Math.ceil(MODEL_HEIGHT_FT / CELL_SIZE_FT); // 160
 
 const ENGINE_CFG = getDefaultFireEngineConfig(GRID_WIDTH, GRID_HEIGHT, CELL_SIZE_FT);
 
@@ -48,9 +52,9 @@ function createEngine(grid: Cell[], wind: IWindProps): FireEngine {
 }
 
 const TOWNS = [
-  { name: 'Oakhaven', gridX: 30, gridY: 60 },
-  { name: 'Riverbend', gridX: 90, gridY: 40 },
-  { name: 'Pineridge', gridX: 110, gridY: 70 },
+  { name: 'Skyview', xFrac: 0.12, yFrac: 0.68 },
+  { name: 'Rolling Rock', xFrac: 0.60, yFrac: 0.25 },
+  { name: 'Evensville', xFrac: 0.78, yFrac: 0.55 },
 ];
 
 interface Simulation3DProps {
@@ -64,7 +68,8 @@ export const SimulationView3D: React.FC<Simulation3DProps> = ({ onBack }) => {
   const [cells, setCells] = useState<Cell[]>(() =>
     buildTerrainGrid(GRID_WIDTH, GRID_HEIGHT, readInitialTerrainId())
   );
-  const [wind, setWind] = useState<IWindProps>({ speed: 10, direction: 225 });
+  // Concord default windSpeed is 0 (mph).
+  const [wind, setWind] = useState<IWindProps>({ speed: 0, direction: 0 });
   const [isPlaying, setIsPlaying] = useState(false);
   const [time, setTime] = useState(0);
   const [activeTool, setActiveTool] = useState<Tool>('NONE');
@@ -102,11 +107,14 @@ export const SimulationView3D: React.FC<Simulation3DProps> = ({ onBack }) => {
     setClickMarkers([]);
   }, [wind]);
 
+  // Concord: 1 model day (1440 min) in 8 real seconds => 180 min/sec.
+  // At 10 ticks/sec (100ms), that's 18 minutes per tick.
+  const minutesPerTick = 18;
   useEffect(() => {
     if (isPlaying) {
       timerRef.current = window.setInterval(() => {
         setTime((t) => {
-          const nextTime = t + 6;
+          const nextTime = t + minutesPerTick;
           if (engineRef.current) {
             engineRef.current.updateFire(nextTime);
             setCells([...engineRef.current.cells]);
@@ -157,31 +165,33 @@ export const SimulationView3D: React.FC<Simulation3DProps> = ({ onBack }) => {
       style={{
         width: '100vw',
         height: '100vh',
-        backgroundColor: '#e5e5e5',
+        backgroundColor: '#cbd5e1',
         position: 'relative',
         overflow: 'hidden',
       }}
     >
       <Canvas shadows>
+        <color attach="background" args={['#cbd5e1']} />
         <PerspectiveCamera makeDefault position={[0, 40, 50]} fov={55} />
         <OrbitControls enablePan enableZoom maxPolarAngle={Math.PI / 2.1} />
         <ambientLight intensity={0.5} />
         <directionalLight position={[100, 100, 50]} intensity={1.5} castShadow />
         <Sky sunPosition={[100, 10, 100]} />
-        <Stars radius={100} depth={50} count={5000} factor={4} saturation={0} fade speed={1} />
 
-        <group scale={[4, 4, 4]} position={[0, 0, 0]}>
+        <group position={[0, 0, 0]}>
           <Terrain3D
             cells={cells}
-            width={GRID_WIDTH}
-            height={GRID_HEIGHT}
+            gridWidth={GRID_WIDTH}
+            gridHeight={GRID_HEIGHT}
+            modelWidthFt={MODEL_WIDTH_FT}
+            modelHeightFt={MODEL_HEIGHT_FT}
             activeTool={activeTool}
             simTime={time}
             onCellInteraction={(x, y) => {
               const idx = y * GRID_WIDTH + x;
               const nextCells = [...cells];
               const cell = nextCells[idx];
-              const z = (cell?.baseElevation ?? 0) / 40;
+              const z = (cell?.baseElevation ?? 0) * (1 / MODEL_WIDTH_FT);
 
               const addMarker = (tool: Tool) => {
                 setClickMarkers((prev) => {
@@ -272,18 +282,30 @@ export const SimulationView3D: React.FC<Simulation3DProps> = ({ onBack }) => {
               m.tool === 'HELITACK' ? '#38bdf8' : '#ffffff';
             // Terrain3D coordinate frame: x centered, y is height axis, z is gridY mapped with (height/2 - y)
             return (
-              <mesh
+              <group
                 key={`${m.x}-${m.y}-${m.t}-${i}`}
-                position={[m.x - GRID_WIDTH / 2, m.z + 1.2, GRID_HEIGHT / 2 - m.y]}
+                position={[
+                  (m.x / (GRID_WIDTH - 1) - 0.5) * 1,
+                  m.z + 0.01,
+                  ((GRID_HEIGHT - 1 - m.y) / (GRID_HEIGHT - 1) - 0.5) * (MODEL_HEIGHT_FT / MODEL_WIDTH_FT),
+                ]}
               >
-                <sphereGeometry args={[0.45, 10, 10]} />
-                <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.6} />
-              </mesh>
+                <mesh position={[0, 1.8, 0]}>
+                  <cylinderGeometry args={[0.18, 0.18, 3.6, 10]} />
+                  <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.85} />
+                </mesh>
+                <mesh position={[0, 3.8, 0]}>
+                  <sphereGeometry args={[0.42, 12, 12]} />
+                  <meshStandardMaterial color={color} emissive={color} emissiveIntensity={1.0} />
+                </mesh>
+              </group>
             );
           })}
 
           {TOWNS.map((town) => {
-            const cellIdx = town.gridY * GRID_WIDTH + town.gridX;
+            const gridX = Math.max(0, Math.min(GRID_WIDTH - 1, Math.floor(town.xFrac * GRID_WIDTH)));
+            const gridY = Math.max(0, Math.min(GRID_HEIGHT - 1, Math.floor(town.yFrac * GRID_HEIGHT)));
+            const cellIdx = gridY * GRID_WIDTH + gridX;
             const cell = cells[cellIdx];
             if (!cell) return null;
             const isBurned =
