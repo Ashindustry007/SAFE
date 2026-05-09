@@ -1,28 +1,30 @@
 /* Chatbot & FAQ Global Styles (Vanilla CSS) */
 :root {
-  --chat-sidebar-bg: #ffffff;
-  --chat-main-bg: #fcfcfd;
+  --chat-sidebar-bg: var(--glass-bg);
+  --chat-main-bg: transparent;
   --chat-accent: #6366f1;
   --chat-accent-hover: #4f46e5;
-  --chat-border: #f1f5f9;
-  --chat-text: #1e293b;
-  --chat-text-light: #64748b;
+  --chat-border: var(--glass-border);
+  --chat-text: var(--text-primary);
+  --chat-text-light: var(--text-secondary);
   --chat-bubble-user: #6366f1;
-  --chat-bubble-bot: #ffffff;
+  --chat-bubble-bot: rgba(255, 255, 255, 0.05);
 }
 
 .chat-view-container {
   display: flex;
   width: 100%;
   height: 100%;
-  background-color: var(--chat-main-bg);
+  background-color: transparent;
   color: var(--chat-text);
   font-family: 'Inter', sans-serif;
 }
 
 .chat-sidebar {
   width: 300px;
-  background-color: var(--chat-sidebar-bg);
+  background-color: var(--glass-bg);
+  backdrop-filter: var(--glass);
+  -webkit-backdrop-filter: var(--glass);
   border-right: 1px solid var(--chat-border);
   display: flex;
   flex-direction: column;
@@ -119,6 +121,7 @@
   flex-direction: column;
   height: 100%;
   overflow: hidden;
+  background-color: transparent;
 }
 
 .chat-history {
@@ -180,7 +183,8 @@
 
 .input-container {
   padding: 2rem;
-  background: linear-gradient(to top, var(--chat-main-bg) 80%, transparent);
+  background: linear-gradient(to top, rgba(10, 10, 12, 0.8) 80%, transparent);
+  backdrop-filter: blur(10px);
 }
 
 .input-wrapper {
@@ -191,11 +195,11 @@
 .input-field-group {
   display: flex;
   align-items: center;
-  background: white;
-  border: 2px solid var(--chat-border);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--chat-border);
   border-radius: 20px;
   padding: 0.5rem;
-  box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05);
+  box-shadow: 0 10px 25px -5px rgba(0,0,0,0.2);
   transition: all 0.3s;
 }
 
