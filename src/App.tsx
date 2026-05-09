@@ -8,7 +8,8 @@ import {
   Map as MapIcon,
   Thermometer,
   CloudRain,
-  Navigation
+  Navigation,
+  Zap
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { fetchWildfireIntel } from './services/wildfireApi';
@@ -76,7 +77,21 @@ const App: React.FC = () => {
           <Flame size={24} />
         </div>
         <nav style={{ display: 'flex', flexDirection: 'column', gap: '24px', color: 'var(--text-secondary)' }}>
-          {/* First button was logo, Second was Grid (removed), Third is Simulation */}
+          <button 
+            onClick={() => setViewMode('MAP')}
+            style={{ 
+              background: 'none', 
+              border: 'none', 
+              color: viewMode === 'MAP' ? 'var(--accent-amber)' : 'inherit', 
+              cursor: 'pointer', 
+              transition: 'all 0.2s',
+              padding: '12px',
+              borderRadius: '8px',
+              backgroundColor: viewMode === 'MAP' ? 'rgba(245, 158, 11, 0.1)' : 'transparent'
+            }}
+          >
+            <MapIcon size={22} />
+          </button>
           <button 
             onClick={() => setViewMode('SIMULATION')}
             style={{ 
@@ -90,122 +105,129 @@ const App: React.FC = () => {
               backgroundColor: viewMode === 'SIMULATION' ? 'rgba(245, 158, 11, 0.1)' : 'transparent'
             }}
           >
-            <Flame size={22} />
+            <Zap size={22} />
           </button>
         </nav>
       </aside>
 
       <main className="main-content">
-        {viewMode === 'MAP' ? (
-          <>
-            {/* Map Panel (Left) */}
-            <section className="map-panel">
-              {!apiKey && (
-                <div style={{ position: 'absolute', inset: 0, zIndex: 10, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '32px', textAlign: 'center', backgroundColor: 'rgba(15, 23, 42, 0.8)', backdropFilter: 'blur(8px)' }}>
-                  <div style={{ padding: '16px', backgroundColor: 'rgba(245, 158, 11, 0.1)', borderRadius: '9999px', color: 'var(--accent-amber)', marginBottom: '16px' }}>
-                    <MapIcon size={48} />
-                  </div>
-                  <h2 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '8px' }}>Google Maps Integration</h2>
-                  <p style={{ color: 'var(--text-secondary)', marginBottom: '24px', maxWidth: '400px' }}>Enter your API key to activate the high-resolution wildfire intelligence map.</p>
-                  <div style={{ display: 'flex', gap: '8px', width: '100%', maxWidth: '384px' }}>
-                    <input 
-                      type="password" 
-                      placeholder="Paste Google Maps API Key" 
-                      className="modern"
-                      style={{ flex: 1 }}
-                      value={apiKey}
-                      onChange={(e) => setApiKey(e.target.value)}
-                    />
-                    <button className="btn-primary" onClick={() => {}}>Activate</button>
-                  </div>
+        {/* Map & Intelligence Dashboard */}
+        <div 
+          style={{ 
+            display: viewMode === 'MAP' ? 'flex' : 'none', 
+            width: '100%', 
+            height: '100%',
+            overflow: 'hidden'
+          }}
+        >
+          {/* Map Panel (Left) */}
+          <section className="map-panel" style={{ flex: 3, position: 'relative' }}>
+            {!apiKey && (
+              <div style={{ position: 'absolute', inset: 0, zIndex: 10, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '32px', textAlign: 'center', backgroundColor: 'rgba(15, 23, 42, 0.8)', backdropFilter: 'blur(8px)' }}>
+                <div style={{ padding: '16px', backgroundColor: 'rgba(245, 158, 11, 0.1)', borderRadius: '9999px', color: 'var(--accent-amber)', marginBottom: '16px' }}>
+                  <MapIcon size={48} />
                 </div>
-              )}
-              <div ref={mapRef} style={{ height: '100%', width: '100%' }} />
-              
-              <div style={{ position: 'absolute', top: '24px', left: '24px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                 <div className="glass-panel" style={{ padding: '8px 16px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: 'var(--accent-red)' }} />
-                    <span style={{ fontSize: '14px', fontWeight: 500 }}>LIVE MONITORING: ACTIVE</span>
-                 </div>
+                <h2 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '8px' }}>Google Maps Integration</h2>
+                <p style={{ color: 'var(--text-secondary)', marginBottom: '24px', maxWidth: '400px' }}>Enter your API key to activate the high-resolution wildfire intelligence map.</p>
+                <div style={{ display: 'flex', gap: '8px', width: '100%', maxWidth: '384px' }}>
+                  <input 
+                    type="password" 
+                    placeholder="Paste Google Maps API Key" 
+                    className="modern"
+                    style={{ flex: 1 }}
+                    value={apiKey}
+                    onChange={(e) => setApiKey(e.target.value)}
+                  />
+                  <button className="btn-primary" onClick={() => {}}>Activate</button>
+                </div>
               </div>
-            </section>
+            )}
+            <div ref={mapRef} style={{ height: '100%', width: '100%' }} />
+          </section>
 
-            {/* Intelligence Panel (Right) */}
-            <section className="intel-panel custom-scrollbar" style={{ backgroundColor: '#ffffff', color: '#1e293b' }}>
-              <header style={{ padding: '32px', borderBottom: '1px solid #e2e8f0' }}>
-                <h1 style={{ fontSize: '30px', fontWeight: 'bold', marginBottom: '8px', color: '#0f172a' }}>Environmental <span className="text-amber">Intelligence</span></h1>
-                <p style={{ color: '#64748b' }}>Regional risk analysis based on real-time sensory data.</p>
-              </header>
+          {/* Intelligence Panel (Right) */}
+          <section className="intel-panel custom-scrollbar" style={{ flex: 2, backgroundColor: '#ffffff', color: '#1e293b', overflowY: 'auto' }}>
+            <header style={{ padding: '32px', borderBottom: '1px solid #e2e8f0' }}>
+              <h1 style={{ fontSize: '30px', fontWeight: 'bold', marginBottom: '8px', color: '#0f172a' }}>Environmental <span className="text-amber">Intelligence</span></h1>
+              <p style={{ color: '#64748b' }}>Regional risk analysis based on real-time sensory data.</p>
+            </header>
 
-              <div style={{ padding: '32px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                {/* Risk Score */}
-                <div style={{ backgroundColor: '#fff7ed', padding: '24px', borderRadius: '16px', borderLeft: '4px solid var(--accent-amber)', border: '1px solid #ffedd5' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
-                    <div>
-                      <h3 style={{ color: '#9a3412', fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Fire Risk Probability</h3>
-                      <div style={{ fontSize: '36px', fontWeight: 'bold', marginTop: '4px', color: '#ea580c' }}>74<span style={{ fontSize: '20px' }}>%</span></div>
-                    </div>
-                    <div style={{ backgroundColor: '#ffedd5', padding: '8px', borderRadius: '8px', color: '#ea580c' }}>
-                      <Flame size={24} />
-                    </div>
+            <div style={{ padding: '32px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+              {/* Risk Score */}
+              <div style={{ backgroundColor: '#fff7ed', padding: '24px', borderRadius: '16px', borderLeft: '4px solid var(--accent-amber)', border: '1px solid #ffedd5' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+                  <div>
+                    <h3 style={{ color: '#9a3412', fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Fire Risk Probability</h3>
+                    <div style={{ fontSize: '36px', fontWeight: 'bold', marginTop: '4px', color: '#ea580c' }}>74<span style={{ fontSize: '20px' }}>%</span></div>
                   </div>
-                  <div style={{ width: '100%', backgroundColor: '#fed7aa', height: '8px', borderRadius: '4px', overflow: 'hidden' }}>
-                    <motion.div 
-                      initial={{ width: 0 }}
-                      animate={{ width: '74%' }}
-                      transition={{ duration: 1.5, ease: "easeOut" }}
-                      style={{ backgroundColor: '#ea580c', height: '100%' }} 
-                    />
+                  <div style={{ backgroundColor: '#ffedd5', padding: '8px', borderRadius: '8px', color: '#ea580c' }}>
+                    <Flame size={24} />
                   </div>
                 </div>
-
-                {/* Metrics Grid */}
-                <div className="metric-grid">
-                  <MetricCard 
-                    icon={<Thermometer className="text-red" size={20} />}
-                    label="Temperature"
-                    value={intel?.temperature ? `${intel.temperature}°C` : '...'}
-                    trend="Extreme Heat"
-                  />
-                  <MetricCard 
-                    icon={<CloudRain className="text-blue" size={20} />}
-                    label="Humidity"
-                    value={intel?.humidity ? `${intel.humidity}%` : '...'}
-                    trend="Very Dry"
-                  />
-                  <MetricCard 
-                    icon={<Wind className="text-blue" size={20} />}
-                    label="Wind Speed"
-                    value={intel?.windSpeed ? `${intel.windSpeed} km/h` : '...'}
-                    trend={`${intel?.windDirection ?? 0}° N`}
-                  />
-                  <MetricCard 
-                    icon={<Trees className="text-emerald" size={20} />}
-                    label="Vegetation"
-                    value={intel?.vegetationType ?? '...'}
-                    trend="High Dryness"
-                  />
-                  <MetricCard 
-                    icon={<Navigation className="text-blue" size={20} />}
-                    label="Road Status"
-                    value={intel?.roadStatus ?? '...'}
-                    trend={intel?.roadStatus === 'Open' ? 'Safe' : 'Dangerous'}
-                  />
-                  <MetricCard 
-                    icon={<Droplets className="text-amber" size={20} />}
-                    label="Drought Index"
-                    value={intel?.droughtIndex ? `${intel.droughtIndex}/100` : '...'}
-                    trend="Severe"
+                <div style={{ width: '100%', backgroundColor: '#fed7aa', height: '8px', borderRadius: '4px', overflow: 'hidden' }}>
+                  <motion.div 
+                    initial={{ width: 0 }}
+                    animate={{ width: '74%' }}
+                    transition={{ duration: 1.5, ease: "easeOut" }}
+                    style={{ backgroundColor: '#ea580c', height: '100%' }} 
                   />
                 </div>
               </div>
-            </section>
-          </>
-        ) : (
-          <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-            <SimulationView onBack={() => setViewMode('MAP')} />
-          </div>
-        )}
+
+              {/* Metrics Grid */}
+              <div className="metric-grid">
+                <MetricCard 
+                  icon={<Thermometer className="text-red" size={20} />}
+                  label="Temperature"
+                  value={intel?.temperature ? `${intel.temperature}°C` : '...'}
+                  trend="Extreme Heat"
+                />
+                <MetricCard 
+                  icon={<CloudRain className="text-blue" size={20} />}
+                  label="Humidity"
+                  value={intel?.humidity ? `${intel.humidity}%` : '...'}
+                  trend="Very Dry"
+                />
+                <MetricCard 
+                  icon={<Wind className="text-blue" size={20} />}
+                  label="Wind Speed"
+                  value={intel?.windSpeed ? `${intel.windSpeed} km/h` : '...'}
+                  trend={`${intel?.windDirection ?? 0}° N`}
+                />
+                <MetricCard 
+                  icon={<Trees className="text-emerald" size={20} />}
+                  label="Vegetation"
+                  value={intel?.vegetationType ?? '...'}
+                  trend="High Dryness"
+                />
+                <MetricCard 
+                  icon={<Navigation className="text-blue" size={20} />}
+                  label="Road Status"
+                  value={intel?.roadStatus ?? '...'}
+                  trend={intel?.roadStatus === 'Open' ? 'Safe' : 'Dangerous'}
+                />
+                <MetricCard 
+                  icon={<Droplets className="text-amber" size={20} />}
+                  label="Drought Index"
+                  value={intel?.droughtIndex ? `${intel.droughtIndex}/100` : '...'}
+                  trend="Severe"
+                />
+              </div>
+            </div>
+          </section>
+        </div>
+
+        {/* 3D Simulation View */}
+        <div 
+          style={{ 
+            display: viewMode === 'SIMULATION' ? 'block' : 'none', 
+            width: '100%', 
+            height: '100%', 
+            position: 'relative' 
+          }}
+        >
+          <SimulationView onBack={() => setViewMode('MAP')} />
+        </div>
       </main>
     </div>
   );
