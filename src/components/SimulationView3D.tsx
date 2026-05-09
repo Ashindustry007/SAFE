@@ -5,7 +5,7 @@
  */
 
 import React, { useState, useEffect, useRef, useLayoutEffect, useCallback } from 'react';
-import { Canvas, useThree, useFrame } from '@react-three/fiber';
+import { Canvas, useFrame } from '@react-three/fiber';
 import { Sky, Html, OrbitControls, PerspectiveCamera, View } from '@react-three/drei';
 import {
   Play,
@@ -56,7 +56,7 @@ interface Simulation3DProps {
 
 type Tool = 'SPARK' | 'FIRELINE' | 'HELITACK' | 'NONE';
 
-const SimulationContent = ({ cells, activeTool, clickMarkers, onCellInteraction, time, isLoadingTerrain, isCompareMode, engineRefB, setCellsB }: any) => (
+const SimulationContent = ({ cells, activeTool, clickMarkers, onCellInteraction, time }: any) => (
   <>
     <ambientLight intensity={0.65} />
     <directionalLight position={[1.2, 1.8, 1.1]} intensity={2.0} castShadow />
