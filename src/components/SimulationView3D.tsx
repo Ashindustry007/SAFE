@@ -229,36 +229,14 @@ export const SimulationView3D: React.FC<Simulation3DProps> = ({ onBack }) => {
   return (
     <div
       style={{
-        width: '100vw',
-        height: '100vh',
+        width: '100%',
+        height: '100%',
         backgroundColor: '#cbd5e1',
         position: 'relative',
         overflow: 'hidden',
       }}
     >
-      {/* Always-visible debug banner so we know React is rendering */}
-      <div
-        style={{
-          position: "absolute",
-          top: 10,
-          left: 10,
-          zIndex: 9999,
-          background: "rgba(0,0,0,0.55)",
-          color: "white",
-          padding: "6px 10px",
-          borderRadius: 10,
-          fontSize: 12,
-          fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-          pointerEvents: "none",
-          maxWidth: 520,
-          whiteSpace: "pre-wrap",
-        }}
-      >
-        {`SAFE_SIM_DEBUG
-loading=${isLoadingTerrain}
-cells=${cells.length}
-err=${terrainLoadError ?? "none"}`}
-      </div>
+
       <Canvas shadows>
         <color attach="background" args={['#cbd5e1']} />
         {/* Concord-normalized plane uses width=1, so camera must be close. */}
@@ -881,27 +859,7 @@ err=${terrainLoadError ?? "none"}`}
         </div>
       </footer>
 
-      <button
-        type="button"
-        onClick={onBack}
-        style={{
-          position: 'absolute',
-          top: 20,
-          right: 20,
-          backgroundColor: 'white',
-          border: 'none',
-          padding: '10px 20px',
-          borderRadius: '99px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          cursor: 'pointer',
-          fontWeight: 600,
-          boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)',
-        }}
-      >
-        <ChevronLeft size={16} /> Exit
-      </button>
+
     </div>
   );
 };
