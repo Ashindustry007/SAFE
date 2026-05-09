@@ -9,11 +9,11 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import { setOptions, importLibrary } from '@googlemaps/js-api-loader';
-import { 
-  Flame, 
-  Wind, 
-  Droplets, 
-  Trees, 
+import {
+  Flame,
+  Wind,
+  Droplets,
+  Trees,
   Map as MapIcon,
   Thermometer,
   CloudRain,
@@ -29,6 +29,7 @@ import { SimulationView3D as SimulationView } from './components/SimulationView3
 import { useFireSimulation } from './hooks/useFireSimulation';
 import Chatbot from './components/Chatbot';
 import { FAQProtocols } from './components/FAQProtocols';
+import ThermalWindfield from './components/ThermalWindfield';
 import './App.css';
 
 /**
@@ -108,7 +109,7 @@ const App: React.FC = () => {
             const east = bounds.getNorthEast().lng();
             const south = bounds.getSouthWest().lat();
             const west = bounds.getSouthWest().lng();
-            
+
             console.log('Fetching intel for new map bounds');
             const data = await fetchWildfireIntel({ north, south, east, west });
             setIntel(data);
@@ -122,7 +123,7 @@ const App: React.FC = () => {
   useEffect(() => {
     if (!googleMapRef.current) return;
     const map = googleMapRef.current;
-    
+
     // Clear previous listener
     google.maps.event.clearListeners(map, 'click');
 
@@ -135,7 +136,7 @@ const App: React.FC = () => {
           // Zoom in to see the simulation properly
           map.setZoom(14);
           map.panTo(e.latLng);
-          
+
           startSimulation(map, e.latLng, {
             windSpeed: intel.windSpeed,
             windDirection: intel.windDirection,
@@ -155,6 +156,7 @@ const App: React.FC = () => {
 
   return (
     <div className="app-container">
+      <ThermalWindfield />
       {/* Top Navigation Bar - Hidden on Landing Page */}
       {viewMode !== 'LANDING' && (
         <header className="top-nav">
@@ -164,28 +166,28 @@ const App: React.FC = () => {
             </div>
             <span className="brand-name">SAFE</span>
           </div>
-          
+
           <nav className="nav-links">
-            <NavButton 
-              active={viewMode === 'MAP'} 
+            <NavButton
+              active={viewMode === 'MAP'}
               onClick={() => setViewMode('MAP')}
               icon={<MapIcon size={18} />}
               label="Intelligence"
             />
-            <NavButton 
-              active={viewMode === 'SIMULATION'} 
+            <NavButton
+              active={viewMode === 'SIMULATION'}
               onClick={() => setViewMode('SIMULATION')}
               icon={<Zap size={18} />}
               label="Simulation"
             />
-            <NavButton 
-              active={viewMode === 'FAQ'} 
+            <NavButton
+              active={viewMode === 'FAQ'}
               onClick={() => setViewMode('FAQ')}
               icon={<HelpCircle size={18} />}
               label="Resources"
             />
-            <NavButton 
-              active={viewMode === 'CHAT'} 
+            <NavButton
+              active={viewMode === 'CHAT'}
               onClick={() => setViewMode('CHAT')}
               icon={<MessageSquare size={18} />}
               label="Assistant"
@@ -201,10 +203,10 @@ const App: React.FC = () => {
         )}
 
         {/* Map & Intelligence Dashboard */}
-        <div 
-          style={{ 
-            display: viewMode === 'MAP' ? 'flex' : 'none', 
-            width: '100%', 
+        <div
+          style={{
+            display: viewMode === 'MAP' ? 'flex' : 'none',
+            width: '100%',
             height: '100%',
             overflow: 'hidden'
           }}
@@ -219,15 +221,15 @@ const App: React.FC = () => {
                 <h2 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '8px' }}>Google Maps Integration</h2>
                 <p style={{ color: 'var(--text-secondary)', marginBottom: '24px', maxWidth: '400px' }}>Enter your API key to activate the high-resolution wildfire intelligence map.</p>
                 <div style={{ display: 'flex', gap: '8px', width: '100%', maxWidth: '384px' }}>
-                  <input 
-                    type="password" 
-                    placeholder="Paste Google Maps API Key" 
+                  <input
+                    type="password"
+                    placeholder="Paste Google Maps API Key"
                     className="modern"
                     style={{ flex: 1 }}
                     value={apiKey}
                     onChange={(e) => setApiKey(e.target.value)}
                   />
-                  <button className="btn-primary" onClick={() => {}}>Activate</button>
+                  <button className="btn-primary" onClick={() => { }}>Activate</button>
                 </div>
               </div>
             )}
@@ -235,16 +237,16 @@ const App: React.FC = () => {
           </section>
 
           {/* Intelligence Panel (Right) */}
-          <section className="intel-panel custom-scrollbar" style={{ flex: 2, backgroundColor: '#ffffff', color: '#1e293b', overflowY: 'auto' }}>
-            <header style={{ padding: '32px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <section className="intel-panel custom-scrollbar">
+            <header style={{ padding: '32px', borderBottom: '1px solid var(--glass-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
-                <h1 style={{ fontSize: '30px', fontWeight: 'bold', marginBottom: '8px', color: '#0f172a' }}>Environmental <span className="text-amber">Intelligence</span></h1>
-                <p style={{ color: '#64748b' }}>
+                <h1 style={{ fontSize: '30px', fontWeight: 'bold', marginBottom: '8px', color: 'var(--text-primary)' }}>Environmental <span className="text-amber">Intelligence</span></h1>
+                <p style={{ color: 'var(--text-secondary)' }}>
                   {isUpdatingIntel ? 'Scanning current region...' : 'Regional risk analysis based on real-time sensory data.'}
                 </p>
               </div>
-              
-              <button 
+
+              <button
                 onClick={() => {
                   if (isSimulating) {
                     clearSimulation();
@@ -255,7 +257,7 @@ const App: React.FC = () => {
                   }
                 }}
                 className={isIgniteMode ? "btn-primary" : ""}
-                style={{ 
+                style={{
                   display: 'flex', alignItems: 'center', gap: '8px',
                   padding: '12px 24px', borderRadius: '8px', fontWeight: 'bold',
                   cursor: 'pointer', transition: 'all 0.2s',
@@ -276,61 +278,61 @@ const App: React.FC = () => {
                 </div>
               )}
               {/* Risk Score */}
-              <div style={{ backgroundColor: '#fff7ed', padding: '24px', borderRadius: '16px', borderLeft: '4px solid var(--accent-amber)', border: '1px solid #ffedd5' }}>
+              <div className="glass-panel" style={{ padding: '24px', borderRadius: '16px', borderLeft: '4px solid var(--accent-amber)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
                   <div>
-                    <h3 style={{ color: '#9a3412', fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Fire Risk Probability</h3>
-                    <div style={{ fontSize: '36px', fontWeight: 'bold', marginTop: '4px', color: '#ea580c' }}>
+                    <h3 style={{ color: 'var(--accent-amber)', fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Fire Risk Probability</h3>
+                    <div style={{ fontSize: '36px', fontWeight: 'bold', marginTop: '4px', color: 'var(--text-primary)' }}>
                       {intel ? Math.min(100, Math.round((intel.droughtIndex * 0.4) + (intel.windSpeed * 0.4) + (intel.temperature * 0.2))) : '...'}<span style={{ fontSize: '20px' }}>%</span>
                     </div>
                   </div>
-                  <div style={{ backgroundColor: '#ffedd5', padding: '8px', borderRadius: '8px', color: '#ea580c' }}>
+                  <div style={{ backgroundColor: 'rgba(245, 158, 11, 0.1)', padding: '8px', borderRadius: '8px', color: '#ea580c' }}>
                     <Flame size={24} />
                   </div>
                 </div>
                 <div style={{ width: '100%', backgroundColor: '#fed7aa', height: '8px', borderRadius: '4px', overflow: 'hidden' }}>
-                  <motion.div 
+                  <motion.div
                     initial={{ width: 0 }}
                     animate={{ width: intel ? Math.min(100, Math.round((intel.droughtIndex * 0.4) + (intel.windSpeed * 0.4) + (intel.temperature * 0.2))) + '%' : '0%' }}
                     transition={{ duration: 1.5, ease: "easeOut" }}
-                    style={{ backgroundColor: '#ea580c', height: '100%' }} 
+                    style={{ backgroundColor: '#ea580c', height: '100%' }}
                   />
                 </div>
               </div>
 
               {/* Metrics Grid */}
               <div className="metric-grid">
-                <MetricCard 
+                <MetricCard
                   icon={<Thermometer className="text-red" size={20} />}
                   label="Temperature"
                   value={intel?.temperature ? `${intel.temperature}°C` : '...'}
                   trend={intel && intel.temperature > 30 ? "Extreme Heat" : "Normal"}
                 />
-                <MetricCard 
+                <MetricCard
                   icon={<CloudRain className="text-blue" size={20} />}
                   label="Humidity"
                   value={intel?.humidity ? `${intel.humidity}%` : '...'}
                   trend={intel && intel.humidity < 30 ? "Very Dry" : "Normal"}
                 />
-                <MetricCard 
+                <MetricCard
                   icon={<Wind className="text-blue" size={20} />}
                   label="Wind Speed"
                   value={intel?.windSpeed ? `${intel.windSpeed} km/h` : '...'}
                   trend={`${intel?.windDirection ?? 0}° N`}
                 />
-                <MetricCard 
+                <MetricCard
                   icon={<Trees className="text-emerald" size={20} />}
                   label="Vegetation"
                   value={intel?.vegetationType ?? '...'}
                   trend={intel?.vegetationType === 'Forest' ? "High Risk Fuel" : "Medium Risk"}
                 />
-                <MetricCard 
+                <MetricCard
                   icon={<Navigation className="text-blue" size={20} />}
                   label="Road Status"
                   value={intel?.roadStatus ?? '...'}
                   trend={intel?.roadStatus === 'Open' ? 'Safe' : 'Dangerous'}
                 />
-                <MetricCard 
+                <MetricCard
                   icon={<Droplets className="text-amber" size={20} />}
                   label="Drought Index"
                   value={intel?.droughtIndex ? `${intel.droughtIndex}/100` : '...'}
@@ -342,17 +344,16 @@ const App: React.FC = () => {
         </div>
 
         {/* 3D Simulation View */}
-        <div 
-          style={{ 
-            display: viewMode === 'SIMULATION' ? 'block' : 'none', 
-            width: '100%', 
-            height: '100%', 
-            position: 'relative' 
+        <div
+          style={{
+            display: viewMode === 'SIMULATION' ? 'block' : 'none',
+            width: '100%',
+            height: '100%',
+            position: 'relative'
           }}
         >
           <SimulationView />
         </div>
-
         {/* FAQ & Protocols View */}
         <div 
           style={{ 
@@ -366,10 +367,10 @@ const App: React.FC = () => {
         </div>
 
         {/* Chat View */}
-        <div 
-          style={{ 
-            display: viewMode === 'CHAT' ? 'block' : 'none', 
-            width: '100%', 
+        <div
+          style={{
+            display: viewMode === 'CHAT' ? 'block' : 'none',
+            width: '100%',
             height: '100%'
           }}
         >
@@ -385,7 +386,7 @@ const App: React.FC = () => {
  * Premium navigation button for the top bar.
  */
 const NavButton = ({ active, onClick, icon, label }: any) => (
-  <button 
+  <button
     onClick={onClick}
     className={`nav-btn ${active ? 'active' : ''}`}
   >
@@ -399,13 +400,9 @@ const NavButton = ({ active, onClick, icon, label }: any) => (
  * Minimal, aesthetic entry point for the platform.
  */
 const LandingPage = ({ onNavigate }: { onNavigate: (mode: ViewMode) => void }) => (
-  <div className="landing-container">
-    <div className="landing-bg">
-      <div className="glow-1"></div>
-      <div className="glow-2"></div>
-    </div>
+  <div className="landing-container" style={{ background: 'transparent' }}>
     
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.8 }}
@@ -414,32 +411,32 @@ const LandingPage = ({ onNavigate }: { onNavigate: (mode: ViewMode) => void }) =
       <div className="landing-logo-box">
         <Flame size={48} className="text-amber" />
       </div>
-      
+
       <h1 className="landing-title">SAFE</h1>
       <p className="landing-subtitle">Simulated Analysis of Fire Ecology</p>
-      
+
       <div className="landing-divider"></div>
-      
+
       <div className="landing-grid">
-        <LandingCard 
+        <LandingCard
           title="Intelligence"
           desc="Real-time environmental risk assessment"
           icon={<MapIcon size={24} />}
           onClick={() => onNavigate('MAP')}
         />
-        <LandingCard 
+        <LandingCard
           title="Simulation"
           desc="Predictive 3D wildfire spread modeling"
           icon={<Zap size={24} />}
           onClick={() => onNavigate('SIMULATION')}
         />
-        <LandingCard 
+        <LandingCard
           title="Resources"
           desc="Ecological data & expert guidelines"
           icon={<HelpCircle size={24} />}
           onClick={() => onNavigate('FAQ')}
         />
-        <LandingCard 
+        <LandingCard
           title="Assistant"
           desc="AI-powered emergency response support"
           icon={<MessageSquare size={24} />}
@@ -451,7 +448,7 @@ const LandingPage = ({ onNavigate }: { onNavigate: (mode: ViewMode) => void }) =
 );
 
 const LandingCard = ({ title, desc, icon, onClick }: any) => (
-  <motion.div 
+  <motion.div
     whileHover={{ scale: 1.02, backgroundColor: 'rgba(255, 255, 255, 0.05)' }}
     whileTap={{ scale: 0.98 }}
     onClick={onClick}
@@ -469,15 +466,15 @@ const LandingCard = ({ title, desc, icon, onClick }: any) => (
  * Displays a single environmental data point with an icon and trend label.
  */
 const MetricCard = ({ icon, label, value, trend }: any) => (
-  <div className="glass-panel metric-card" style={{ backgroundColor: '#f8fafc', borderColor: '#e2e8f0' }}>
+  <div className="glass-panel metric-card">
     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
-      <div style={{ padding: '6px', borderRadius: '8px', backgroundColor: '#f1f5f9' }}>
+      <div style={{ padding: '6px', borderRadius: '8px', backgroundColor: 'rgba(255, 255, 255, 0.05)' }}>
         {icon}
       </div>
-      <span style={{ fontSize: '10px', fontWeight: 600, color: '#64748b', textTransform: 'uppercase' }}>{label}</span>
+      <span style={{ fontSize: '10px', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>{label}</span>
     </div>
-    <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#0f172a' }}>{value}</div>
-    <div style={{ fontSize: '10px', color: '#64748b', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+    <div style={{ fontSize: '20px', fontWeight: 'bold', color: 'var(--text-primary)' }}>{value}</div>
+    <div style={{ fontSize: '10px', color: 'var(--text-secondary)', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
       {trend}
     </div>
   </div>

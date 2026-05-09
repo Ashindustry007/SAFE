@@ -61,27 +61,27 @@ const FAQPage: React.FC = () => {
   );
 
   return (
-    <div className="faq-container" style={{backgroundColor: '#fff', padding: '4rem 2rem'}}>
+    <div className="faq-container" style={{backgroundColor: 'transparent', padding: '4rem 2rem'}}>
       <div style={{maxWidth: '800px', margin: '0 auto'}}>
         <header style={{textAlign: 'center', marginBottom: '4rem'}}>
-          <div style={{display: 'inline-block', padding: '0.25rem 0.75rem', backgroundColor: '#eef2ff', color: '#4f46e5', borderRadius: '999px', fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', marginBottom: '1.5rem'}}>
+          <div style={{display: 'inline-block', padding: '0.25rem 0.75rem', backgroundColor: 'rgba(99, 102, 241, 0.1)', color: '#818cf8', borderRadius: '999px', fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', marginBottom: '1.5rem'}}>
             Knowledge Base
           </div>
-          <h1 style={{fontSize: '2.5rem', fontWeight: 900, color: '#0f172a', marginBottom: '1rem'}}>Intelligence Repository</h1>
-          <p style={{color: '#64748b', fontSize: '1.125rem'}}>Comprehensive technical documentation for SAFE.</p>
+          <h1 style={{fontSize: '2.5rem', fontWeight: 900, color: 'var(--text-primary)', marginBottom: '1rem'}}>Intelligence Repository</h1>
+          <p style={{color: 'var(--text-secondary)', fontSize: '1.125rem'}}>Comprehensive technical documentation for SAFE.</p>
         </header>
 
         {/* SEARCH INTERFACE */}
         <div style={{position: 'relative', marginBottom: '3rem'}}>
-          <Search style={{position: 'absolute', left: '1.5rem', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8'}} size={20} />
+          <Search style={{position: 'absolute', left: '1.5rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)'}} size={20} />
           <input
             type="text"
             placeholder="Search the repository..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            style={{width: '100%', padding: '1.25rem 1.25rem 1.25rem 4rem', borderRadius: '16px', border: '2px solid #f1f5f9', outline: 'none', fontSize: '1rem', transition: 'border-color 0.2s'}}
+            style={{width: '100%', padding: '1.25rem 1.25rem 1.25rem 4rem', borderRadius: '16px', border: '1px solid var(--glass-border)', background: 'var(--glass-bg)', backdropFilter: 'var(--glass)', outline: 'none', fontSize: '1rem', color: 'var(--text-primary)', transition: 'border-color 0.2s'}}
             onFocus={(e) => e.target.style.borderColor = '#4f46e5'}
-            onBlur={(e) => e.target.style.borderColor = '#f1f5f9'}
+            onBlur={(e) => e.target.style.borderColor = 'var(--glass-border)'}
           />
         </div>
 
@@ -94,16 +94,16 @@ const FAQPage: React.FC = () => {
           <div style={{display: 'flex', flexDirection: 'column', gap: '1rem'}}>
             {filteredFaqs.length > 0 ? (
               filteredFaqs.map((faq, index) => (
-                <div key={index} style={{border: '1px solid #f1f5f9', borderRadius: '16px', overflow: 'hidden', backgroundColor: '#f8fafc'}}>
+                <div key={index} className="glass-panel" style={{borderRadius: '16px', overflow: 'hidden'}}>
                   <button
                     onClick={() => setOpenIndex(openIndex === index ? null : index)}
                     style={{width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.5rem', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left'}}
                   >
-                    <span style={{fontWeight: 700, color: '#1e293b'}}>{faq.question}</span>
-                    <ChevronDown size={18} style={{transform: openIndex === index ? 'rotate(180deg)' : 'none', transition: 'transform 0.3s', color: '#94a3b8'}} />
+                    <span style={{fontWeight: 700, color: 'var(--text-primary)'}}>{faq.question}</span>
+                    <ChevronDown size={18} style={{transform: openIndex === index ? 'rotate(180deg)' : 'none', transition: 'transform 0.3s', color: 'var(--text-secondary)'}} />
                   </button>
                   {openIndex === index && (
-                    <div style={{padding: '1.5rem', paddingTop: 0, color: '#475569', fontSize: '0.925rem', lineHeight: 1.6, borderTop: '1px solid #f1f5f9'}}>
+                    <div style={{padding: '1.5rem', paddingTop: 0, color: 'var(--text-secondary)', fontSize: '0.925rem', lineHeight: 1.6, borderTop: '1px solid var(--glass-border)'}}>
                       {faq.answer}
                     </div>
                   )}
