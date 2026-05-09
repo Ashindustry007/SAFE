@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { MessageSquare, Send, Bot, User } from 'lucide-react';
 import axios from 'axios';
+import ReactMarkdown from 'react-markdown';
 
 interface Message {
   role: 'user' | 'bot';
@@ -10,7 +11,7 @@ interface Message {
 
 const Chatbot: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([
-    { role: 'bot', content: 'Welcome to the SAFE Intelligence Center. I am your specialized wildfire assistant. How can I assist you with fire safety or analytics today?' }
+    { role: 'bot', content: 'Hi, How may i help you.' }
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -51,8 +52,8 @@ const Chatbot: React.FC = () => {
     const keywords: Record<string, string> = {
       "safe": "SAFE (Smart Analytics for Fire Emergencies) is a high-fidelity wildfire intelligence platform that uses the Rothermel model and real-time environmental data to predict fire behavior and risk.",
       "you": "I am the SAFE Intelligence Assistant, a specialized AI designed to help you navigate wildfire analytics, environmental data, and fire spread simulations.",
-      "hi": "Hello! I am the SAFE Intelligence Assistant. How can I help you today?",
-      "hello": "Hello! I am the SAFE Intelligence Assistant. How can I help you today?"
+      "hi": "Hi, How may i help you.",
+      "hello": "Hi, How may i help you."
     };
 
     for (const [key, val] of Object.entries(keywords)) {
@@ -100,7 +101,7 @@ const Chatbot: React.FC = () => {
           <h1 style={{ fontSize: '1.4rem', fontWeight: 900, color: '#0f172a' }}>SAFE AI</h1>
         </div>
 
-        <button className="new-session-btn" onClick={() => setMessages([{ role: 'bot', content: 'Session reset. Intelligence core active. How can I help?' }])}>
+        <button className="new-session-btn" onClick={() => setMessages([{ role: 'bot', content: 'Hi, How may i help you.' }])}>
           <MessageSquare size={18} />
           New Intelligence Session
         </button>
@@ -134,7 +135,9 @@ const Chatbot: React.FC = () => {
                 </div>
                 <div className="message-content">
                   <p className="sender-name">{msg.role === 'bot' ? 'Assistant Intelligence' : 'User Terminal'}</p>
-                  <div className="text-body">{msg.content}</div>
+                  <div className="text-body">
+                    <ReactMarkdown>{msg.content}</ReactMarkdown>
+                  </div>
                   {msg.sources && msg.sources.length > 0 && (
                     <div style={{ marginTop: '1rem', paddingTop: '0.75rem', borderTop: '1px solid #f1f5f9' }}>
                       <p style={{ fontSize: '0.65rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Sources:</p>

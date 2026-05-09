@@ -69,13 +69,19 @@ app.post('/api/chat', async (req: Request, res: Response): Promise<any> => {
 
   console.log(`[Multi-API] Query received: "${message}"`);
 
+  const systemInstruction = "You are a specialized wildfire assistant. You must ONLY answer questions related to wildfires. If the user's question is NOT about wildfires, refuse to answer it and say you only answer wildfire based questions.";
+
+
   // 1. ATTEMPT GROQ (Lowest Latency)
   if (process.env.GROQ_API_KEY) {
     try {
       console.log("Attempting Groq...");
       const chat = await groq.chat.completions.create({
         model: "llama-3.3-70b-versatile",
-        messages: [{ role: "user", content: message }],
+        messages: [
+          { role: "system", content: systemInstruction },
+          { role: "user", content: message }
+        ],
       });
       return res.json({ response: chat.choices[0].message.content, sources: [] });
     } catch (e) { console.warn("Groq failed or throttled."); }
@@ -84,7 +90,7 @@ app.post('/api/chat', async (req: Request, res: Response): Promise<any> => {
   // 2. ATTEMPT GEMINI
   try {
     console.log("Attempting Gemini...");
-    const result = await geminiModel.generateContent(message);
+    const result = await geminiModel.generateContent(`System Instruction: ${systemInstruction}\n\nUser Question: ${message}`);
     const response = await result.response;
     return res.json({ response: response.text(), sources: [] });
   } catch (e) { console.warn("Gemini failed or out of quota."); }
@@ -94,7 +100,10 @@ app.post('/api/chat', async (req: Request, res: Response): Promise<any> => {
     console.log("Attempting OpenAI...");
     const chat = await openai.chat.completions.create({
       model: "gpt-4o-mini",
-      messages: [{ role: "user", content: message }],
+      messages: [
+        { role: "system", content: systemInstruction },
+        { role: "user", content: message }
+      ],
     });
     return res.json({ response: chat.choices[0].message.content, sources: [] });
   } catch (e) { console.warn("OpenAI failed or out of quota."); }
@@ -105,7 +114,10 @@ app.post('/api/chat', async (req: Request, res: Response): Promise<any> => {
       console.log("Attempting RunPod...");
       const chat = await runpod.chat.completions.create({
         model: "meta-llama/Meta-Llama-3-8B-Instruct",
-        messages: [{ role: "user", content: message }],
+        messages: [
+          { role: "system", content: systemInstruction },
+          { role: "user", content: message }
+        ],
       });
       return res.json({ response: chat.choices[0].message.content, sources: [] });
     } catch (e) { console.warn("RunPod failed."); }
