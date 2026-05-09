@@ -6,7 +6,7 @@
 
 import React, { useState, useEffect, useRef, useLayoutEffect, useCallback } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { Sky, Html, OrbitControls, PerspectiveCamera, View } from '@react-three/drei';
+import { Sky, OrbitControls, PerspectiveCamera, View } from '@react-three/drei';
 import {
   Play,
   Pause,
@@ -821,10 +821,7 @@ export const SimulationView3D: React.FC<Simulation3DProps> = ({ onBack }) => {
         />
 
         <div style={{ width: 1, height: 32, backgroundColor: '#e5e7eb' }} />
-<<<<<<< HEAD
-=======
-        
->>>>>>> main
+
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: '90px' }}>
           <div style={{ fontSize: '9px', color: '#6b7280', fontWeight: 'bold', letterSpacing: '0.05em' }}>TIME ELAPSED</div>
           <div style={{ fontSize: '15px', fontFamily: 'monospace', fontWeight: 'bold', color: '#1f2937' }}>
