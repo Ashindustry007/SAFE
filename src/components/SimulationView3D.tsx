@@ -287,10 +287,8 @@ export const SimulationView3D: React.FC<Simulation3DProps> = ({ onBack }) => {
   ).length;
   const burnPercentage = totalBurnable > 0 ? (totalBurned / totalBurnable) * 100 : 0;
 
-
-
   return (
-    <div ref={containerRef} style={{ width: '100vw', height: '100vh', backgroundColor: '#cbd5e1', position: 'relative', overflow: 'hidden', pointerEvents: 'auto' }}>
+    <div ref={containerRef} style={{ width: '100%', height: '100%', backgroundColor: '#cbd5e1', position: 'relative', overflow: 'hidden', pointerEvents: 'auto' }}>
       <div style={{ position: 'absolute', inset: 0, display: 'flex', zIndex: 1, pointerEvents: 'none' }}>
         <div ref={viewARef} style={{ flex: 1, position: 'relative', pointerEvents: 'auto' }}>
           {isCompareMode && (
@@ -346,7 +344,6 @@ export const SimulationView3D: React.FC<Simulation3DProps> = ({ onBack }) => {
         <View track={viewARef as any}>
           <PerspectiveCamera ref={camARef} makeDefault position={[0, 0.7, 0.9]} fov={55} />
           <SimulationContent cells={cells} activeTool={activeTool} clickMarkers={clickMarkers} time={time} onCellInteraction={(x: number, y: number) => {
-              /* ... interaction logic ... */
               if (isLoadingTerrain) return;
               const idx = y * GRID_WIDTH + x;
               const nextCells = [...cells];
@@ -860,27 +857,7 @@ export const SimulationView3D: React.FC<Simulation3DProps> = ({ onBack }) => {
         </div>
       </footer>
 
-      <button
-        type="button"
-        onClick={onBack}
-        style={{
-          position: 'absolute',
-          top: 20,
-          right: 20,
-          backgroundColor: 'white',
-          border: 'none',
-          padding: '10px 20px',
-          borderRadius: '99px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          cursor: 'pointer',
-          fontWeight: 600,
-          boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)',
-        }}
-      >
-        <ChevronLeft size={16} /> Exit
-      </button>
+
     </div>
   );
 };
