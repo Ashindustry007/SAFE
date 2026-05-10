@@ -11,7 +11,9 @@
   --accent-emerald: #10b981;
   --text-primary: #f8fafc;
   --text-secondary: #94a3b8;
-  --glass: blur(12px);
+  --glass: blur(16px) saturate(180%);
+  --glass-bg: rgba(255, 255, 255, 0.03);
+  --glass-border: rgba(255, 255, 255, 0.08);
   
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
 }
@@ -142,16 +144,20 @@ body {
   flex: 2;
   display: flex;
   flex-direction: column;
-  background-color: var(--bg-secondary);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass);
+  -webkit-backdrop-filter: var(--glass);
+  border-left: 1px solid var(--glass-border);
   overflow-y: auto;
+  color: var(--text-primary);
 }
 
 /* Components */
 .glass-panel {
-  background: var(--panel-bg);
+  background: var(--glass-bg);
   backdrop-filter: var(--glass);
   -webkit-backdrop-filter: var(--glass);
-  border: 1px solid var(--border);
+  border: 1px solid var(--glass-border);
 }
 
 .metric-grid {

@@ -30,28 +30,18 @@ SAFE features the **Concord Engine**, a state-of-the-art modular simulation suit
 - **Mapping**: Google Maps JavaScript API.
 - **Simulation Logic**: Modular Concord TypeScript engine.
 
-## 📥 Getting Started
+## SAFE
+LANDING PAGE
+<img width="1799" height="1004" alt="LANDING PAGE" src="https://github.com/user-attachments/assets/8d7c7270-f692-4abc-8ca0-2f7f2c3d3e0b" />
+LIVE MAP SIMULATION
+<img width="1800" height="1004" alt="LIVE SIMULATION" src="https://github.com/user-attachments/assets/fc7b909d-99f4-4bb1-a75b-6255a7c833c0" />
+UNCONTROLLED-CONTROLLED SIMULATION
+<img width="1799" height="995" alt="SIMULATION_" src="https://github.com/user-attachments/assets/896c5257-b8d5-4fc5-8f3e-42d8c0a067e5" />
+RESOURCES
+<img width="1800" height="1002" alt="RESOURCES" src="https://github.com/user-attachments/assets/2c7c760a-cb46-44f1-8eaa-eb083b245c71" />
+ASSISTANT
+<img width="1800" height="1003" alt="ASSISTANT" src="https://github.com/user-attachments/assets/b44dd6cc-ed97-4ef5-92c5-81e8a80d9f77" />
 
-### 1. Configure Environment
-Create a `.env` file in the root directory:
-```env
-# AI Providers
-GEMINI_API_KEY=...
-OPENAI_API_KEY=...
-GROQ_API_KEY=...
-MISTRAL_API_KEY=...
-
-# Mapping
-VITE_GOOGLE_MAPS_API_KEY=...
-```
-
-### 2. Run Development Environment
-```bash
-npm install
-npm run dev
-```
-
-The system will launch the **Vite client** (5173) and the **Intelligence server** (3002) concurrently.
 
 ---
 ### 📚 Project Documentation

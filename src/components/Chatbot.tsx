@@ -97,7 +97,7 @@ const Chatbot: React.FC = () => {
       <aside className="chat-sidebar">
         <div className="chat-sidebar-logo">
           <div className="logo-icon">S</div>
-          <h1 style={{ fontSize: '1.4rem', fontWeight: 900, color: '#0f172a' }}>SAFE AI</h1>
+          <h1 style={{ fontSize: '1.4rem', fontWeight: 900, color: '#ffffff' }}>SAFE AI</h1>
         </div>
 
         <button className="new-session-btn" onClick={() => setMessages([{ role: 'bot', content: 'Session reset. Intelligence core active. How can I help?' }])}>
