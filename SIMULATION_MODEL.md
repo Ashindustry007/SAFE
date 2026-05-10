@@ -16,7 +16,18 @@ $$R = \frac{I_R \cdot \phi_w \cdot \phi_s}{\rho_b \cdot \epsilon \cdot Q_{ig}}$$
 - **Effective Heating Number ($\epsilon$)**: The fraction of fuel mass that must be heated to ignition.
 - **Heat of Pre-ignition ($Q_{ig}$)**: The energy required to bring fuel to ignition temperature.
 
-## 🌿 Physical Fuel Models (`FuelConstants`)
+## 🌍 Environmental Intelligence
+
+### 1. High-Resolution Gradients
+SAFE fetches sparse meteorological data from the **Open-Meteo API** and utilizes **Bilinear Interpolation** to upsample to a high-density predictive grid. This ensures that micro-climatic variations in temperature and humidity are captured.
+
+### 2. Moisture of Extinction (Mx)
+The model dynamically maps drought indices to fuel moisture percentages. As moisture approaches the extinction limit ($Mx$), the reaction intensity drops non-linearly:
+```typescript
+const moistureDamping = 1 - (2.59 * r) + (5.11 * r^2) - (3.52 * r^3); // where r = currentMoisture / Mx
+```
+
+## 🧬 Physical Fuel Models (`FuelConstants`)
 
 The Concord Engine utilizes research-grade constants for different vegetation profiles:
 
@@ -27,31 +38,27 @@ The Concord Engine utilizes research-grade constants for different vegetation pr
 | **Mx** (Moisture of Extinction) | 15% | 30% | 20% |
 | **Fuel Bed Depth** (ft) | 3.0 | 1.2 | 0.1 |
 
-## 🧬 Advanced Physics Components
+## 🕹️ Simulation Components
 
-### 1. Moisture Damping
-The simulation calculates a non-linear damping coefficient that reduces fire intensity as fuel moisture approaches the extinction limit ($Mx$):
-```typescript
-const moistureDamping = 1 - (2.59 * r) + (5.11 * r^2) - (3.52 * r^3); // where r = moisture / mx
-```
+### 1. Vector Resultant Spread
+The engine calculates the **resultant vector** of fire spread by combining:
+- **Wind Vector**: Oriented based on live atmospheric data.
+- **Upslope Vector**: Derived from the local elevation gradient (DEM).
 
-### 2. Vector-Based Spread
-SAFE implements **Vector Resultant Spread**, combining environmental forces:
-- **Wind Vector**: Oriented based on global weather data and topographic alignment.
-- **Upslope Vector**: Derived from the local elevation gradient.
-- **Effective Wind Speed**: An abstract value representing the combined "push" of wind and slope on the fire front.
+### 2. Probabilistic Transition
+In the 2D Live View, transitions are governed by a probabilistic cellular automata model ($P_{ignition}$):
+- **Base Rate**: Baseline probability of ignition.
+- **Environmental Multipliers**: Non-linear scaling for wind intensity and topographic slope.
 
-### 3. Burn Index (BI) & Suppression
-The model dynamically adjusts behavior based on active suppression:
+### 3. Suppression Impact
 - **Helitack Drops**: Temporarily increase fuel moisture, lowering reaction intensity.
 - **Fire Lines**: Create zero-fuel barriers that stop low-to-medium intensity spread.
-- **Burn Index**: Categorizes intensity (Low/Medium/High) to inform evacuation protocols.
 
-## 💻 Concord Implementation Stack
-- **Engine Core**: `src/logic/concord/engine/get-fire-spread-rate.ts`
-- **Logic Controller**: `src/logic/concord/engine/fire-engine.ts`
-- **Grid State**: `src/logic/concord/cell.ts`
-- **Visuals**: High-performance 3D rendering in `Terrain3D.tsx`.
+## 💻 Technical Implementation
+- **Physics Core**: `src/logic/concord/engine/get-fire-spread-rate.ts`
+- **Spread Controller**: `src/utils/fireSimulation.ts`
+- **Environmental Logic**: `src/services/wildfireApi.ts`
+- **3D Logic Controller**: `src/logic/concord/engine/fire-engine.ts`
 
 ---
-*SAFE Simulation Technical Documentation - Concord Engine (Rothermel v3.0)*
+*SAFE Simulation Technical Documentation - Final Implementation (v4.0)*

@@ -1,8 +1,17 @@
 /**
- * SAFE Intelligence Server
+ * SAFE (Simulated Analysis of Fire Ecology) - Intelligence Server
  * 
- * A high-resiliency backend that manages wildfire intelligence queries across
- * multiple AI providers (Groq, Gemini, OpenAI, etc.) with automatic failover.
+ * A high-resiliency Node.js backend designed to provide 100% availability for 
+ * AI-powered wildfire intelligence queries. It implements a sophisticated 
+ * sequential failover chain across multiple global AI providers to mitigate 
+ * rate-limiting and service outages during emergencies.
+ * 
+ * Failover Priority:
+ * 1. Groq (Llama 3.3 70B) - Ultra-low latency primary.
+ * 2. Google Gemini (2.0 Flash) - High-fidelity reasoning secondary.
+ * 3. OpenAI (GPT-4o Mini) - Tertiary fallback.
+ * 4. RunPod (Self-hosted Llama 3) - Quaternary infrastructure fallback.
+ * 5. Static Failsafe - Pre-indexed technical summary.
  */
 
 import express from 'express';
@@ -20,22 +29,24 @@ app.use(express.json());
 
 const PORT = 3002;
 
-// --- AI PROVIDER CONFIGURATIONS ---
+// --- AI PROVIDER INITIALIZATION ---
 
 /**
- * Initialize Google Gemini client
+ * Google Gemini Configuration
+ * Utilized for complex environmental reasoning and large context windows.
  */
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 const geminiModel = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
 /**
- * Initialize OpenAI client
+ * OpenAI Configuration
+ * Robust fallback provider for technical analysis.
  */
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 /**
- * Initialize Groq client (Primary Provider)
- * Optimized for low-latency Llama 3 models.
+ * Groq Configuration
+ * PRIMARY PROVIDER: Optimized for sub-second inference using LPU architecture.
  */
 const groq = new OpenAI({
   apiKey: process.env.GROQ_API_KEY || "none",
@@ -43,15 +54,8 @@ const groq = new OpenAI({
 });
 
 /**
- * Initialize Mistral client
- */
-// const mistral = new OpenAI({
-//   apiKey: process.env.MISTRAL_API_KEY || "none",
-//   baseURL: "https://api.mistral.ai/v1"
-// });
-
-/**
- * Initialize RunPod client
+ * RunPod Configuration
+ * Infrastructure-level fallback for GPU-accelerated self-hosted models.
  */
 const runpod = new OpenAI({
   apiKey: process.env.RUNPOD_API_KEY || "none",
@@ -59,9 +63,12 @@ const runpod = new OpenAI({
 });
 
 /**
- * Main Chat Endpoint
- * Implements a sequential failover chain to ensure 100% availability.
- * Order: Groq -> Gemini -> OpenAI -> RunPod -> Failsafe
+ * POST /api/chat
+ * Primary entry point for the SAFE Intelligence Assistant.
+ * 
+ * Implements a "Chain of Responsibility" pattern for AI providers. Each failure 
+ * in the chain triggers the next provider until a valid response is achieved 
+ * or the failsafe buffer is reached.
  */
 app.post('/api/chat', async (req: Request, res: Response): Promise<any> => {
   const { message } = req.body;
@@ -69,10 +76,10 @@ app.post('/api/chat', async (req: Request, res: Response): Promise<any> => {
 
   console.log(`[Multi-API] Query received: "${message}"`);
 
-  // 1. ATTEMPT GROQ (Lowest Latency)
+  // --- ATTEMPT 1: GROQ ---
   if (process.env.GROQ_API_KEY) {
     try {
-      console.log("Attempting Groq...");
+      console.log("Attempting Groq (Llama-3.3-70B)...");
       const chat = await groq.chat.completions.create({
         model: "llama-3.3-70b-versatile",
         messages: [{ role: "user", content: message }],
@@ -81,17 +88,17 @@ app.post('/api/chat', async (req: Request, res: Response): Promise<any> => {
     } catch (e) { console.warn("Groq failed or throttled."); }
   }
 
-  // 2. ATTEMPT GEMINI
+  // --- ATTEMPT 2: GEMINI ---
   try {
-    console.log("Attempting Gemini...");
+    console.log("Attempting Gemini (2.0-Flash)...");
     const result = await geminiModel.generateContent(message);
     const response = await result.response;
     return res.json({ response: response.text(), sources: [] });
   } catch (e) { console.warn("Gemini failed or out of quota."); }
 
-  // 3. ATTEMPT OPENAI
+  // --- ATTEMPT 3: OPENAI ---
   try {
-    console.log("Attempting OpenAI...");
+    console.log("Attempting OpenAI (GPT-4o-Mini)...");
     const chat = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [{ role: "user", content: message }],
@@ -99,10 +106,10 @@ app.post('/api/chat', async (req: Request, res: Response): Promise<any> => {
     return res.json({ response: chat.choices[0].message.content, sources: [] });
   } catch (e) { console.warn("OpenAI failed or out of quota."); }
 
-  // 4. ATTEMPT RUNPOD
+  // --- ATTEMPT 4: RUNPOD ---
   if (process.env.RUNPOD_API_KEY) {
     try {
-      console.log("Attempting RunPod...");
+      console.log("Attempting RunPod (Llama-3-8B)...");
       const chat = await runpod.chat.completions.create({
         model: "meta-llama/Meta-Llama-3-8B-Instruct",
         messages: [{ role: "user", content: message }],
@@ -111,8 +118,8 @@ app.post('/api/chat', async (req: Request, res: Response): Promise<any> => {
     } catch (e) { console.warn("RunPod failed."); }
   }
 
-  // 5. HARD FAILOVER (Technical Summary)
-  console.error("All AI providers exhausted.");
+  // --- ATTEMPT 5: STATIC FAILSAFE ---
+  console.error("CRITICAL: All AI providers exhausted.");
   res.json({
     response: "The SAFE Intelligence Core is currently in maintenance mode. Technical Summary: SAFE is a wildfire predictive platform utilizing the Rothermel Spread Model and real-time environmental vectors to provide high-fidelity fire behavior analysis.",
     sources: []
@@ -120,7 +127,8 @@ app.post('/api/chat', async (req: Request, res: Response): Promise<any> => {
 });
 
 /**
- * Static FAQ Endpoint
+ * GET /api/faqs
+ * Provides baseline platform definitions for the FAQ interface.
  */
 app.get('/api/faqs', (_req: Request, res: Response) => {
   res.json([
@@ -130,6 +138,9 @@ app.get('/api/faqs', (_req: Request, res: Response) => {
   ]);
 });
 
+/**
+ * SERVER STARTUP
+ */
 app.listen(PORT, () => {
   console.log(`SAFE Multi-API Server active on http://localhost:${PORT}`);
 });

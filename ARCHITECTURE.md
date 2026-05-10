@@ -1,72 +1,70 @@
-# System Architecture - SAFE
+# System Architecture - SAFE (Simulated Analysis of Fire Ecology)
 
-This document outlines the structural design and data flow of the SAFE (Smart Analytics for Fire Emergencies) platform.
+This document outlines the structural design and data flow of the SAFE platform.
 
 ## 🏗️ High-Level Overview
 
-SAFE is built as a modular React application with a clear separation between the UI layer, the data services, and the high-fidelity **Concord Simulation Engine**.
+SAFE is built as a modular React application with a clear separation between the UI layer, the environmental data services, and the high-fidelity **Concord Simulation Engine**.
 
 ```mermaid
 graph TD
-    A[App.tsx] --> B[Map Dashboard]
-    A --> C[Simulation Center]
+    A[App.tsx] --> B[Live Maps Dashboard]
+    A --> C[Simulation Center 3D]
+    A --> D[Safety Assessment Center]
     A --> L[Intelligence Assistant]
     
-    B --> D[Google Maps API]
-    B --> E[Environmental Intel]
+    B --> E[Google Maps API]
+    B --> F[Open-Meteo Environmental Intel]
     
     L --> M[Multi-Provider Failsafe Server]
-    M --> N[Groq / Gemini / OpenAI]
+    M --> N[Groq / Gemini / OpenAI / RunPod]
     
     C --> G[Concord Logic Layer]
-    G --> H[3D Terrain Rendering]
+    G --> H[Terrain3D Visualization]
     G --> I[Rothermel Physics Engine]
     
-    I --> J[Fire Spread Dynamics]
-    J --> K[Suppression Impact]
+    D --> Q[Safety Protocols]
+    D --> R[Interactive Quiz Assessment]
 ```
 
 ## 📁 Directory Structure
 
 | Directory | Responsibility |
 |-----------|----------------|
-| `src/components` | UI components, Three.js wrappers, dashboard elements, and the Intelligence Assistant. |
+| `src/components` | UI components, R3F wrappers, and the Decisive Action assessment center. |
+| `src/hooks` | Custom React hooks for simulation lifecycles and georeferenced data management. |
 | `src/logic/concord` | **Core Engine**: Modular architecture for fire state management and topography mapping. |
-| `src/logic/concord/engine` | **Physics Core**: Implementation of the Rothermel spread equations and propagation algorithms. |
-| `src/services` | External API communication for wildfire data and environmental metrics. |
-| `server/` | Node.js backend managing the multi-provider AI failsafe system and document intelligence. |
+| `src/services` | External API communication for atmospheric gradients and AI intelligence. |
+| `src/utils` | Pure logic for geofencing, cellular automata, and coordinate transformations. |
+| `server/` | Node.js backend managing the resilient multi-provider AI failsafe system. |
 
 ## 🧬 Intelligence Architecture
 
-### 1. Hybrid Chatbot System
-The Intelligence Assistant utilizes a dual-layer logic:
-- **Local Layer**: Instant response for core platform identity using word-boundary regex matching.
-- **Cloud Layer**: Complex technical reasoning routed through a resilient backend failsafe.
+### 1. Multi-Provider Failsafe
+The backend implements a "Chain of Responsibility" to ensure 100% uptime for safety queries:
+1. **Groq (Llama 3.3 70B)**: Primary high-speed technical responder.
+2. **Google Gemini (2.0 Flash)**: Secondary high-fidelity environmental reasoning.
+3. **OpenAI / RunPod**: Tertiary and Quaternary infrastructure fallbacks.
 
-### 2. Multi-Provider Failsafe
-The backend implements a sequential failover chain to ensure 100% uptime:
-1. **Groq (Llama 3)**: Primary high-speed technical responder.
-2. **Google Gemini**: Secondary environmental reasoning.
-3. **OpenAI / Mistral**: Tertiary technical fallback.
-4. **Local Fallback**: Pre-indexed technical summary if all external APIs are throttled.
+### 2. Safety Assessment System
+- **FAQProtocols.tsx**: Manages the decisive action documentation and the state-based assessment quiz.
+- **Local Logic**: Instant responses for platform-specific queries using optimized pattern matching.
 
 ## 🔄 Concord Simulation Loop
 
-### 1. Environmental Data Acquisition
-- Regional intelligence (wind, temperature, drought) is fetched via `wildfireApi.ts` and cached locally.
-- Data is mapped to the **Concord Zone** model, defining regional vegetation and topography.
+### 1. Data Ingestion
+- High-resolution environmental gradients (wind, temp, humidity) are fetched via Open-Meteo.
+- Bilinear interpolation upsamples sparse meteorological data to a high-density simulation grid.
 
-### 2. Modular Physics Pipeline
-The Concord Engine (`src/logic/concord`) separates concerns for better scalability:
-- **`cell.ts`**: Encapsulates the state and behavioral logic for individual grid units.
-- **`fire-engine.ts`**: Coordinates the time-stepped cellular automata loop.
-- **`get-fire-spread-rate.ts`**: The pure physics calculator for Rothermel spread rates.
+### 2. Physics Pipeline
+The Concord Engine (`src/logic/concord`) executes a discrete time-stepping loop:
+- **`get-fire-spread-rate.ts`**: Calculates physical spread (ft/min) based on wind vectors and topography.
+- **`fire-engine.ts`**: Coordinates the BFS-based propagation and Bresenham line-of-sight checks for suppressants.
 
 ## 🛠️ Technology Stack
-- **Frontend**: Vite + React, Three.js (React Three Fiber), Framer Motion.
-- **Backend**: Node.js, Express, LangChain, OpenAI/Gemini/Groq SDKs.
-- **Mapping**: Google Maps JavaScript API.
-- **Core Logic**: TypeScript-based Concord Engine.
+- **Frontend**: Vite + React, Three.js (React Three Fiber), Google Maps API.
+- **Backend**: Node.js, Express, AI Provider SDKs.
+- **Physics**: Rothermel Surface Fire Spread Model implementation.
 
 ---
-*SAFE Architecture Documentation - Concord Engine Update (v3.0)*
+*SAFE Architecture Documentation - Final Implementation (v4.0)*

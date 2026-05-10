@@ -1,16 +1,32 @@
+/**
+ * SAFE (Simulated Analysis of Fire Ecology) - FAQ & Protocols
+ * 
+ * A comprehensive resource center for wildfire safety, featuring:
+ * - Real-time emergency contact information.
+ * - Non-emergency assistance resources (211, InciWeb, FEMA).
+ * - Decisive action protocols (Before Season, Evacuation, Smoke Safety).
+ * - Interactive Knowledge Verification Quiz to ensure user readiness.
+ */
+
 import React, { useMemo, useState } from 'react';
 import { AlertTriangle, BookOpenCheck, Car, ChevronRight, Flame, HeartPulse, Home, Phone, Radio, RotateCcw, X } from 'lucide-react';
 
+/**
+ * QuizQuestion Type
+ * Structural definition for the knowledge assessment system.
+ */
 type QuizQuestion = {
   question: string;
   options: string[];
   answerIndex: number;
 };
 
+// --- STATIC DATA: EMERGENCY CONTACTS ---
 const emergencyContacts = [
   { label: 'Emergency Response', value: '911', note: 'Call first for active fire, trapped people, injuries, or immediate danger.' },
 ];
 
+// --- STATIC DATA: RESOURCE GROUPS ---
 const resourceGroups = [
   {
     title: 'Non-Emergency Information',
@@ -40,6 +56,7 @@ const resourceGroups = [
   },
 ];
 
+// --- STATIC DATA: SAFETY PROTOCOLS ---
 const protocolSections = [
   {
     title: 'Before Fire Season',
@@ -94,6 +111,7 @@ const protocolSections = [
   },
 ];
 
+// --- STATIC DATA: QUIZ BANK ---
 const quizQuestions: QuizQuestion[] = [
   {
     question: 'What should a wildfire family action plan include?',
@@ -197,9 +215,18 @@ const quizQuestions: QuizQuestion[] = [
   },
 ];
 
+/**
+ * getRandomQuestions
+ * Helper to select a randomized subset of questions for the quiz.
+ */
 const getRandomQuestions = () => [...quizQuestions].sort(() => Math.random() - 0.5).slice(0, 5);
 
+/**
+ * FAQProtocols Component
+ * Primary view for safety documentation and user assessment.
+ */
 export const FAQProtocols: React.FC = () => {
+  // --- ASSESSMENT STATE ---
   const [isQuizOpen, setIsQuizOpen] = useState(false);
   const [activeQuestions, setActiveQuestions] = useState<QuizQuestion[]>(() => getRandomQuestions());
   const [answers, setAnswers] = useState<Record<number, number>>({});
@@ -207,8 +234,13 @@ export const FAQProtocols: React.FC = () => {
   const [showScoreModal, setShowScoreModal] = useState(false);
   const [showCorrectAnswers, setShowCorrectAnswers] = useState(false);
 
+  // Derived progress metric
   const answeredCount = useMemo(() => Object.keys(answers).length, [answers]);
 
+  /**
+   * startQuiz
+   * Resets and initializes a new quiz session.
+   */
   const startQuiz = () => {
     setIsQuizOpen(true);
     setActiveQuestions(getRandomQuestions());
@@ -218,6 +250,10 @@ export const FAQProtocols: React.FC = () => {
     setShowCorrectAnswers(false);
   };
 
+  /**
+   * handleSubmitQuiz
+   * Calculates the final score and triggers the results modal.
+   */
   const handleSubmitQuiz = () => {
     const nextScore = activeQuestions.reduce((total, question, index) => (
       answers[index] === question.answerIndex ? total + 1 : total
@@ -226,11 +262,19 @@ export const FAQProtocols: React.FC = () => {
     setShowScoreModal(true);
   };
 
+  /**
+   * closeScoreModal
+   * Closes the results popup and highlights correct/incorrect answers for review.
+   */
   const closeScoreModal = () => {
     setShowScoreModal(false);
     setShowCorrectAnswers(true);
   };
 
+  /**
+   * resetQuiz
+   * Regenerates a new set of questions.
+   */
   const resetQuiz = () => {
     setActiveQuestions(getRandomQuestions());
     setAnswers({});
@@ -249,6 +293,8 @@ export const FAQProtocols: React.FC = () => {
       overflow: 'hidden' 
     }}>
       <div style={{ height: '100%', display: 'grid', gridTemplateColumns: '330px minmax(0, 1fr)' }}>
+        
+        {/* LEFT ASIDE: EMERGENCY RESOURCES */}
         <aside style={{ borderRight: '1px solid rgba(255,255,255,0.1)', backgroundColor: 'rgba(15, 23, 42, 0.2)', backdropFilter: 'blur(20px)', display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
           <header style={{ padding: '28px 24px 20px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#f59e0b', marginBottom: '10px' }}>
@@ -259,6 +305,7 @@ export const FAQProtocols: React.FC = () => {
           </header>
 
           <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            {/* Active Emergency Lines */}
             {emergencyContacts.map((contact) => (
               <article key={contact.label} style={{ border: '1px solid rgba(245, 158, 11, 0.2)', borderRadius: '12px', padding: '14px', backgroundColor: 'rgba(245, 158, 11, 0.05)', backdropFilter: 'blur(10px)' }}>
                 <div style={{ fontSize: '10px', color: '#f59e0b', fontWeight: 700, marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{contact.label}</div>
@@ -269,6 +316,8 @@ export const FAQProtocols: React.FC = () => {
                 <p style={{ fontSize: '11px', lineHeight: 1.45, color: '#94a3b8', margin: 0 }}>{contact.note}</p>
               </article>
             ))}
+
+            {/* Non-Emergency / Recovery Resources */}
             {resourceGroups.map((group) => (
               <article key={group.title} style={{ border: '1px solid rgba(255,255,255,0.05)', borderRadius: '12px', padding: '14px', backgroundColor: 'rgba(255, 255, 255, 0.02)' }}>
                 <div style={{ fontSize: '12px', color: '#f8fafc', fontWeight: 800, marginBottom: '6px' }}>{group.title}</div>
@@ -286,6 +335,7 @@ export const FAQProtocols: React.FC = () => {
             ))}
           </div>
 
+          {/* ASESSMENT TRIGGER BUTTON */}
           <div style={{ marginTop: 'auto', padding: '20px', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
             <button
               type="button"
@@ -315,9 +365,11 @@ export const FAQProtocols: React.FC = () => {
           </div>
         </aside>
 
+        {/* MAIN CONTENT AREA */}
         <main className="custom-scrollbar" style={{ overflowY: 'auto' }}>
           {!isQuizOpen ? (
             <>
+              {/* VIEW: SAFETY PROTOCOLS */}
               <header style={{ padding: '40px 48px 32px', borderBottom: '1px solid rgba(255,255,255,0.05)', backgroundColor: 'transparent' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#f59e0b', marginBottom: '12px' }}>
                   <Flame size={20} />
@@ -332,6 +384,7 @@ export const FAQProtocols: React.FC = () => {
               </header>
 
               <div style={{ padding: '28px 48px 48px', display: 'grid', gap: '18px' }}>
+                {/* Immediate Threat Alert HUD */}
                 <section style={{ border: '1px solid rgba(239, 68, 68, 0.3)', backgroundColor: 'rgba(239, 68, 68, 0.05)', borderRadius: '16px', padding: '20px 24px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#ef4444', marginBottom: '8px' }}>
                     <AlertTriangle size={18} />
@@ -359,6 +412,7 @@ export const FAQProtocols: React.FC = () => {
             </>
           ) : (
             <>
+              {/* VIEW: KNOWLEDGE ASSESSMENT */}
               <header style={{ padding: '40px 48px 32px', borderBottom: '1px solid rgba(255,255,255,0.05)', backgroundColor: 'transparent' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#f59e0b', marginBottom: '12px' }}>
                   <BookOpenCheck size={20} />
@@ -392,6 +446,7 @@ export const FAQProtocols: React.FC = () => {
                   </button>
                 </div>
 
+                {/* QUIZ QUESTION RENDERER */}
                 {activeQuestions.map((question, questionIndex) => (
                   <article key={question.question} style={{ border: '1px solid rgba(255,255,255,0.05)', backgroundColor: 'rgba(255, 255, 255, 0.02)', borderRadius: '16px', padding: '24px' }}>
                     <h3 style={{ fontSize: '18px', lineHeight: 1.4, margin: '0 0 16px', color: '#f8fafc' }}>{questionIndex + 1}. {question.question}</h3>
@@ -434,6 +489,7 @@ export const FAQProtocols: React.FC = () => {
                   </article>
                 ))}
 
+                {/* Submit Trigger */}
                 {!showCorrectAnswers && (
                   <button
                     type="button"
@@ -461,6 +517,7 @@ export const FAQProtocols: React.FC = () => {
         </main>
       </div>
 
+      {/* MODAL: ASSESSMENT RESULTS */}
       {showScoreModal && score !== null && (
         <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(2, 6, 23, 0.8)', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: '24px' }}>
           <div role="dialog" aria-modal="true" aria-label="Quiz score" style={{ width: '100%', maxWidth: '420px', backgroundColor: '#0a0a0c', color: '#f8fafc', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 24px 80px rgba(0, 0, 0, 0.5)', padding: '32px', position: 'relative', textAlign: 'center' }}>

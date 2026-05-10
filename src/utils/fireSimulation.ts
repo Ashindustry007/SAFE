@@ -1,45 +1,82 @@
+/**
+ * SAFE (Simulated Analysis of Fire Ecology) - Core Simulation Logic
+ * 
+ * Implements the mathematical and physical transition rules for wildfire 
+ * propagation across a discrete georeferenced grid. The engine uses a 
+ * probabilistic cellular automata model influenced by topographic slope, 
+ * wind vectors, fuel density, and regional drought levels.
+ */
+
+/**
+ * CellState
+ * unburned: Initial state with available fuel
+ * burning: Actively consuming fuel and radiating heat to neighbors
+ * burntOut: Fuel exhausted, non-burnable
+ * survived: High-resistance vegetation that remained intact
+ * water: Non-burnable natural barrier
+ */
 export type CellState = 'unburned' | 'burning' | 'burntOut' | 'survived' | 'water';
 
+/**
+ * FireCell
+ * Represents the primary unit of the simulation grid.
+ */
 export interface FireCell {
-  x: number;
-  y: number;
-  lat: number;
-  lng: number;
-  state: CellState;
-  elevation: number; // in feet
-  burnTimeElapsed: number; // in minutes
-  fuel: number; // 0.0 (Water/Rock) to 1.0 (Dense Forest)
+  x: number;               // Local grid X coordinate
+  y: number;               // Local grid Y coordinate
+  lat: number;             // Geographic latitude
+  lng: number;             // Geographic longitude
+  state: CellState;        // Current combustion state
+  elevation: number;       // Elevation in feet (influences F_slope)
+  burnTimeElapsed: number; // Time spent in 'burning' state (minutes)
+  fuel: number;            // Fuel density [0.0 to 1.0]
 }
 
+/**
+ * SimulationIntel
+ * Regional environmental parameters sourced from the Intelligence dashboard.
+ */
 export interface SimulationIntel {
-  windSpeed: number; // mph
-  windDirection: number; // degrees
-  droughtIndex: number; // 0 - 100
-  vegetationType: string;
+  windSpeed: number;       // Velocity in mph
+  windDirection: number;   // Heading in degrees
+  droughtIndex: number;    // Moisture deficit [0-100]
+  vegetationType: string;  // Regional fuel classification
 }
 
+/**
+ * SimulationParams
+ * Calibration constants for the spread mathematical model.
+ */
 export interface SimulationParams {
-  cellSizeFt: number;
-  dt: number; // minutes per tick
-  baseRate: number;
-  slopeK: number;
-  windScaleFactor: number;
-  minCellBurnTime: number;
+  cellSizeFt: number;      // Dimensions of a single cell
+  dt: number;              // Simulation time step (minutes per tick)
+  baseRate: number;        // Baseline ignition probability
+  slopeK: number;          // Topographic influence multiplier
+  windScaleFactor: number; // Wind intensity multiplier
+  minCellBurnTime: number; // Minimum duration for fuel consumption
 }
 
+/**
+ * Default Calibration Parameters
+ * Tuned for realistic wildfire behavior at the 500ft cell scale.
+ */
 export const DEFAULT_PARAMS: SimulationParams = {
   cellSizeFt: 500,
-  dt: 5, // Small time step for realistic probability curves
-  baseRate: 0.015, // Tuned so wind/slope heavily influence spread
+  dt: 5, 
+  baseRate: 0.015, 
   slopeK: 4,
   windScaleFactor: 0.2,
   minCellBurnTime: 120,
 };
 
+/**
+ * FireSimulation Class
+ * The "brain" of the wildfire spread model.
+ */
 export class FireSimulation {
-  grid: Map<string, FireCell> = new Map();
-  activeFires: Set<string> = new Set();
-  missingChunksQueue: Set<string> = new Set(); // Stores specific cell keys that are missing
+  grid: Map<string, FireCell> = new Map();     // Global cell registry
+  activeFires: Set<string> = new Set();        // Optimized set of burning cell keys
+  missingChunksQueue: Set<string> = new Set(); // Queue for lazy-loading unknown terrain
   
   params: SimulationParams;
   intel: SimulationIntel;
@@ -61,6 +98,10 @@ export class FireSimulation {
     }
   }
 
+  /**
+   * addCells
+   * Dynamically merges newly fetched terrain chunks into the active simulation grid.
+   */
   public addCells(cells: FireCell[]) {
     for (const cell of cells) {
       const key = `${cell.x},${cell.y}`;
@@ -71,7 +112,10 @@ export class FireSimulation {
     }
   }
 
-  // Map 0-100 drought index to 0-3 equivalent for F_drought
+  /**
+   * getDroughtFactor
+   * Maps regional drought index to a physical spread multiplier.
+   */
   private getDroughtFactor(): number {
     const d = this.intel.droughtIndex;
     if (d < 25) return 0.2;
@@ -80,57 +124,72 @@ export class FireSimulation {
     return 1.0;
   }
 
+  /**
+   * getVegetationFactor
+   * Adjusts spread velocity based on the primary fuel classification.
+   */
   private getVegetationFactor(): number {
     const v = this.intel.vegetationType.toLowerCase();
-    if (v.includes('forest')) return 0.3;
+    if (v.includes('forest')) return 0.3; // Dense forest spreads slower but burns longer
     if (v.includes('shrub')) return 0.6;
-    return 1.0; // Grassland, Savanna, etc.
+    return 1.0; // Grasslands offer high spread velocity
   }
 
-  // Helper to convert angle to vector
+  /**
+   * angleToVector
+   * Translates compass heading (degrees) to a normalized Cartesian direction vector.
+   */
   private angleToVector(deg: number): { x: number, y: number } {
-    const rad = (deg - 90) * (Math.PI / 180); // 0 degrees is North -> (0, -1)
+    const rad = (deg - 90) * (Math.PI / 180); 
     return { x: Math.cos(rad), y: Math.sin(rad) };
   }
 
-  // Calculate ignition probability
+  /**
+   * calcIgnitionProb
+   * Computes the probability of fire spreading from a 'source' to a 'neighbor' cell.
+   * Based on the Rothermel model adaptation: P = f(wind, slope, fuel, moisture).
+   */
   private calcIgnitionProb(source: FireCell, neighbor: FireCell): number {
     const dx = neighbor.x - source.x;
     const dy = neighbor.y - source.y;
     const distCells = Math.sqrt(dx * dx + dy * dy);
     
-    // Neighbors distance <= 2.5
+    // Spread range limit (Radius of 2.5 cells)
     if (distCells > 2.5) return 0;
     
     const distFt = distCells * this.params.cellSizeFt;
     if (distFt === 0) return 0;
 
-    // F_slope
+    // F_slope: Heat transfer is more efficient when traveling upslope
     const elevDiff = neighbor.elevation - source.elevation;
     const F_slope = Math.max(0, 1 + (elevDiff / distFt) * this.params.slopeK);
 
-    // F_wind
-    // Spread vector normalized
+    // F_wind: Wind direction alignment multiplier
     const spreadVecX = dx / distCells;
     const spreadVecY = dy / distCells;
     const windVec = this.angleToVector(this.intel.windDirection);
     const dotProduct = windVec.x * spreadVecX + windVec.y * spreadVecY;
     const F_wind = Math.max(0, 1 + (this.intel.windSpeed * this.params.windScaleFactor) * dotProduct);
 
-    // F_vegetation & F_drought (using global intel for now)
+    // Environmental Scaling
     const F_vegetation = this.getVegetationFactor();
     const F_drought = this.getDroughtFactor();
 
-    // The key optimization: multiply by neighbor's fuel density. 
-    // If neighbor.fuel is 0 (Water/Rock), P becomes 0 and fire STOPS.
+    // Final Probability Calculation
     const P = F_wind * F_slope * F_vegetation * F_drought * neighbor.fuel * this.params.baseRate * this.params.dt;
     return Math.min(Math.max(P, 0), 1);
   }
 
+  /**
+   * tick
+   * Advances the simulation by one discrete time step (dt).
+   * Orchestrates the two-phase cycle: Combustion Aging and Neighbor Ignition.
+   */
   public tick(): void {
     const nextStates: {x: number, y: number, state: CellState}[] = [];
     const newlyExtinguishedKeys: string[] = [];
 
+    // Iterate through actively burning cells
     for (const key of this.activeFires) {
       const cell = this.grid.get(key);
       if (!cell || cell.state !== 'burning') {
@@ -138,12 +197,13 @@ export class FireSimulation {
         continue;
       }
 
-      // Phase 2: Age
+      // --- PHASE 1: COMBUSTION AGING ---
       cell.burnTimeElapsed += this.params.dt;
-      // Dense fuel burns longer than sparse fuel
+      
+      // Burn duration scales with fuel density (heavier fuels burn longer)
       const maxBurnTime = this.params.minCellBurnTime * (0.5 + cell.fuel); 
       if (cell.burnTimeElapsed >= maxBurnTime) {
-        // Check survival if forest
+        // Stochastic survival logic for forest ecosystems
         if (this.intel.vegetationType.toLowerCase().includes('forest') && Math.random() < 0.1) {
           cell.state = 'survived';
         } else {
@@ -152,8 +212,7 @@ export class FireSimulation {
         newlyExtinguishedKeys.push(key);
       }
 
-      // Phase 1: Spread
-      // Check neighbors in radius 2
+      // --- PHASE 2: NEIGHBORHOOD SPREAD ---
       for (let ny = cell.y - 2; ny <= cell.y + 2; ny++) {
         for (let nx = cell.x - 2; nx <= cell.x + 2; nx++) {
           if (nx === cell.x && ny === cell.y) continue;
@@ -162,13 +221,12 @@ export class FireSimulation {
           const neighbor = this.grid.get(nKey);
           
           if (!neighbor) {
-            // Missing chunk logic! We don't have this cell. 
-            // Queue it up so the frontend fetches it.
+            // Edge of known world detected - trigger lazy load
             this.missingChunksQueue.add(nKey);
             continue;
           }
 
-          // Fire only spreads to unburned cells with fuel
+          // Spread to unburned cells with available fuel
           if (neighbor.state === 'unburned' && neighbor.fuel > 0) {
             const P = this.calcIgnitionProb(cell, neighbor);
             if (Math.random() < P) {
@@ -179,7 +237,7 @@ export class FireSimulation {
       }
     }
 
-    // Apply new ignitions
+    // Apply state transitions atomically to maintain simulation integrity
     for (const ns of nextStates) {
       const nKey = `${ns.x},${ns.y}`;
       const cell = this.grid.get(nKey);
@@ -191,7 +249,7 @@ export class FireSimulation {
       }
     }
 
-    // Cleanup active fires
+    // Teardown extinguished fire keys
     for (const key of newlyExtinguishedKeys) {
       this.activeFires.delete(key);
     }

@@ -1,10 +1,12 @@
 /// <reference types="@types/google.maps" />
 /**
- * SAFE Application Root
+ * SAFE (Simulated Analysis of Fire Ecology) - Application Root
  * 
- * The main entry point for the SAFE wildfire intelligence platform.
- * Manages global view states (Map, Simulation, FAQ, Chat) and coordinates
- * the fetching of regional wildfire intelligence data.
+ * The primary controller for the SAFE platform. This component manages:
+ * - Application routing and view state (Landing, Map, Simulation, resources, Chat).
+ * - Google Maps API integration and dynamic layer management (Traffic, Wind Flow).
+ * - Real-time environmental intelligence fetching and regional caching.
+ * - Fire ignition orchestration and simulation lifecycle management.
  */
 
 import React, { useEffect, useState, useRef } from 'react';
@@ -33,31 +35,38 @@ import ThermalWindfield from './components/ThermalWindfield';
 import './App.css';
 
 /**
- * ViewMode Navigation Type
- * Defines the primary routing states for the main content area.
+ * Navigation View Modes
+ * LANDING: Interactive entry portal
+ * MAP: Environmental intelligence dashboard
+ * SIMULATION: 3D fire spread analysis
+ * FAQ: Resource center and emergency protocols
+ * CHAT: AI-powered response assistant
  */
 type ViewMode = 'LANDING' | 'MAP' | 'SIMULATION' | 'FAQ' | 'CHAT';
 
 const App: React.FC = () => {
+  // --- APPLICATION STATE ---
   const [viewMode, setViewMode] = useState<ViewMode>('LANDING');
   const [intel, setIntel] = useState<WildfireData | null>(null);
   const [isUpdatingIntel, setIsUpdatingIntel] = useState(false);
-  const mapRef = useRef<HTMLDivElement>(null);
-  const googleMapRef = useRef<any>(null);
   const [apiKey, setApiKey] = useState(import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '');
   const [isIgniteMode, setIsIgniteMode] = useState(false);
   const [showWindOverlay, setShowWindOverlay] = useState(false);
   const [showTraffic, setShowTraffic] = useState(false);
   const [intelGrid, setIntelGrid] = useState<any[][] | null>(null);
+
+  // --- REFS FOR MAP & OVERLAYS ---
+  const mapRef = useRef<HTMLDivElement>(null);
+  const googleMapRef = useRef<any>(null);
   const windVectorsRef = useRef<any[]>([]);
   const trafficLayerRef = useRef<google.maps.TrafficLayer | null>(null);
+
+  // --- CUSTOM SIMULATION HOOK ---
   const { isSimulating, startSimulation, clearSimulation, errorMsg } = useFireSimulation();
 
-  // Removed static initial fetch logic; now handled by map 'idle' event
   /**
-   * Data Loading Effect
-   * Fetches regional wildfire intelligence on mount.
-   * Implements a 1-hour localStorage cache to minimize API calls.
+   * INITIAL DATA FETCHING
+   * Fetches global wildfire intelligence on mount with 1-hour caching logic.
    */
   useEffect(() => {
     const loadInitialData = async () => {
@@ -69,6 +78,7 @@ const App: React.FC = () => {
       const cachedTime = localStorage.getItem(CACHE_TIME_KEY);
       const now = Date.now();
 
+      // Use cached data if it's less than an hour old
       if (cachedData && cachedTime && (now - parseInt(cachedTime)) < ONE_HOUR) {
         console.log('Using cached wildfire intelligence data');
         setIntel(JSON.parse(cachedData));
@@ -86,8 +96,9 @@ const App: React.FC = () => {
   }, []);
 
   /**
-   * Google Maps Initialization
-   * Dynamically loads the Google Maps JavaScript API and renders the dashboard map.
+   * GOOGLE MAPS LOADER
+   * Initializes the Google Maps instance and binds the 'idle' event for 
+   * regional environmental data fetching.
    */
   useEffect(() => {
     if (mapRef.current && apiKey) {
@@ -105,7 +116,7 @@ const App: React.FC = () => {
         });
         googleMapRef.current = map;
 
-        // Fetch data when map stops moving
+        // Dynamic intelligence fetching based on viewport bounds
         map.addListener('idle', async () => {
           const bounds = map.getBounds();
           if (bounds) {
@@ -119,7 +130,7 @@ const App: React.FC = () => {
             const data = await fetchWildfireIntel({ north, south, east, west });
             setIntel(data);
             
-            // Also fetch high-res grid for overlays
+            // Parallel fetch for high-resolution overlay grid
             import('./services/wildfireApi').then(async ({ fetchWildfireGrid }) => {
               const grid = await fetchWildfireGrid({ north, south, east, west });
               setIntelGrid(grid);
@@ -132,30 +143,35 @@ const App: React.FC = () => {
     }
   }, [apiKey]);
 
+  /**
+   * IGNITION MODE HANDLER
+   * Manages the crosshair cursor and click-to-ignite logic on the map.
+   */
   useEffect(() => {
     if (!googleMapRef.current) return;
     const map = googleMapRef.current;
 
-    // Clear previous listener
+    // Clear previous listeners to prevent memory leaks or duplicate sparks
     google.maps.event.clearListeners(map, 'click');
 
     if (isIgniteMode) {
-      // Change cursor to crosshair
+      // Toggle to ignition cursor
       map.setOptions({ draggableCursor: 'crosshair' });
 
       map.addListener('click', (e: any) => {
         if (intel) {
-          // Zoom in to see the simulation properly
+          // Tactical zoom for simulation clarity
           map.setZoom(14);
           map.panTo(e.latLng);
 
+          // Initialize simulation with regional environmental context
           startSimulation(map, e.latLng, {
             windSpeed: intel.windSpeed,
             windDirection: intel.windDirection,
             droughtIndex: intel.droughtIndex,
             vegetationType: intel.vegetationType
           });
-          setIsIgniteMode(false); // Turn off after ignite
+          setIsIgniteMode(false); 
           map.setOptions({ draggableCursor: '' });
         } else {
           console.warn("Intel data not loaded yet.");
@@ -167,10 +183,11 @@ const App: React.FC = () => {
   }, [isIgniteMode, intel, startSimulation]);
 
   /**
-   * Wind Flow Effect
+   * WIND FLOW OVERLAY ENGINE
+   * Renders procedural wind vectors across the map based on the high-res intel grid.
    */
   useEffect(() => {
-    // Clear previous vectors
+    // Teardown previous vector objects
     windVectorsRef.current.forEach(v => v.setMap(null));
     windVectorsRef.current = [];
 
@@ -187,7 +204,7 @@ const App: React.FC = () => {
       const lngStep = (ne.lng() - sw.lng()) / cols;
 
       const vectors: any[] = [];
-      for (let i = 0; i < rows; i += 2) { // Sparse grid for performance
+      for (let i = 0; i < rows; i += 2) { // Performance-optimized sparse rendering
         for (let j = 0; j < cols; j += 2) {
           const data = intelGrid[i][j];
           const lat = sw.lat() + (i + 0.5) * latStep;
@@ -219,7 +236,8 @@ const App: React.FC = () => {
   }, [showWindOverlay, intelGrid]);
 
   /**
-   * Traffic Overlay Effect
+   * TRAFFIC LAYER HANDLER
+   * Toggles the native Google Maps traffic layer for evacuation planning.
    */
   useEffect(() => {
     if (googleMapRef.current) {
@@ -236,8 +254,10 @@ const App: React.FC = () => {
 
   return (
     <div className="app-container">
+      {/* Background Thermal Field Overlay */}
       <ThermalWindfield />
-      {/* Top Navigation Bar - Hidden on Landing Page */}
+
+      {/* PERSISTENT TOP NAVIGATION */}
       {viewMode !== 'LANDING' && (
         <header className="top-nav">
           <div className="nav-brand" onClick={() => setViewMode('LANDING')}>
@@ -277,12 +297,12 @@ const App: React.FC = () => {
       )}
 
       <main className="main-content">
-        {/* Landing Page */}
+        {/* VIEW: LANDING PORTAL */}
         {viewMode === 'LANDING' && (
           <LandingPage onNavigate={setViewMode} />
         )}
 
-        {/* Map & Intelligence Dashboard */}
+        {/* VIEW: INTELLIGENCE DASHBOARD */}
         <div
           style={{
             display: viewMode === 'MAP' ? 'flex' : 'none',
@@ -291,7 +311,7 @@ const App: React.FC = () => {
             overflow: 'hidden'
           }}
         >
-          {/* Map Panel (Left) */}
+          {/* Map Section */}
           <section className="map-panel" style={{ flex: 3, position: 'relative' }}>
             {!apiKey && (
               <div style={{ position: 'absolute', inset: 0, zIndex: 10, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '32px', textAlign: 'center', backgroundColor: 'rgba(15, 23, 42, 0.8)', backdropFilter: 'blur(8px)' }}>
@@ -313,62 +333,63 @@ const App: React.FC = () => {
                 </div>
               </div>
             )}
-            {/* Floating Map Controls */}
-          <div style={{
-            position: 'absolute',
-            top: '12px',
-            right: '50px',
-            display: 'flex',
-            gap: '8px',
-            zIndex: 1
-          }}>
-            <button
-              onClick={() => setShowWindOverlay(!showWindOverlay)}
-              style={{
-                backgroundColor: showWindOverlay ? 'var(--accent-amber)' : 'rgba(15, 15, 18, 0.9)',
-                color: showWindOverlay ? '#000' : 'var(--text-primary)',
-                border: '1px solid var(--accent-amber)',
-                padding: '6px 12px',
-                borderRadius: '6px',
-                fontSize: '12px',
-                fontWeight: 600,
-                cursor: 'pointer',
-                transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                boxShadow: showWindOverlay ? '0 0 15px rgba(245, 158, 11, 0.3)' : 'none'
-              }}
-            >
-              <Wind size={14} />
-              Wind Flow
-            </button>
-            <button
-              onClick={() => setShowTraffic(!showTraffic)}
-              style={{
-                backgroundColor: showTraffic ? '#22c55e' : 'rgba(15, 15, 18, 0.9)',
-                color: showTraffic ? '#000' : 'var(--text-primary)',
-                border: '1px solid #22c55e',
-                padding: '6px 12px',
-                borderRadius: '6px',
-                fontSize: '12px',
-                fontWeight: 600,
-                cursor: 'pointer',
-                transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                boxShadow: showTraffic ? '0 0 15px rgba(34, 197, 94, 0.3)' : 'none'
-              }}
-            >
-              <Navigation size={14} />
-              Busy Streets
-            </button>
-          </div>
+            
+            {/* Overlay HUD Controls */}
+            <div style={{
+              position: 'absolute',
+              top: '12px',
+              right: '50px',
+              display: 'flex',
+              gap: '8px',
+              zIndex: 1
+            }}>
+              <button
+                onClick={() => setShowWindOverlay(!showWindOverlay)}
+                style={{
+                  backgroundColor: showWindOverlay ? 'var(--accent-amber)' : 'rgba(15, 15, 18, 0.9)',
+                  color: showWindOverlay ? '#000' : 'var(--text-primary)',
+                  border: '1px solid var(--accent-amber)',
+                  padding: '6px 12px',
+                  borderRadius: '6px',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  boxShadow: showWindOverlay ? '0 0 15px rgba(245, 158, 11, 0.3)' : 'none'
+                }}
+              >
+                <Wind size={14} />
+                Wind Flow
+              </button>
+              <button
+                onClick={() => setShowTraffic(!showTraffic)}
+                style={{
+                  backgroundColor: showTraffic ? '#22c55e' : 'rgba(15, 15, 18, 0.9)',
+                  color: showTraffic ? '#000' : 'var(--text-primary)',
+                  border: '1px solid #22c55e',
+                  padding: '6px 12px',
+                  borderRadius: '6px',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  boxShadow: showTraffic ? '0 0 15px rgba(34, 197, 94, 0.3)' : 'none'
+                }}
+              >
+                <Navigation size={14} />
+                Busy Streets
+              </button>
+            </div>
             <div ref={mapRef} style={{ height: '100%', width: '100%' }} />
           </section>
 
-          {/* Intelligence Panel (Right) */}
+          {/* Intelligence Panel */}
           <section className="intel-panel custom-scrollbar">
             <header style={{ padding: '32px', borderBottom: '1px solid var(--glass-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
@@ -378,6 +399,7 @@ const App: React.FC = () => {
                 </p>
               </div>
 
+              {/* Simulation Ignition Controller */}
               {!(showWindOverlay || showTraffic) && (
                 <button
                   onClick={() => {
@@ -411,7 +433,8 @@ const App: React.FC = () => {
                   <strong>Error:</strong> {errorMsg}
                 </div>
               )}
-              {/* Risk Score */}
+              
+              {/* Aggregated Risk Score */}
               <div className="glass-panel" style={{ padding: '24px', borderRadius: '16px', borderLeft: '4px solid var(--accent-amber)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
                   <div>
@@ -434,7 +457,7 @@ const App: React.FC = () => {
                 </div>
               </div>
 
-              {/* Metrics Grid */}
+              {/* Environmental Metrics Grid */}
               <div className="metric-grid">
                 <MetricCard
                   icon={<Thermometer className="text-red" size={20} />}
@@ -474,7 +497,7 @@ const App: React.FC = () => {
                 />
               </div>
 
-              {/* Map Intelligence Layers (Scroll Down) */}
+              {/* Sub-Panel: Map Layer Management */}
               <div style={{ marginTop: '32px', padding: '24px', backgroundColor: 'rgba(255, 255, 255, 0.03)', borderRadius: '16px', border: '1px solid var(--glass-border)' }}>
                 <h3 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <Zap size={16} className="text-amber" />
@@ -501,7 +524,7 @@ const App: React.FC = () => {
           </section>
         </div>
 
-        {/* 3D Simulation View */}
+        {/* VIEW: 3D SIMULATION ANALYSIS */}
         <div
           style={{
             display: viewMode === 'SIMULATION' ? 'block' : 'none',
@@ -512,7 +535,8 @@ const App: React.FC = () => {
         >
           <SimulationView />
         </div>
-        {/* FAQ & Protocols View */}
+        
+        {/* VIEW: RESOURCES & EMERGENCY PROTOCOLS */}
         <div
           style={{
             display: viewMode === 'FAQ' ? 'block' : 'none',
@@ -524,7 +548,7 @@ const App: React.FC = () => {
           <FAQProtocols />
         </div>
 
-        {/* Chat View */}
+        {/* VIEW: AI RESPONSE ASSISTANT */}
         <div
           style={{
             display: viewMode === 'CHAT' ? 'block' : 'none',
@@ -541,7 +565,7 @@ const App: React.FC = () => {
 
 /**
  * NavButton Component
- * Premium navigation button for the top bar.
+ * Renders a premium navigation link with active state highlighting.
  */
 const NavButton = ({ active, onClick, icon, label }: any) => (
   <button
@@ -554,12 +578,11 @@ const NavButton = ({ active, onClick, icon, label }: any) => (
 );
 
 /**
- * Landing Page Component
- * Minimal, aesthetic entry point for the platform.
+ * LandingPage Component
+ * The interactive entry portal for the SAFE platform.
  */
 const LandingPage = ({ onNavigate }: { onNavigate: (mode: ViewMode) => void }) => (
   <div className="landing-container" style={{ background: 'transparent' }}>
-
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -605,6 +628,10 @@ const LandingPage = ({ onNavigate }: { onNavigate: (mode: ViewMode) => void }) =
   </div>
 );
 
+/**
+ * LandingCard Component
+ * Interactive tiles for the main landing page.
+ */
 const LandingCard = ({ title, desc, icon, onClick }: any) => (
   <motion.div
     whileHover={{ scale: 1.02, backgroundColor: 'rgba(255, 255, 255, 0.05)' }}
@@ -621,7 +648,7 @@ const LandingCard = ({ title, desc, icon, onClick }: any) => (
 
 /**
  * MetricCard Component
- * Displays a single environmental data point with an icon and trend label.
+ * Displays a single environmental sensory data point with context.
  */
 const MetricCard = ({ icon, label, value, trend }: any) => (
   <div className="glass-panel metric-card">
@@ -640,7 +667,7 @@ const MetricCard = ({ icon, label, value, trend }: any) => (
 
 /**
  * LayerToggle Component
- * A stylized toggle for map intelligence layers.
+ * A modular toggle for managing map overlays (Wind, Traffic).
  */
 const LayerToggle = ({ label, active, onChange, icon, color }: any) => (
   <div 
@@ -688,7 +715,7 @@ const LayerToggle = ({ label, active, onChange, icon, color }: any) => (
 );
 
 /**
- * Google Maps Stylization
+ * Google Maps Stylization (SAFE Dark Theme)
  * Curated color palette for high-readability wildfire environmental mapping.
  */
 const lightColorfulMapStyle = [
